@@ -21,11 +21,14 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #sl label{display:flex;flex-direction:column;color:var(--mu);font-size:12px}
 input[type=range]{width:100%;accent-color:var(--ac)}
 label.chk{display:flex;gap:5px;align-items:center;color:var(--mu)}
+input[type=text]{font:inherit;color:var(--tx);background:transparent;border:1px solid var(--bd);border-radius:6px;padding:4px 8px;width:9em;letter-spacing:.04em}
+#pm,#einfo{color:var(--mu);font-size:12px}
+#erow button:disabled{opacity:.4;cursor:default}
 </style></head><body>
 <div id="stage"><canvas id="c"></canvas><div id="hint">Drag to paint glitter · Pen: click points, Enter to finish</div></div>
 <div id="pn">
  <div class="row" id="tools">
-  <button data-t="brush" class="on">Brush (drag)</button><button data-t="pen">Pen (click points)</button><button data-t="flare">Lens flare (drag)</button>
+  <button data-t="brush" class="on">Brush (drag)</button><button data-t="pen">Pen (click points)</button><button data-t="flare">Lens flare (drag)</button><button data-t="select">Select</button>
   <button id="fin">Finish path</button><button id="und">Undo</button><button id="rdo">Redo</button><button id="clr">Clear</button>
  </div>
  <div class="row">
@@ -36,6 +39,8 @@ label.chk{display:flex;gap:5px;align-items:center;color:var(--mu)}
  <div class="row"><select id="pr" title="Look preset"></select><button id="fdust">Dust field</button><button id="ftex">Glitter texture</button><label class="chk">BG<input type="color" id="bgc" value="#0a0805"></label><button id="bgr">Default BG</button></div>
  <div class="row"><select id="fs" title="Flare style"></select><label class="chk"><input type="checkbox" id="he">Flare at stroke end</label>
   <select id="pkn" title="Pack size"><option>12</option><option selected>18</option><option>24</option></select><select id="pks" title="Pack type"><option>Stars</option><option>Lens</option><option>All</option></select><button id="pk">Generate pack</button><button id="zpk">Each element to PNG zip</button></div>
+ <div class="row" id="vrow"><label class="chk">Seed<input type="text" id="mseed" spellcheck="false" autocomplete="off" title="Master seed: same seed + same settings = same pack"></label><button id="sgen">Generate seed</button><button id="scp">Copy seed</button><label class="chk"><input type="checkbox" id="slk">Lock seed</label><select id="uq" title="Uniqueness: how different each pack element must be"><option value="70">Uniqueness: Conservative</option><option value="55" selected>Uniqueness: Balanced</option><option value="45">Uniqueness: Strict</option><option value="35">Uniqueness: Extreme</option></select><span id="pm"></span></div>
+ <div class="row" id="erow"><button id="eprv" title="Previous element">&#9664;</button><button id="enxt" title="Next element">&#9654;</button><span id="einfo">Select tool: click an element</span><button id="elck">Lock</button><button id="erg">Regenerate</button><button id="erd">Regenerate different</button><button id="edl">Delete</button></div>
  <div class="row" id="sw"></div>
  <div id="sl"></div>
  <div class="row"><label class="chk"><input type="checkbox" id="tw" checked>Twinkle</label><label class="chk"><input type="checkbox" id="fl">Fill closed shapes</label><label class="chk"><input type="checkbox" id="cm">Color mix</label><label class="chk"><input type="checkbox" id="all">Sliders edit all strokes</label></div>
@@ -58,7 +63,7 @@ function build(p,o={}){
  let q=p.length>1?p:[p[0],[p[0][0]+.1,p[0][1]]];
  q=resample(chaikin(q,o.sm??3),STEP);const n=q.length;
  const nr=q.map((_,i)=>{const a=q[Math.max(0,i-1)],b=q[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return[-dy/l,dx/l]});
- const s={pts:q,nr,col:{...col},seed:o.seed??(Math.random()*1e9|0),closed:!!o.closed,parts:[],P:{...P}};if(P.mix&&!col.rb)s.pal=[sh(col.h,0),sh(col.h,.45),sh(col.h,-.3),sh(col.h,.8)];gen(s);return s}
+ const s={pts:q,nr,col:{...col},seed:o.seed??(Math.random()*1e9|0),closed:!!o.closed,parts:[],P:{...P}};if(P.mix&&!col.rb)s.pal=[sh(col.h,0),sh(col.h,.45),sh(col.h,-.3),sh(col.h,.8)];gen(s);return ensureEl(s)}
 function gen(s){
  if(s.kind=='flare')return;if(s.kind=='field')return genField(s);
  const P=s.P;
@@ -93,7 +98,7 @@ function one(s,t,fr=1){
   if(hz&&(z>.9||st)){X.globalAlpha=Math.min(1,al*.22*hz);if(hal)X.fillStyle=hal;X.beginPath();X.arc(x,y,z*(2.5+3*hz),0,6.283);X.fill();if(hal)X.fillStyle=base}
   if(st==1&&al>.3){const L=z*(4+4*gl),q=L*.14;X.globalAlpha=al;X.beginPath();X.moveTo(x,y-L);X.lineTo(x+q,y-q);X.lineTo(x+L,y);X.lineTo(x+q,y+q);X.lineTo(x,y+L);X.lineTo(x-q,y+q);X.lineTo(x-L,y);X.lineTo(x-q,y-q);X.closePath();X.fill()}}
  X.globalAlpha=1}
-let anim=null,E=0,NORMAL=0,busy=0,BGC=null;
+let anim=null,E=0,NORMAL=0,busy=0,BGC=null,REC=0;
 const total=()=>(Math.max(strokes.length,1)-1)*.7+1.8;
 const frac=i=>{if(!anim)return 1;const f=Math.min(1,Math.max(0,(E-i*.7)/1.8));return 1-(1-f)*(1-f)};
 function paint(t,bg=1,list){
@@ -104,7 +109,7 @@ function paint(t,bg=1,list){
  (list||(cur?strokes.concat(cur):strokes)).forEach((s,i)=>one(s,t,frac(i)))}
 function loop(t){requestAnimationFrame(loop);if(!(W>0&&H>0)||busy)return;
  if(anim){E=(t-anim.t0)/1000;if(E>total()+anim.hold){const f=anim.done;anim=null;f&&f()}}
- if(anim||P.twinkle||dirty){try{paint(t)}catch(e){console.error(e)}dirty=0}}
+ if(anim||P.twinkle||dirty){try{paint(t);overlay()}catch(e){console.error(e)}dirty=0}}
 fit();requestAnimationFrame(loop);
 const pos=e=>{const r=C.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
 const prev=()=>{cur=pen.length?build([...pen,hov],{seed}):null};
@@ -121,7 +126,7 @@ function hist(){UST.push(JSON.parse(JSON.stringify(strokes)));if(UST.length>40)U
 function undo(){if(!UST.length)return;RST.push(JSON.parse(JSON.stringify(strokes)));strokes=UST.pop();cur=null;dirty=1}
 function redo(){if(!RST.length)return;UST.push(JSON.parse(JSON.stringify(strokes)));strokes=RST.pop();cur=null;dirty=1}
 function finish(){if(pen.length>1){hist();strokes.push(build(pen,{seed}))}pen=[];cur=null;dirty=1}
-addEventListener('keydown',e=>{if(e.key=='Enter')finish();if(e.key=='Escape'){pen=[];cur=null;dirty=1}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='z'){e.preventDefault();e.shiftKey?redo():undo()}});
+addEventListener('keydown',e=>{if(e.target.matches&&e.target.matches('input[type=text]'))return;if(e.key=='Enter')finish();if(e.key=='Escape'){pen=[];cur=null;dirty=1}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='z'){e.preventDefault();e.shiftKey?redo():undo()}});
 $('#fin').onclick=finish;$('#und').onclick=undo;$('#rdo').onclick=redo;$('#clr').onclick=()=>{if(strokes.length)hist();strokes=[];pen=[];cur=null;dirty=1};
 document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tool=b.dataset.t;pen=[];cur=null;document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',x==b));dirty=1});
 const SH={
@@ -146,14 +151,14 @@ $('#svg').onchange=async e=>{
  dirty=1;$('#hint').style.opacity=0};
 [['amount','Amount',0,100,1],['spread','Spread',2,90,1],['size','Particle size',.5,4,.1],['glow','Glow',0,100,1],['core','Core line',0,100,1],['taper','Taper',0,3,.1],['drift','Drift (motion)',0,30,1],['stars','Sparkle stars %',0,40,.5],['bokeh','Bokeh discs %',0,30,.5],['bsize','Bokeh size',.4,3,.1],['ssize','Star size',.4,3,.1],['halo','Particle glow',0,100,1],['bright','Particle brightness',.4,2,.05]].forEach(([k,n,a,b,st])=>{
  const l=document.createElement('label');l.textContent=n;const i=document.createElement('input');i.type='range';i.min=a;i.max=b;i.step=st;i.value=P[k];
- i.oninput=()=>{P[k]=+i.value;(document.getElementById('all').checked?strokes:strokes.filter(s=>s.P).slice(-1)).forEach(s=>{if(s.P){s.P[k]=P[k];gen(s)}});dirty=1};SI[k]=i;l.append(i);$('#sl').append(l)});
+ i.oninput=()=>{P[k]=+i.value;(document.getElementById('all').checked?strokes:strokes.filter(s=>s.P).slice(-1)).forEach(s=>{if(s.P&&!s.lock){s.P[k]=P[k];gen(s)}});dirty=1};SI[k]=i;l.append(i);$('#sl').append(l)});
 $('#tw').onchange=e=>{P.twinkle=+e.target.checked;dirty=1};
-$('#fl').onchange=e=>{P.fill=+e.target.checked;strokes.forEach(s=>{if(s.P){s.P.fill=P.fill;gen(s)}});dirty=1};
+$('#fl').onchange=e=>{P.fill=+e.target.checked;strokes.forEach(s=>{if(s.P&&!s.lock){s.P.fill=P.fill;gen(s)}});dirty=1};
 ['#ffc84a','#e6eeff','#ff8fb1','#6cc8ff','#8dffb0','#c99bff','rainbow'].forEach(h=>{
  const b=document.createElement('button');b.className='sw';b.title=h=='rainbow'?'Rainbow':h;b.style.background=h=='rainbow'?'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)':h;
  b.onclick=()=>{col=h=='rainbow'?{h:'#ffffff',rb:1}:{h,rb:0}};$('#sw').append(b)});
 const ci=document.createElement('input');ci.type='color';ci.value='#ffc84a';ci.title='Custom color';ci.oninput=()=>{col={h:ci.value,rb:0}};$('#sw').append(ci);
-const rc=document.createElement('button');rc.textContent='Recolor all';rc.onclick=()=>{strokes.forEach(s=>s.col={...col});dirty=1};$('#sw').append(rc);
+const rc=document.createElement('button');rc.textContent='Recolor all';rc.onclick=()=>{strokes.forEach(s=>{if(!s.lock)s.col=s.dv?{h:tintOf(s.dna),rb:0}:{...col}});dirty=1};$('#sw').append(rc);
 
 const st=m=>$('#st').textContent=m;let DL=null;
 if(window.claude&&claude.use)claude.use('downloads').then(d=>DL=d).catch(()=>{});
@@ -185,8 +190,8 @@ const quickVid=()=>{
  const mt=['video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
  const r=new MediaRecorder(C.captureStream(60),{mimeType:mt,videoBitsPerSecond:12e6}),ch=[];
  r.ondataavailable=e=>e.data.size&&ch.push(e.data);
- r.onstop=()=>{st('');save(mt.includes('mp4')?'glitter.mp4':'glitter.webm',new Blob(ch))};
- r.start();st('Recording…');
+ r.onstop=()=>{REC=0;st('');save(mt.includes('mp4')?'glitter.mp4':'glitter.webm',new Blob(ch))};
+ r.start();REC=1;st('Recording…');
  anim={t0:performance.now(),hold:2,done:()=>setTimeout(()=>r.stop(),200)}};
 function crc(b){let c,t=crc.t;if(!t){t=crc.t=[];for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^c>>>1:c>>>1;t[n]=c>>>0}}c=-1;for(let i=0;i<b.length;i++)c=t[(c^b[i])&255]^c>>>8;return(c^-1)>>>0}
 function zip(name,d){const nb=new TextEncoder().encode(name),c=crc(d),n=d.length,m=nb.length,o=new Uint8Array(30+m+n+46+m+22),v=new DataView(o.buffer);
@@ -230,7 +235,7 @@ function genField(s){const P=s.P,r=rng(s.seed),{w,h,tex}=s.geo,cnt=Math.min(2600
   a.push([x,y,st==2?P.size*P.bsize*(4+r()*9):st==1?P.size*P.ssize*(1.2+r()*2.2):P.size*(.3+b*b*b*2.6)*(tex?.9:1),st==2?.2+.5*r():.25+.75*r(),r()*6.28,r(),st])}
  s.parts=a}
 function field(tex){const s={kind:'field',P:{...P},pts:[],nr:[],parts:[],col:{...col},seed:Math.random()*1e9|0,closed:0,geo:{w:W,h:H,tex},box:[0,0,W,H]};
- if(tex)s.pal=[sh(col.h,0),sh(col.h,.6),'#ffffff',sh(col.h,-.35),sh(col.h,.3)];genField(s);return s}
+ if(tex)s.pal=[sh(col.h,0),sh(col.h,.6),'#ffffff',sh(col.h,-.35),sh(col.h,.3)];genField(s);return ensureEl(s)}
 const FT={
  'Classic star':{glow:1,rays:10,rl:.8,cross:1.3,cw:1.8},
  'Starburst':{glow:1,rays:30,rl:1,cross:.8,cw:1.2},
@@ -256,20 +261,22 @@ const FT={
 },FK=Object.keys(FT);let FTs;
 const pickT=()=>{const v=$('#fs').value;return v=='Random'?FK[Math.random()*FK.length|0]:v};
 function flare(p,r,o={}){let ty=o.type||pickT();const sd=o.seed??(Math.random()*1e9|0),rt=o.rot??FT[ty].rot??(rng(sd)()-.5)*.5,m=r*2.3;
- return{kind:'flare',pts:[],nr:[],parts:[],col:o.h?{h:o.h,rb:0}:{...col},seed:sd,closed:0,geo:{x:p[0],y:p[1],r,type:ty,rot:rt},box:[p[0]-m,p[1]-m,p[0]+m,p[1]+m]}}
+ return ensureEl({kind:'flare',pts:[],nr:[],parts:[],col:o.h?{h:o.h,rb:0}:{...col},seed:sd,closed:0,geo:{x:p[0],y:p[1],r,type:ty,rot:rt},box:[p[0]-m,p[1]-m,p[0]+m,p[1]+m]})}
+function fkit(c,k,gl){return{
+ glow:(px,py,pr,a)=>{const q=X.createRadialGradient(px,py,0,px,py,pr);q.addColorStop(0,c(1,a*k));q.addColorStop(.12,c(.6,.6*a*k));q.addColorStop(.4,c(0,(.14*gl+.05)*a));q.addColorStop(1,c(0,0));X.fillStyle=q;X.fillRect(px-pr,py-pr,2*pr,2*pr)},
+ ln:(x0,y0,x1,y1,w,a0,a1,a2)=>{const q=X.createLinearGradient(x0,y0,x1,y1);q.addColorStop(0,c(.9,a0*k));q.addColorStop(.5,c(.6,a1*k));q.addColorStop(1,c(.9,a2*k));X.strokeStyle=q;X.lineWidth=w;X.beginPath();X.moveTo(x0,y0);X.lineTo(x1,y1);X.stroke()}}}
 function drawOne(x,y,r,T,rot,rr,c,gl,k){
- const glow=(px,py,pr,a)=>{const q=X.createRadialGradient(px,py,0,px,py,pr);q.addColorStop(0,c(1,a*k));q.addColorStop(.12,c(.6,.6*a*k));q.addColorStop(.4,c(0,(.14*gl+.05)*a));q.addColorStop(1,c(0,0));X.fillStyle=q;X.fillRect(px-pr,py-pr,2*pr,2*pr)};
- const ln=(x0,y0,x1,y1,w,a0,a1,a2)=>{const q=X.createLinearGradient(x0,y0,x1,y1);q.addColorStop(0,c(.9,a0*k));q.addColorStop(.5,c(.6,a1*k));q.addColorStop(1,c(.9,a2*k));X.strokeStyle=q;X.lineWidth=w;X.beginPath();X.moveTo(x0,y0);X.lineTo(x1,y1);X.stroke()};
+ const{glow,ln}=fkit(c,k,gl);
  glow(x,y,r*(T.glow||1),.9);
  for(let i=0;i<(T.rays||0);i++){const a=rr()*6.283,l=r*(T.rl||.7)*(.5+rr()*.9);ln(x,y,x+Math.cos(a)*l,y+Math.sin(a)*l,.6+rr()*1.2,.7,.3,0)}
  for(const a of[rot,rot+1.5708]){const l=r*(T.cross||0),dx=Math.cos(a)*l,dy=Math.sin(a)*l;if(l)ln(x-dx,y-dy,x+dx,y+dy,T.cw||1.6,0,.95,0)}
  glow(x,y,r*.16,1)}
 function flareDraw(s,t,fr){
+ if(s.dv&&s.dna)return drawDNA(s,t,fr);
  const{x,y,r,type,rot}=s.geo,T=FT[type],[R,G,B]=rgb(s.col.h),gl=P.glow/100,k=P.twinkle?.85+.15*Math.sin(t*.003+s.seed%9):1,rr=rng(s.seed);
  const c=(m,a)=>`rgba(${R+(255-R)*m|0},${G+(255-G)*m|0},${B+(255-B)*m|0},${a})`;
  if(T.twin){const d=r*.32;drawOne(x-d,y,r*.72,FT['Classic star'],rot,rr,c,gl,k);drawOne(x+d*1.05,y+d*.15,r*.6,FT['Diagonal glint'],rot+.4,rr,c,gl,k);X.globalAlpha=fr;return}
- const ln=(x0,y0,x1,y1,w,a0,a1,a2)=>{const q=X.createLinearGradient(x0,y0,x1,y1);q.addColorStop(0,c(.9,a0*k));q.addColorStop(.5,c(.6,a1*k));q.addColorStop(1,c(.9,a2*k));X.strokeStyle=q;X.lineWidth=w;X.beginPath();X.moveTo(x0,y0);X.lineTo(x1,y1);X.stroke()};
- const glow=(px,py,pr,a)=>{const q=X.createRadialGradient(px,py,0,px,py,pr);q.addColorStop(0,c(1,a*k));q.addColorStop(.12,c(.6,.6*a*k));q.addColorStop(.4,c(0,(.14*gl+.05)*a));q.addColorStop(1,c(0,0));X.fillStyle=q;X.fillRect(px-pr,py-pr,2*pr,2*pr)};
+ const{glow,ln}=fkit(c,k,gl);
  const burst=(px,py,pr,o,ro)=>{
   if(o.haloBg){X.globalAlpha=fr*o.haloBg*.5*k;const q=X.createRadialGradient(px,py,0,px,py,pr*1.3);q.addColorStop(0,c(.5,.55));q.addColorStop(.55,c(.15,.22));q.addColorStop(1,c(0,0));X.fillStyle=q;X.beginPath();X.arc(px,py,pr*1.3,0,6.283);X.fill();X.globalAlpha=fr}
   if(o.squareBg){X.globalAlpha=fr*.4*k;const q=X.createRadialGradient(px,py,0,px,py,pr*1.15);q.addColorStop(0,c(.4,.5));q.addColorStop(1,c(0,0));X.fillStyle=q;X.save();X.translate(px,py);X.rotate(.785);X.fillRect(-pr*.8,-pr*.8,pr*1.6,pr*1.6);X.restore();X.globalAlpha=fr}
@@ -291,9 +298,6 @@ function flareDraw(s,t,fr){
 $('#fs').append(new Option('Random','Random'));FK.forEach(k=>$('#fs').append(new Option(k,k)));
 function headFlare(st){const e=st.pts[st.pts.length-1];if(e)strokes.push(flare(e,Math.max(45,P.spread*1.6),{type:pickT()}));dirty=1}
 {const f0=finish;finish=()=>{const n0=strokes.length;f0();if($('#he').checked&&strokes.length>n0)headFlare(strokes[n0])};$('#fin').onclick=()=>finish()}
-$('#pk').onclick=()=>{hist();const n=+$('#pkn').value,S={Stars:['Classic star','Starburst','Ring halo','Slim cross','Sparkle cluster','Diagonal glint'],Lens:['Lens ghosts','Anamorphic streak','Soft orb','Sparkle burst','Ring halo','Diagonal glint'],All:FK}[$('#pks').value],cols=Math.ceil(Math.sqrt(n*W/H)),rows=Math.ceil(n/cols),cw=W/cols,ch=H/rows,r=Math.min(cw,ch)*.36,o=Math.random()*9|0;
- const tints=col.rb?[col.h]:[sh(col.h,0),sh(col.h,.35),sh(col.h,-.2)];
- for(let i=0;i<n;i++)strokes.push(flare([(i%cols+.5)*cw,(Math.floor(i/cols)+.5)*ch],r*(.8+Math.random()*.4),{type:S[(i+o)%S.length],h:col.rb?undefined:tints[i%3]}));dirty=1};
 function snapOne(s,L){const B=bbox([s]),bw=B.x1-B.x0,bh=B.y1-B.y0,k=L/(Math.max(bw,bh)*1.05),c=document.createElement('canvas');c.width=c.height=L;X=c.getContext('2d');X.setTransform(k,0,0,k,(L-bw*k)/2-B.x0*k,(L-bh*k)/2-B.y0*k);const a=anim;anim=null;NORMAL=1;paint(performance.now(),0,[s]);NORMAL=0;anim=a;X=MX;return c}
 function zipN(fs){const en=new TextEncoder(),loc=[],cen=[];let off=0;
  for(const f of fs){const nb=en.encode(f.name),c=crc(f.data),n=f.data.length,h=new Uint8Array(30+nb.length),v=new DataView(h.buffer);
@@ -310,7 +314,7 @@ $('#ftex').onclick=()=>{hist();BGC=sh(col.h,-.45);$('#bgc').value=BGC;strokes.pu
 $('#bgc').oninput=e=>{BGC=e.target.value;dirty=1};$('#bgr').onclick=()=>{BGC=null;dirty=1};
 const PR={'Look: Glitter trail':{amount:55,spread:26,size:1.6,glow:55,core:60,taper:1.2,stars:1.2,bokeh:0},'Look: Dust band':{amount:80,spread:75,size:1.3,glow:35,core:0,taper:.5,stars:2,bokeh:0},'Look: Fine glitter':{amount:100,spread:14,size:.9,glow:25,core:20,taper:1,stars:.5,bokeh:0},'Look: Bokeh sparkle':{amount:30,spread:60,size:1.6,glow:75,core:0,taper:.6,stars:3,bokeh:12},'Look: Star sparkles':{amount:14,spread:50,size:1.8,glow:80,core:0,taper:.3,stars:28,bokeh:0},'Look: Comet trail':{amount:70,spread:22,size:1.4,glow:65,core:70,taper:1.5,stars:1.5,bokeh:0}};
 for(const k in PR)$('#pr').append(new Option(k,k));
-$('#pr').onchange=e=>{Object.assign(P,{mode:0,halo:25,bsize:1,ssize:1,bright:1},PR[e.target.value]);for(const k in SI)SI[k].value=P[k];if($('#all').checked)strokes.forEach(s=>{if(s.P){Object.assign(s.P,P);gen(s)}})};
+$('#pr').onchange=e=>{Object.assign(P,{mode:0,halo:25,bsize:1,ssize:1,bright:1},PR[e.target.value]);for(const k in SI)SI[k].value=P[k];if($('#all').checked)strokes.forEach(s=>{if(s.P&&!s.lock){Object.assign(s.P,P);gen(s)}})};
 {const od=C.onpointerdown,om=C.onpointermove,ou=C.onpointerup;let F0;
  C.onpointerdown=e=>{if(tool=='flare'&&!e.button){F0=pos(e);down=1;seed=Math.random()*1e9|0;C.setPointerCapture(e.pointerId);hist();FTs=pickT();cur=flare(F0,50,{seed,type:FTs});dirty=1;$('#hint').style.opacity=0;return}od(e)};
  C.onpointermove=e=>{if(tool=='flare'&&down){const p=pos(e);cur=flare(F0,Math.max(50,Math.hypot(p[0]-F0[0],p[1]-F0[1])),{seed,type:FTs});dirty=1;return}om(e)};
@@ -331,4 +335,260 @@ const NEW={
  'Brush: Fine glitter':{mode:0,amount:100,spread:14,size:.9,glow:25,core:20,taper:1,stars:.5,bokeh:0,halo:25,bright:1.2}};
 Object.assign(PR,NEW);Object.keys(NEW).reverse().forEach(k=>$('#pr').prepend(new Option(k,k)));
 $('#pr').selectedIndex=0;$('#pr').onchange({target:$('#pr')});
+
+// ============================================================
+// SEEDED RNG
+// Procedural decisions use rng(hsh(...)) so a master seed reproduces a pack.
+// ============================================================
+const hsh=(...a)=>{let h=0x811c9dc5;const s=a.join('|');for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),0x01000193);h^=h>>>16;h=Math.imul(h,0x85ebca6b);h^=h>>>13;h=Math.imul(h,0xc2b2ae35);h^=h>>>16;return h>>>0};
+const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),pick=(r,a)=>a[r()*a.length|0];
+let MSEED='',NID=1;const nid=()=>NID++;
+const newSeed=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<8;i++)s+=a[Math.random()*a.length|0];return s.slice(0,4)+'-'+s.slice(4)};
+function setSeed(v){MSEED=String(v).trim()||newSeed();$('#mseed').value=MSEED}
+
+// ============================================================
+// VARIATION DNA
+// Every element carries its own DNA. Pack elements (s.dv) are rendered from it;
+// manual strokes/flares get a descriptive DNA and keep their original renderer.
+// ============================================================
+const FAM={
+ burst:['Classic star','Starburst','Sparkle burst','Radial spokes'],
+ symmetric:['8-ray halo','8-ray sharp','6-ray warm'],
+ cross:['Slim cross','Fine 4-point','Needle cross','Halo cross','Square halo cross'],
+ glint:['Diagonal glint','X wisp'],
+ streak:['Anamorphic streak','Vertical flare'],
+ ring:['Ring halo','Lens ghosts'],
+ orb:['Soft orb'],
+ cluster:['Sparkle cluster','Twin star']};
+const famOf=t=>Object.keys(FAM).find(f=>FAM[f].includes(t))||'burst';
+// family archetypes: allowed ray-count range and symmetry orders (0 = free/random angles)
+const ARC={burst:{rays:[8,30],sym:[0,0,8,12]},symmetric:{rays:[4,24],sym:[4,5,6,8,12]},cross:{rays:[0,8],sym:[4,6,8]},glint:{rays:[0,10],sym:[0,4]},
+ streak:{rays:[0,6],sym:[0,2]},ring:{rays:[0,12],sym:[0,4,6]},orb:{rays:[0,4],sym:[0]},cluster:{rays:[0,6],sym:[0,4]}};
+const DNA_KEYS=['complexity','density','scale','aspectRatio','rotation','rayLength','rayWidth','particleDensity','particleSize','clusterAmount','glow','core','halo','sparkleAmount','bokehAmount','irregularity','curvature','elongation','colorVariation'];
+function fitFam(m,r){const A=ARC[m.shapeFamily]||ARC.burst;
+ if(!A.sym.includes(m.symmetry))m.symmetry=pick(r,A.sym);
+ let n=Math.round(cl(m.rayCount,A.rays[0],A.rays[1]));
+ if(m.symmetry>=4&&n>0){n=Math.max(m.symmetry,Math.round(n/m.symmetry)*m.symmetry);if(n>A.rays[1])n=Math.floor(A.rays[1]/m.symmetry)*m.symmetry}
+ m.rayCount=n;
+ if(m.shapeFamily=='streak')m.elongation=Math.max(m.elongation,.45);
+ if(m.shapeFamily=='cluster')m.clusterAmount=Math.max(m.clusterAmount,.4);
+ if(m.shapeFamily=='cross'||m.shapeFamily=='glint')m.rayLength=Math.max(m.rayLength,.25);
+ if(!FAM[m.shapeFamily].includes(m.structureType))m.structureType=FAM[m.shapeFamily][0];
+ return m}
+// DNA that describes an existing flare preset (used for legacy flares and as the seed of new DNA)
+function dnaFromType(ty,sd){const T=FT[ty]||{},f=famOf(ty),r=rng(hsh('type',ty,sd));
+ const n=(T.dust?1:0)+(T.rays?1:0)+(T.cross?1:0)+(T.ring?1:0)+(T.ghosts?1:0)+(T.haloBg||T.squareBg?1:0)+(T.diag||T.streak||T.vstreak?1:0);
+ return fitFam({v:1,shapeFamily:f,structureType:ty,seed:sd>>>0,symmetry:T.symRays?T.rays:f=='cross'?4:f=='streak'?2:0,rayCount:T.rays||0,
+  complexity:cl(n/5),density:.5,scale:.5,aspectRatio:.5,rotation:r(),rayLength:cl(((T.rl||.7)-.3)/.85),rayWidth:cl(((T.cw||1.2)-.6)/1.8),
+  particleDensity:cl((T.dust||0)/110),particleSize:.35,clusterAmount:T.cluster?.75:T.twin?.5:0,glow:cl(((T.glow||1)-.45)/1.5),core:.5,
+  halo:cl(T.haloBg||(T.squareBg?.8:0)),sparkleAmount:0,bokehAmount:0,irregularity:T.uneven?.6:T.symRays?.1:.4,curvature:T.ring?.5:0,
+  elongation:cl(Math.max((T.longcross||T.long||1)-1,(T.streak||T.vstreak||0)/3)/1.2),colorVariation:.5},r)}
+// DNA that describes a brush/pen/shape stroke or a dust field (descriptive only)
+function dnaFromStroke(s){const Q=s.P||P,f=s.kind=='field'?'field':'stroke';let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ for(const[x,y]of s.pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}
+ const w=s.geo&&s.geo.w||x1-x0||1,h=s.geo&&s.geo.h||y1-y0||1;
+ return{v:1,legacy:1,shapeFamily:f,structureType:f=='field'?(s.geo&&s.geo.tex?'texture':'dust'):['trail','comet','swirl','filament','spray','cloud'][Q.mode|0]||'trail',
+  symmetry:0,rayCount:0,complexity:cl(s.pts.length/400),density:cl(Q.amount/100),scale:.5,aspectRatio:cl(.5+Math.log2(Math.max(w,1)/Math.max(h,1))/4),rotation:0,
+  rayLength:0,rayWidth:cl(Q.core/100),particleDensity:cl(Q.amount/100),particleSize:cl((Q.size-.5)/3.5),clusterAmount:Q.mode==3?.6:Q.mode==5?.4:.1,
+  glow:cl(Q.glow/100),core:cl(Q.core/100),halo:cl(Q.halo/100),sparkleAmount:cl(Q.stars/40),bokehAmount:cl(Q.bokeh/30),irregularity:cl(Q.spread/90),
+  curvature:s.closed?1:.5,elongation:cl(Q.taper/3),colorVariation:Q.mix?1:0,seed:s.seed>>>0}}
+// Backward compatibility: any element without id/DNA gets one on demand
+function ensureEl(s){if(!s.id)s.id=nid();else NID=Math.max(NID,s.id+1);
+ if(!s.dna)s.dna=s.kind=='flare'?dnaFromType(s.geo.type,s.seed):dnaFromStroke(s);return s}
+// Fresh DNA for a pack slot: preset character + deterministic structural variation
+function dnaNew(ty,sd){const d=dnaFromType(ty,sd),r=rng(hsh('new',sd));
+ for(const k of['rayLength','rayWidth','elongation','glow','halo','particleDensity','clusterAmount','complexity'])d[k]=cl(d[k]+(r()*2-1)*.3);
+ d.density=r();d.scale=r();d.aspectRatio=r()<.6?.5+(r()-.5)*.2:r();d.rotation=r();d.particleSize=r();d.core=r();
+ d.sparkleAmount=r()<.5?0:r();d.bokehAmount=r()<.6?0:r();d.irregularity=r();d.curvature=r()<.55?r()*.15:r();d.colorVariation=r();
+ const A=ARC[d.shapeFamily];d.symmetry=pick(r,A.sym);d.rayCount=A.rays[0]+r()*(A.rays[1]-A.rays[0]+1)|0;
+ return fitFam(d,r)}
+// DNA -> render parameters (cached per DNA object)
+const TC=new WeakMap();
+function dnaT(d){let T=TC.get(d);if(T)return T;const f=d.shapeFamily,cx=d.complexity;
+ T={glow:.45+d.glow*1.5,halo:d.halo,core:.55+d.core*1.1,rays:d.rayCount|0,sym:d.symmetry,rl:.3+d.rayLength*.85,rw:.35+d.rayWidth*1.5,irr:d.irregularity,
+  curve:d.curvature*.6,aspect:.62+d.aspectRatio*.95,psz:.35+d.particleSize*1.5,clump:d.clusterAmount,
+  dust:Math.round((d.particleDensity*110+(f=='orb'?30:0))*(.35+.65*d.density)),spk:Math.round(d.sparkleAmount*9),bok:Math.round(d.bokehAmount*7),
+  axes:f=='cross'?Math.max(2,d.symmetry/2|0):f=='glint'?4:f=='streak'?(cx>.5?2:1):f=='orb'?(cx>.55?2:0):f=='cluster'?0:(d.rayLength>.25||cx>.4)?2:0,
+  arm:f=='streak'?.8+d.rayLength*.3:.7+d.rayLength*.8,long:f=='streak'?1.8+d.elongation*.9:1+d.elongation*1.1,
+  alt:f=='glint'?.45+.3*(1-d.elongation):f=='streak'?.25:1-d.elongation*.5,cw:f=='streak'?2+d.rayWidth*1.6:.6+d.rayWidth*1.8,inner:f=='streak',
+  ring:f=='ring'?.38+d.curvature*.35:cx>.85?.55:0,ghosts:f=='ring'?2+Math.round(cx*3):0,cluster:f=='cluster'?2+Math.round(d.clusterAmount*4):0};
+ if(T.arm*T.long>2.2)T.long=2.2/T.arm;
+ T.sub={halo:0,glow:T.glow*.8,rays:Math.min(T.rays,6)||4,sym:4,rl:T.rl,rw:T.rw,irr:T.irr,curve:T.curve,axes:2,arm:1.1+d.rayLength*.5,long:1+d.elongation*.8,alt:1,cw:T.cw*.85,core:T.core};
+ const sa=Math.sqrt(T.aspect);
+ T.ext=Math.max(T.glow,T.halo>.04?1.3:0,T.rl*1.1,T.arm*T.long,T.ring*1.2,T.ghosts?(.35+T.ghosts*.28)*1.2:0,1.3,T.cluster?1.6:0)*Math.max(sa,1/sa)*1.08;
+ TC.set(d,T);return T}
+// DNA-driven flare renderer (reuses the flare drawing kit)
+function drawDNA(s,t,fr){
+ const{x,y,r,rot}=s.geo,d=s.dna,T=dnaT(d),[R,G,B]=rgb(s.col.h),k=P.twinkle?.85+.15*Math.sin(t*.003+s.seed%9):1,rr=rng(d.seed),sa=Math.sqrt(T.aspect),sw=rr()<.5?-1:1;
+ const c=(m,a)=>`rgba(${R+(255-R)*m|0},${G+(255-G)*m|0},${B+(255-B)*m|0},${a})`,{glow,ln}=fkit(c,k,d.glow);
+ const ray=(px,py,a,l,w,cv)=>{const ex=px+Math.cos(a)*l,ey=py+Math.sin(a)*l;if(Math.abs(cv)<.04)return ln(px,py,ex,ey,w,.7,.3,0);
+  const q=X.createLinearGradient(px,py,ex,ey);q.addColorStop(0,c(.9,.7*k));q.addColorStop(.5,c(.6,.3*k));q.addColorStop(1,c(.9,0));X.strokeStyle=q;X.lineWidth=w;
+  X.beginPath();X.moveTo(px,py);X.quadraticCurveTo(px+(Math.cos(a)-Math.sin(a)*cv)*l*.5,py+(Math.sin(a)+Math.cos(a)*cv)*l*.5,ex,ey);X.stroke()};
+ const burst=(px,py,pr,o)=>{
+  if(o.halo>.04){X.globalAlpha=fr*o.halo*.5*k;const q=X.createRadialGradient(px,py,0,px,py,pr*1.3);q.addColorStop(0,c(.5,.55));q.addColorStop(.55,c(.15,.22));q.addColorStop(1,c(0,0));X.fillStyle=q;X.beginPath();X.arc(px,py,pr*1.3,0,6.283);X.fill();X.globalAlpha=fr}
+  glow(px,py,pr*o.glow,.95);
+  const n=o.rays,sp=6.2832/(n||1);
+  for(let i=0;i<n;i++){const a=o.sym?i*sp+(rr()-.5)*o.irr*sp*.8:rr()*6.2832,
+   l=pr*o.rl*(o.sym?(1-o.irr*rr()*.55)*(n>o.sym&&i%2?.6:1):.45+rr()*(.5+o.irr*.6));ray(px,py,a,l,o.rw*(.55+rr()*.8),o.curve*sw*(.7+rr()*.6))}
+  for(let j=0;j<o.axes;j++){const a=j*Math.PI/o.axes,f=j==0?o.long:o.axes==2?o.alt:j%2?o.alt:o.alt*.8,l=pr*o.arm*f,dx=Math.cos(a)*l,dy=Math.sin(a)*l;
+   ln(px-dx,py-dy,px+dx,py+dy,o.cw*(j?.8:1),0,.95,0);if(o.inner&&!j)ln(px-dx*.6,py-dy*.6,px+dx*.6,py+dy*.6,1,0,1,0)}
+  if(o.core>1.1){X.globalAlpha=fr*.9*k;X.fillStyle=c(.85,1);X.beginPath();X.arc(px,py,pr*.05*o.core,0,6.283);X.fill();X.globalAlpha=fr}
+  glow(px,py,pr*.16*o.core,1)};
+ X.save();X.translate(x,y);X.rotate(rot);X.scale(sa,1/sa);X.globalAlpha=fr;X.lineCap='round';
+ if(T.cluster){glow(0,0,r*T.glow*.6,.6);for(let i=0;i<T.cluster;i++){const a=rr()*6.2832,dd=r*.5*Math.sqrt(rr());burst(Math.cos(a)*dd,Math.sin(a)*dd,r*(.3+rr()*.35),T.sub)}}
+ else burst(0,0,r,T);
+ if(T.ring){X.globalAlpha=fr;X.strokeStyle=c(.3,.6*k);X.lineWidth=1.5;X.beginPath();X.arc(0,0,r*T.ring,0,6.283);X.stroke();X.strokeStyle=c(.3,.18);X.beginPath();X.arc(0,0,r*T.ring*1.18,0,6.283);X.stroke()}
+ for(let i=1;i<=T.ghosts;i++){const dd=r*(.35+i*.28)*(1+rr()*.15),a=.6+(rr()-.5)*T.irr*.6,gx=Math.cos(a)*dd,gy=Math.sin(a)*dd,gr=r*(.05+rr()*.13),q=X.createRadialGradient(gx,gy,0,gx,gy,gr);
+  q.addColorStop(0,c(.5,.05));q.addColorStop(.8,c(.3,.22*k));q.addColorStop(1,c(.3,0));X.globalAlpha=fr;X.fillStyle=q;X.beginPath();X.arc(gx,gy,gr,0,6.283);X.fill();if(i%2){X.strokeStyle=c(.4,.4);X.lineWidth=1;X.stroke()}}
+ if(T.dust){X.fillStyle=c(.5,1);const cc=[rr()*6.2832,rr()*6.2832,rr()*6.2832];
+  for(let i=0;i<T.dust;i++){let a=rr()*6.2832;if(rr()<T.clump)a=cc[i%3]+(rr()-.5)*1.1;const dd=r*(.12+Math.pow(rr(),.7+T.irr*.8)),z=T.psz*(.35+rr()*rr()*2.2);
+   X.globalAlpha=fr*(.25+rr()*.75)*k;X.beginPath();X.arc(Math.cos(a)*dd,Math.sin(a)*dd,z,0,6.283);X.fill()}}
+ if(T.spk){X.fillStyle=c(.8,1);for(let i=0;i<T.spk;i++){const a=rr()*6.2832,dd=r*(.3+rr()*.9),px=Math.cos(a)*dd,py=Math.sin(a)*dd,L=r*(.05+rr()*.08),q=L*.16;
+  X.globalAlpha=fr*(.5+rr()*.5)*k;X.beginPath();X.moveTo(px,py-L);X.lineTo(px+q,py-q);X.lineTo(px+L,py);X.lineTo(px+q,py+q);X.lineTo(px,py+L);X.lineTo(px-q,py+q);X.lineTo(px-L,py);X.lineTo(px-q,py-q);X.closePath();X.fill()}}
+ for(let i=0;i<T.bok;i++){const a=rr()*6.2832,dd=r*(.3+rr()),br=r*(.05+rr()*.12),ring=rr()<.4;X.fillStyle=c(.2,1);X.globalAlpha=fr*(.12+rr()*.2)*k;
+  X.beginPath();X.arc(Math.cos(a)*dd,Math.sin(a)*dd,br,0,6.283);X.fill();if(ring){X.globalAlpha=fr*.35*k;X.strokeStyle=c(.4,1);X.lineWidth=1;X.stroke()}}
+ X.restore();X.globalAlpha=1}
+const hexH=(h,l)=>'#'+(hs(h,l).match(/\d+/g)).map(v=>(+v).toString(16).padStart(2,'0')).join('');
+const tintOf=d=>col.rb?hexH(d.colorVariation*360,.68):sh(col.h,-.22+d.colorVariation*.6);
+
+// ============================================================
+// SIMILARITY ENGINE
+// Structural (DNA) comparison, not pixels. 0 = completely different, 1 = identical.
+// Rotation and hue are deliberately ignored: a rotated/recoloured copy is still a clone.
+// ============================================================
+// SIM_FLOOR calibrates the scale: two unrelated random designs score ~.3 raw, so that maps to 0%.
+const SIM_W={geo:.45,dist:.30,app:.25},SIG=.28,SIM_FLOOR=.3;
+const SIM_G=[['aspectRatio',1],['rayLength',1],['elongation',1.2],['curvature',.8],['rayWidth',.6]],
+ SIM_D=[['density',1],['particleDensity',1.2],['clusterAmount',1],['particleSize',1],['irregularity',1],['complexity',.8]],
+ SIM_A=[['glow',1],['core',1],['halo',1],['sparkleAmount',1],['bokehAmount',1],['colorVariation',.35]];
+const REL={burstsymmetric:1,symmetricburst:1,crossglint:1,glintcross:1,ringorb:1,orbring:1,crossstreak:1,streakcross:1};
+const grp=(a,b,K)=>{let s=0,w=0;for(const[k,wt]of K){const x=(a[k]-b[k])/SIG;s+=wt*Math.exp(-x*x);w+=wt}return[s,w]};
+function similarity(a,b){
+ const fam=a.shapeFamily==b.shapeFamily?1:REL[a.shapeFamily+b.shapeFamily]?.4:0,
+  sym=a.symmetry==b.symmetry?1:!a.symmetry||!b.symmetry?0:Math.exp(-(((a.symmetry-b.symmetry)/3)**2)),
+  ray=Math.exp(-(((a.rayCount-b.rayCount)/5)**2)),[gs,gw]=grp(a,b,SIM_G),[ds,dw]=grp(a,b,SIM_D),[as,aw]=grp(a,b,SIM_A);
+ const geo=(3*fam+1.2*sym+1.2*ray+gs)/(5.4+gw);
+ return cl((SIM_W.geo*geo+SIM_W.dist*ds/dw+SIM_W.app*as/aw-SIM_FLOOR)/(1-SIM_FLOOR))}
+function nearest(d,L){let m=0,w=null;for(const o of L){const s=similarity(d,o);if(s>m){m=s;w=o}}return{sim:m,d:w}}
+
+// ============================================================
+// MUTATION ENGINE
+// Mutates structure (not just colour). Pushes parameters away from the clone it collided with.
+// ============================================================
+const MUT={LOW:{amt:.12,n:4,sym:.1,fam:0},MEDIUM:{amt:.22,n:7,sym:.25,fam:.06},HIGH:{amt:.35,n:11,sym:.45,fam:.22},EXTREME:{amt:.55,n:99,sym:.7,fam:.5}};
+const MUT_KEYS=['aspectRatio','rayLength','rayWidth','elongation','density','particleDensity','particleSize','clusterAmount','irregularity','curvature','glow','core','halo','sparkleAmount','bokehAmount','complexity'];
+const poolFams=types=>[...new Set(types.map(famOf))];
+function mutate(d,lv,r,away,types,forceFam){const M=MUT[lv],m={...d},K=MUT_KEYS.slice();
+ for(let i=K.length-1;i>0;i--){const j=r()*(i+1)|0;[K[i],K[j]]=[K[j],K[i]]}
+ for(const k of K.slice(0,M.n)){const dir=away?Math.sign(m[k]-away[k])||(r()<.5?-1:1):r()<.5?-1:1;let v=m[k]+dir*M.amt*(.5+r()*.5)+(r()-.5)*M.amt*.3;
+  if(v<0||v>1)v=m[k]-dir*M.amt*(.5+r()*.5);m[k]=cl(v)}
+ m.rotation=(m.rotation+r()*M.amt)%1;
+ m.rayCount=Math.round(m.rayCount+(r()*2-1)*M.amt*20);
+ const fs=poolFams(types||FK).filter(f=>f!=d.shapeFamily);
+ if(fs.length&&(forceFam||r()<M.fam)){m.shapeFamily=pick(r,fs);const ts=FAM[m.shapeFamily].filter(t=>!types||types.includes(t));m.structureType=pick(r,ts.length?ts:FAM[m.shapeFamily]);
+  const A=ARC[m.shapeFamily];m.rayCount=A.rays[0]+r()*(A.rays[1]-A.rays[0]+1)|0;m.symmetry=pick(r,A.sym)}
+ else if(r()<M.sym){const o=ARC[m.shapeFamily].sym.filter(s=>s!=d.symmetry);if(o.length)m.symmetry=pick(r,o)}
+ m.seed=hsh(d.seed,lv,r()*1e9|0);
+ return fitFam(m,r)}
+// Test -> reject -> mutate -> retest, with a hard attempt cap (no infinite loops)
+const MAXA=80;
+function uniqueDNA(key,d,others,thr,types,S,away,awayThr){
+ for(let a=0;a<MAXA;a++){S.attempts++;
+  const nn=nearest(d,others),as=away?similarity(d,away):0;
+  if(nn.sim<thr&&(!away||as<awayThr)){S.accepted++;S.simSum+=nn.sim;return{dna:d,sim:nn.sim}}
+  S.rejected++;S.mutations++;
+  const ref=away&&as>=awayThr&&as>=nn.sim?away:nn.d;
+  d=mutate(d,a<8?'LOW':a<20?'MEDIUM':a<45?'HIGH':'EXTREME',rng(hsh(key,'m',a)),ref,types,away&&a==0)}
+ return null}
+
+// ============================================================
+// PACK GENERATOR
+// ============================================================
+const PACKS={Stars:['Classic star','Starburst','Ring halo','Slim cross','Sparkle cluster','Diagonal glint'],Lens:['Lens ghosts','Anamorphic streak','Soft orb','Sparkle burst','Ring halo','Diagonal glint'],All:FK};
+let STATS=null;
+const newStats=()=>({accepted:0,rejected:0,mutations:0,attempts:0,simSum:0,failed:0});
+function grid(n){const cols=Math.ceil(Math.sqrt(n*W/H)),rows=Math.ceil(n/cols),cw=W/cols,ch=H/rows;
+ return{r:Math.min(cw,ch)*.36,pos:i=>[(i%cols+.5)*cw,(Math.floor(i/cols)+.5)*ch],cell:(x,y)=>cl(y/ch|0,0,rows-1)*cols+cl(x/cw|0,0,cols-1)}}
+function makeEl(d,p,r0,pool,id){const T=dnaT(d),r=r0*(.8+d.scale*.4),m=r*T.ext;
+ return{kind:'flare',id:id||nid(),pk:1,dv:1,lock:0,pool,base:r0,dna:d,pts:[],nr:[],parts:[],col:{h:tintOf(d),rb:0},seed:d.seed,closed:0,
+  geo:{x:p[0],y:p[1],r,type:d.structureType,rot:d.rotation*6.2832},box:[p[0]-m,p[1]-m,p[0]+m,p[1]+m]}}
+function packSim(){const L=strokes.filter(s=>s.pk).map(s=>s.dna);let t=0,c=0,mx=0;
+ for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const v=similarity(L[i],L[j]);t+=v;c++;mx=Math.max(mx,v)}return{avg:c?t/c:0,max:mx}}
+function genPack(){
+ if(!(W>0&&H>0))return;
+ strokes.forEach(ensureEl);
+ if(!$('#slk').checked)setSeed(newSeed());else setSeed($('#mseed').value);
+ const n=+$('#pkn').value,pt=$('#pks').value,types=PACKS[pt],thr=+$('#uq').value/100,ms=MSEED,G=grid(n);
+ hist();
+ const locked=strokes.filter(s=>s.pk&&s.lock);strokes=strokes.filter(s=>!s.pk||s.lock);
+ const used=new Set(locked.map(s=>G.cell(s.geo.x,s.geo.y))),free=[];for(let i=0;i<n;i++)if(!used.has(i))free.push(i);
+ const acc=locked.map(s=>s.dna),o=rng(hsh(ms,'pack',n,pt))()*types.length|0,S=newStats(),t0=performance.now();
+ for(const slot of free){
+  if(performance.now()-t0>4000){S.failed++;continue}
+  const key=[ms,n,pt,slot].join('/'),res=uniqueDNA(key,dnaNew(types[(slot+o)%types.length],hsh(key,'dna')),acc,thr,types,S);
+  if(!res){S.failed++;continue}
+  acc.push(res.dna);strokes.push(makeEl(res.dna,G.pos(slot),G.r,pt))}
+ STATS=S;const Q=packSim(),made=S.accepted+locked.length;
+ $('#pm').textContent=`${made}/${n} unique · ${S.rejected} rejected duplicates · ${S.mutations} mutations · ${S.attempts} tests · avg similarity ${Math.round(Q.avg*100)}%`+(locked.length?` · ${locked.length} locked kept`:'');
+ st(S.failed?`Only ${made}/${n} unique elements at this uniqueness level. Try a lower level, a smaller pack, or pack type "All".`:`${made} unique elements generated · seed ${ms}`);
+ dirty=1;updEl()}
+$('#pk').onclick=genPack;
+setSeed(newSeed());
+$('#sgen').onclick=()=>{setSeed(newSeed());st('New seed '+MSEED)};
+$('#mseed').onchange=()=>{setSeed($('#mseed').value);$('#slk').checked=true;st('Seed locked: '+MSEED)};
+$('#scp').onclick=async()=>{try{await navigator.clipboard.writeText(MSEED);st('Seed copied: '+MSEED)}catch{const i=$('#mseed');i.select();try{document.execCommand('copy');st('Seed copied: '+MSEED)}catch{st('Copy failed, select the seed field manually')}}};
+
+// ============================================================
+// ELEMENT CONTROLS
+// Select tool picks an element; Lock / Regenerate / Regenerate different / Delete act on it.
+// ============================================================
+let SEL=0;
+const selEl=()=>strokes.find(s=>s.id==SEL);
+function elBox(s){if(s.kind=='flare'){const{x,y,r}=s.geo;return[x-r*1.1,y-r*1.1,x+r*1.1,y+r*1.1]}const B=bbox([s]);return[B.x0,B.y0,B.x1,B.y1]}
+function pickAt([x,y]){let f=null;
+ for(let i=strokes.length-1;i>=0;i--){const s=strokes[i];
+  if(s.kind=='flare'){if(Math.hypot(x-s.geo.x,y-s.geo.y)<s.geo.r*1.1)return s}
+  else if(s.kind=='field')f=f||s;
+  else{const tol=Math.max(10,(s.P||P).spread);for(const p of s.pts)if(Math.abs(p[0]-x)<tol&&Math.abs(p[1]-y)<tol)return s}}
+ return f}
+function overlay(){if(anim||REC||busy||X!==MX)return;const L=strokes.filter(s=>s.lock||s.id==SEL);if(!L.length)return;
+ X.save();X.globalCompositeOperation='source-over';X.globalAlpha=1;
+ for(const s of L){const[a,b,c,d]=elBox(s);
+  if(s.id==SEL){X.setLineDash([5,4]);X.strokeStyle='rgba(242,193,78,.9)';X.lineWidth=1.2;X.strokeRect(a,b,c-a,d-b);X.setLineDash([])}
+  if(s.lock){const px=a+4,py=b+4;X.fillStyle='rgba(10,8,5,.75)';X.fillRect(px-2,py-2,15,17);X.strokeStyle=X.fillStyle='#f2c14e';X.lineWidth=1.6;
+   X.beginPath();X.arc(px+5.5,py+6,3.5,Math.PI,0);X.stroke();X.fillRect(px+1,py+6,9,7)}}
+ X.restore()}
+function updEl(){const s=selEl(),on=!!s,fl=on&&s.kind=='flare';
+ ['#elck','#edl'].forEach(q=>$(q).disabled=!on);['#erg'].forEach(q=>$(q).disabled=!on||s.kind=='field');$('#erd').disabled=!fl;
+ $('#elck').textContent=on&&s.lock?'Unlock':'Lock';
+ if(!on){$('#einfo').textContent=strokes.length?'Select tool: click an element':'No elements yet';return}
+ ensureEl(s);const d=s.kind=='flare'||s.kind=='field'?s.dna:(s.dna=dnaFromStroke(s)),i=strokes.indexOf(s)+1;
+ let t=`#${i}/${strokes.length} · ${d.shapeFamily} · ${d.structureType}`;
+ if(s.kind=='flare')t+=` · ${d.symmetry?d.symmetry+'-fold':'free'} · ${d.rayCount} rays`;
+ if(s.pk){const nn=nearest(d,strokes.filter(o=>o.pk&&o!==s).map(o=>o.dna));t+=` · nearest ${Math.round(nn.sim*100)}%`}
+ $('#einfo').textContent=t+(s.lock?' · locked':'')}
+function select(s){SEL=s?s.id:0;updEl();dirty=1}
+function stepSel(k){if(!strokes.length)return;const i=strokes.indexOf(selEl());select(strokes[(i<0?(k>0?0:strokes.length-1):(i+k+strokes.length)%strokes.length)])}
+function lockEl(){const s=selEl();if(!s)return;s.lock=s.lock?0:1;st(s.lock?'Locked: pack regeneration will keep it':'Unlocked');updEl();dirty=1}
+function delEl(){const s=selEl();if(!s)return;if(s.lock)return st('Element is locked. Unlock it first.');hist();strokes=strokes.filter(o=>o!==s);SEL=0;updEl();dirty=1}
+let RGN=0;
+function regenEl(diff){const s=selEl();if(!s)return st('Select an element first (Select tool)');if(s.lock)return st('Element is locked. Unlock it to regenerate.');
+ ensureEl(s);
+ if(s.kind!='flare'){if(s.kind=='field')return;hist();const i=strokes.indexOf(s),n={...s,seed:hsh(MSEED,'stroke',s.id,++RGN)};gen(n);n.dna=dnaFromStroke(n);strokes[i]=n;dirty=1;updEl();return st('Stroke regenerated')}
+ const types=PACKS[s.pool]||FK,thr=+$('#uq').value/100,key=[MSEED,'regen',s.id,++RGN,diff?'D':'R'].join('/'),S=newStats(),cur=s.dna,
+  others=strokes.filter(o=>o!==s&&o.kind=='flare'&&o.pk).map(o=>ensureEl(o).dna),
+  first=diff?mutate(cur,'EXTREME',rng(hsh(key,'first')),cur,types,1):dnaNew(pick(rng(hsh(key,'type')),types),hsh(key,'dna')),
+  res=uniqueDNA(key,first,others,thr,types,S,cur,diff?Math.min(.3,thr*.6):thr);
+ if(!res)return st('Could not find a unique variation in '+MAXA+' tries. Try a lower uniqueness level.');
+ hist();const i=strokes.indexOf(s),base=s.base||s.geo.r;
+ strokes[i]=makeEl(res.dna,[s.geo.x,s.geo.y],base,s.pool||'All',s.id);if(!s.pk)strokes[i].col={...s.col};
+ st(`Regenerated${diff?' (different)':''} · ${Math.round(similarity(res.dna,cur)*100)}% like before · ${S.rejected} rejected`);dirty=1;updEl()}
+$('#elck').onclick=lockEl;$('#edl').onclick=delEl;$('#erg').onclick=()=>regenEl(0);$('#erd').onclick=()=>regenEl(1);$('#eprv').onclick=()=>stepSel(-1);$('#enxt').onclick=()=>stepSel(1);
+{const od=C.onpointerdown;C.onpointerdown=e=>{if(tool=='select'){if(!e.button){select(pickAt(pos(e)));$('#hint').style.opacity=0}return}od(e)}}
+document.querySelectorAll('[data-t]').forEach(b=>b.addEventListener('click',()=>{C.style.cursor=tool=='select'?'pointer':'crosshair'}));
+addEventListener('keydown',e=>{if(tool!='select'||e.target.matches&&e.target.matches('input[type=text]'))return;
+ if(e.key=='Delete'||e.key=='Backspace'){e.preventDefault();delEl()}else if(e.key.toLowerCase()=='l')lockEl();else if(e.key=='ArrowRight')stepSel(1);else if(e.key=='ArrowLeft')stepSel(-1)});
+// keep the element panel in sync after undo/redo/clear
+['#und','#rdo','#clr'].forEach(q=>$(q).addEventListener('click',()=>setTimeout(updEl)));addEventListener('keydown',()=>setTimeout(updEl));
+updEl();
 </script></body></html>
