@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Halftone Studio</title>
+<style>
+:root{
+  --bg:#f2efe9; --panel:#ffffff; --panel2:#ece7de; --ink:#1c1b1a; --muted:#6b6459;
+  --accent:#b5792e; --line:#ddd6c9; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1b1a; --panel:#242220; --panel2:#2c2926; --ink:#f2efe9; --muted:#a89f92;
+    --accent:#d4a64a; --line:#3a3733;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1b1a; --panel:#242220; --panel2:#2c2926; --ink:#f2efe9; --muted:#a89f92;
+  --accent:#d4a64a; --line:#3a3733;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;}
+header{padding:20px 20px 6px;max-width:1200px;margin:0 auto;}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em;}
+p.sub{color:var(--muted);margin:0;font-size:13.5px;}
+main{max-width:1200px;margin:0 auto;padding:18px 20px 60px;display:grid;grid-template-columns:300px 1fr;gap:18px;}
+@media(max-width:760px){main{grid-template-columns:1fr;}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;}
+.controls{display:flex;flex-direction:column;gap:13px;}
+label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;}
+select,input[type=range],input[type=number]{width:100%;}
+select,input[type=number]{padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);}
+.row{display:flex;gap:10px;align-items:center;}
+.row input[type=color]{width:38px;height:30px;border:1px solid var(--line);border-radius:6px;background:none;padding:0;}
+.val{font-size:12px;color:var(--muted);float:right;font-variant-numeric:tabular-nums;}
+.drop{border:1.5px dashed var(--line);border-radius:10px;padding:14px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;}
+.drop.over{border-color:var(--accent);color:var(--accent);}
+button.primary{background:var(--accent);color:#fff;border:none;padding:9px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:8px;cursor:pointer;font-size:13px;}
+.exports{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;}
+.stage{display:flex;align-items:center;justify-content:center;min-height:360px;border-radius:12px;overflow:hidden;background:var(--panel2);}
+canvas{max-width:100%;height:auto;display:block;}
+.note{font-size:12px;color:var(--muted);margin-top:2px;}
+.checklabel{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);font-weight:400;}
+hr{border:none;border-top:1px solid var(--line);margin:2px 0;}
+.batch{grid-column:1/-1;}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px;}
+.thumb{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel2);}
+.thumb canvas{width:100%;display:block;cursor:pointer;}
+.thumb .tbar{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-size:11.5px;color:var(--muted);}
+.thumb button{border:none;background:none;color:var(--accent);font-weight:600;cursor:pointer;font-size:11.5px;}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;}
+.toast.show{opacity:.95;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Halftone Studio</h1>
+  <p class="sub">Print-style halftone dot patterns — presets or your own image, many controls, batch artboards.</p>
+</header>
+<main>
+  <section class="panel controls">
+    <div>
+      <label>Pattern</label>
+      <select id="shapeSel">
+        <option value="circle">Circle</option>
+        <option value="square">Square</option>
+        <option value="triangle">Triangle</option>
+        <option value="wave" selected>Wave</option>
+        <option value="burst">Burst</option>
+        <option value="ring">Ring</option>
+        <option value="grid">Grid</option>
+        <option value="spiral">Spiral</option>
+        <option value="curve">Curve</option>
+        <option value="gradient">Gradient</option>
+      </select>
+    </div>
+    <div>
+      <label>Or drop an image to halftone it</label>
+      <div class="drop" id="dropZone">Drag & drop, or click to choose<input type="file" id="fileInput" accept="image/*" style="display:none"></div>
+      <button class="ghost" id="clearImg" style="margin-top:8px;display:none">Remove image</button>
+    </div>
+    <hr>
+    <div>
+      <label>Artboard size</label>
+      <select id="sizeSel">
+        <option value="900,600">Landscape (900×600)</option>
+        <option value="1080,1080">Square (1080×1080)</option>
+        <option value="1080,1350">Portrait (1080×1350)</option>
+        <option value="1080,1920">Story (1080×1920)</option>
+        <option value="custom">Custom…</option>
+      </select>
+      <div class="row" id="customSize" style="display:none;margin-top:8px">
+        <input type="number" id="cw" placeholder="Width" value="900">
+        <input type="number" id="ch" placeholder="Height" value="600">
+        <button class="ghost" id="applySize">Set</button>
+      </div>
+    </div>
+    <div>
+      <label>Dot shape</label>
+      <select id="dotShapeSel">
+        <option value="circle">Circle</option>
+        <option value="square">Square</option>
+        <option value="diamond">Diamond</option>
+        <option value="line">Line</option>
+      </select>
+    </div>
+    <div>
+      <label>Screen angle <span class="val" id="angleVal">15°</span></label>
+      <input type="range" id="angle" min="0" max="90" value="15">
+    </div>
+    <div>
+      <label>Dot spacing <span class="val" id="cellVal">10px</span></label>
+      <input type="range" id="cellSize" min="6" max="28" value="10">
+    </div>
+    <div>
+      <label>Contrast <span class="val" id="gammaVal">1.0</span></label>
+      <input type="range" id="gamma" min="4" max="25" value="10">
+    </div>
+    <label class="checklabel"><input type="checkbox" id="invert"> Invert tones</label>
+    <label class="checklabel"><input type="checkbox" id="cmyk"> Print-separation style (CMYK look)</label>
+    <div class="row">
+      <div><label>Dots</label><input type="color" id="dotColor" value="#1c1b1a"></div>
+      <div><label>Background</label><input type="color" id="bgColor" value="#f2efe9"></div>
+      <label class="checklabel" style="margin-left:auto"><input type="checkbox" id="transparentBg"> Transparent</label>
+    </div>
+    <button class="ghost" id="shuffle">🔀 Shuffle variation</button>
+    <div class="exports">
+      <button class="primary" id="expPNG">Export PNG</button>
+      <button class="ghost" id="expJPG">Export JPG</button>
+      <button class="ghost" id="expSVG">Export SVG</button>
+    </div>
+    <p class="note">PSD isn't reliable to write from a browser. Export SVG, then open it in the free browser editor Photopea and save as .psd if a stock site needs one. CMYK look is a stylized print effect, not true colour-channel separation.</p>
+  </section>
+
+  <section class="panel stage" id="stage">
+    <canvas id="hCanvas" width="900" height="600"></canvas>
+  </section>
+
+  <section class="panel batch">
+    <div class="row">
+      <div><label>Batch size</label>
+        <select id="batchCount"><option>4</option><option selected>6</option><option>9</option><option>12</option></select>
+      </div>
+      <button class="primary" id="genBatch" style="margin-top:18px">Auto-generate artboards</button>
+    </div>
+    <p class="note">Generates random pattern/angle/colour variants at the current artboard size. Click a thumbnail to load it into the editor, or download it directly.</p>
+    <div class="thumbs" id="thumbs"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+
+// ---------- download via artifact capability ----------
+async function download(blob,filename){
+  try{
+    if(window.claude && window.claude.use){
+      const dl=await window.claude.use('downloads');
+      if(dl){ await dl.save({filename,data:blob}); return; }
+    }
+  }catch(e){ if(e && e.code==='declined') return; toast('Could not save: '+(e&&e.message||'try again')); return; }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+// ---------- pattern field ----------
+let phase=0;
+function darknessField(mode,u,v,fx,fy,ph){
+  const d=Math.hypot(u,v);
+  switch(mode){
+    case 'circle': return clamp(1-d,0,1);
+    case 'square': return clamp(1-Math.max(Math.abs(u),Math.abs(v)),0,1);
+    case 'triangle': { if(v>1||v<-1) return 0; const allowed=(1-v)/2; return clamp(1-Math.abs(u)/Math.max(allowed,0.001),0,1); }
+    case 'wave': { const path=0.5*Math.sin(fx*Math.PI*2+ph); return clamp(1-Math.abs(v-path)/0.35,0,1); }
+    case 'burst': return clamp(d+0.05*Math.sin(ph*3),0,1);
+    case 'ring': { const r0=0.55+0.05*Math.sin(ph); return clamp(1-Math.abs(d-r0)/0.18,0,1); }
+    case 'grid': { const p=Math.round(ph*2); return 0.4+0.25*((Math.floor((u+1)*8)+Math.floor((v+1)*8)+p)%2); }
+    case 'spiral': { const ang=Math.atan2(v,u); return clamp(1-Math.abs(Math.sin(ang*3+d*10+ph)),0,1); }
+    case 'curve': { const path=0.6*Math.sin(fx*Math.PI*1.3+ph); return clamp(1-Math.abs(v-path)/0.15,0,1); }
+    case 'gradient': return clamp((fx+1)/2,0,1);
+  }
+  return 0;
+}
+function makeSampler(pattern,ph,imgCanvas){
+  if(imgCanvas){
+    const w=imgCanvas.width,h=imgCanvas.height;
+    const data=imgCanvas.getContext('2d').getImageData(0,0,w,h).data;
+    return (x,y,cw,ch)=>{
+      const ix=clamp(Math.floor(x/cw*w),0,w-1), iy=clamp(Math.floor(y/ch*h),0,h-1);
+      const i=(iy*w+ix)*4;
+      return 1-((data[i]*0.3+data[i+1]*0.59+data[i+2]*0.11)/255);
+    };
+  }
+  return (x,y,cw,ch)=>{
+    const scale=Math.min(cw,ch)/2, cx=cw/2, cy=ch/2;
+    const u=(x-cx)/scale, v=(y-cy)/scale, fx=x/cw*2-1, fy=y/ch*2-1;
+    return darknessField(pattern,u,v,fx,fy,ph);
+  };
+}
+
+// ---------- rotated dot lattice ----------
+function forEachDot(w,h,cell,angleDeg,cb){
+  const rad=angleDeg*Math.PI/180, cosA=Math.cos(rad), sinA=Math.sin(rad);
+  const n=Math.ceil(Math.hypot(w,h)/cell)+2;
+  for(let j=-n;j<=n;j++) for(let i=-n;i<=n;i++){
+    const lx=i*cell, ly=j*cell;
+    const x=w/2+lx*cosA-ly*sinA, y=h/2+lx*sinA+ly*cosA;
+    if(x<-cell||x>w+cell||y<-cell||y>h+cell) continue;
+    cb(x,y);
+  }
+}
+function paintDot(ctx,x,y,r,shape,angleRad){
+  if(r<=0.6) return;
+  ctx.save(); ctx.translate(x,y); if(shape!=='circle') ctx.rotate(angleRad);
+  if(shape==='circle'){ ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill(); }
+  else if(shape==='square'){ ctx.fillRect(-r,-r,r*2,r*2); }
+  else if(shape==='diamond'){ ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(r,0); ctx.lineTo(0,r); ctx.lineTo(-r,0); ctx.closePath(); ctx.fill(); }
+  else if(shape==='line'){ const hh=Math.max(1,r*0.28); ctx.fillRect(-r,-hh,r*2,hh*2); }
+  ctx.restore();
+}
+const CMYK=[{c:'#00AEEF',a:15},{c:'#EC008C',a:75},{c:'#FFF200',a:0},{c:'#1c1b1a',a:45}];
+
+function renderToCanvas(canvas,opts){
+  const ctx=canvas.getContext('2d'), w=canvas.width, h=canvas.height;
+  const sampler=makeSampler(opts.pattern,opts.phase,opts.img);
+  ctx.clearRect(0,0,w,h);
+  if(!opts.transparent){ ctx.fillStyle=opts.bg; ctx.fillRect(0,0,w,h); }
+  function pass(angle,color){
+    ctx.fillStyle=color;
+    forEachDot(w,h,opts.cell,angle,(x,y)=>{
+      let dk=sampler(x,y,w,h); if(opts.invert) dk=1-dk;
+      dk=Math.pow(clamp(dk,0,1),opts.gamma);
+      paintDot(ctx,x,y,(opts.cell/2)*dk,opts.dotShape,angle*Math.PI/180);
+    });
+  }
+  if(opts.cmyk){
+    ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=0.82;
+    CMYK.forEach(ch=>pass(ch.a,ch.c));
+    ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1;
+  } else pass(opts.angle,opts.dot);
+}
+
+// ---------- live editor state ----------
+const hCanvas=document.getElementById('hCanvas');
+const shapeSel=document.getElementById('shapeSel'), cellSize=document.getElementById('cellSize'),
+      gamma=document.getElementById('gamma'), invert=document.getElementById('invert'),
+      dotColor=document.getElementById('dotColor'), bgColor=document.getElementById('bgColor'),
+      transparentBg=document.getElementById('transparentBg'), angleSlider=document.getElementById('angle'),
+      dotShapeSel=document.getElementById('dotShapeSel'), cmykBox=document.getElementById('cmyk');
+let srcCanvas=null;
+
+function currentOpts(){
+  return { pattern:shapeSel.value, cell:+cellSize.value, gamma:(+gamma.value)/10, angle:+angleSlider.value,
+    invert:invert.checked, dotShape:dotShapeSel.value, dot:dotColor.value, bg:bgColor.value,
+    transparent:transparentBg.checked, cmyk:cmykBox.checked, phase, img:srcCanvas };
+}
+function renderMain(){ renderToCanvas(hCanvas,currentOpts()); }
+[shapeSel,cellSize,gamma,invert,dotColor,bgColor,transparentBg,angleSlider,dotShapeSel,cmykBox].forEach(el=>el.addEventListener('input',renderMain));
+document.getElementById('cellSize').oninput=function(){document.getElementById('cellVal').textContent=this.value+'px';renderMain();};
+document.getElementById('gamma').oninput=function(){document.getElementById('gammaVal').textContent=(this.value/10).toFixed(1);renderMain();};
+document.getElementById('angle').oninput=function(){document.getElementById('angleVal').textContent=this.value+'°';renderMain();};
+
+// image drop
+const dropZone=document.getElementById('dropZone'), fileInput=document.getElementById('fileInput'), clearImg=document.getElementById('clearImg');
+dropZone.onclick=()=>fileInput.click();
+['dragover','dragenter'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove('over');}));
+dropZone.addEventListener('drop',e=>{ if(e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change',e=>{ if(e.target.files[0]) loadImage(e.target.files[0]); });
+clearImg.onclick=()=>{ srcCanvas=null; clearImg.style.display='none'; renderMain(); };
+function loadImage(file){
+  const img=new Image();
+  img.onload=()=>{
+    srcCanvas=document.createElement('canvas'); srcCanvas.width=img.width; srcCanvas.height=img.height;
+    srcCanvas.getContext('2d').drawImage(img,0,0);
+    clearImg.style.display='inline-block';
+    renderMain();
+  };
+  img.src=URL.createObjectURL(file);
+}
+
+// artboard size
+const sizeSel=document.getElementById('sizeSel'), customSize=document.getElementById('customSize');
+sizeSel.onchange=()=>{
+  if(sizeSel.value==='custom'){ customSize.style.display='flex'; return; }
+  customSize.style.display='none';
+  const [w,h]=sizeSel.value.split(',').map(Number);
+  hCanvas.width=w; hCanvas.height=h; renderMain();
+};
+document.getElementById('applySize').onclick=()=>{
+  hCanvas.width=Math.max(50,+document.getElementById('cw').value||900);
+  hCanvas.height=Math.max(50,+document.getElementById('ch').value||600);
+  renderMain();
+};
+
+// shuffle
+document.getElementById('shuffle').onclick=()=>{
+  phase=rnd(0,Math.PI*2);
+  angleSlider.value=Math.round(rnd(0,90)); document.getElementById('angleVal').textContent=angleSlider.value+'°';
+  cellSize.value=Math.round(rnd(6,22)); document.getElementById('cellVal').textContent=cellSize.value+'px';
+  dotShapeSel.value=pick(['circle','square','diamond','line']);
+  renderMain();
+};
+
+// exports
+document.getElementById('expPNG').onclick=()=>hCanvas.toBlob(b=>download(b,'halftone.png'));
+document.getElementById('expJPG').onclick=()=>{
+  const tmp=document.createElement('canvas'); tmp.width=hCanvas.width; tmp.height=hCanvas.height;
+  const tctx=tmp.getContext('2d'); tctx.fillStyle=transparentBg.checked?'#ffffff':bgColor.value;
+  tctx.fillRect(0,0,tmp.width,tmp.height); tctx.drawImage(hCanvas,0,0);
+  tmp.toBlob(b=>download(b,'halftone.jpg'),'image/jpeg',0.92);
+};
+function dotSvgMarkup(x,y,r,shape,angleDeg,color){
+  if(r<=0.6) return '';
+  const rot=shape==='circle'?'':` transform="rotate(${angleDeg} ${x.toFixed(1)} ${y.toFixed(1)})"`;
+  if(shape==='circle') return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="${color}"/>`;
+  if(shape==='square') return `<rect x="${(x-r).toFixed(1)}" y="${(y-r).toFixed(1)}" width="${(r*2).toFixed(2)}" height="${(r*2).toFixed(2)}" fill="${color}"${rot}/>`;
+  if(shape==='diamond') return `<polygon points="${x.toFixed(1)},${(y-r).toFixed(1)} ${(x+r).toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${(y+r).toFixed(1)} ${(x-r).toFixed(1)},${y.toFixed(1)}" fill="${color}"${rot}/>`;
+  const hh=Math.max(1,r*0.28); return `<rect x="${(x-r).toFixed(1)}" y="${(y-hh).toFixed(1)}" width="${(r*2).toFixed(2)}" height="${(hh*2).toFixed(2)}" fill="${color}"${rot}/>`;
+}
+document.getElementById('expSVG').onclick=()=>{
+  const opts=currentOpts(), w=hCanvas.width, h=hCanvas.height;
+  const sampler=makeSampler(opts.pattern,opts.phase,opts.img);
+  function passSvg(angle,color){
+    let s='';
+    forEachDot(w,h,opts.cell,angle,(x,y)=>{
+      let dk=sampler(x,y,w,h); if(opts.invert) dk=1-dk;
+      dk=Math.pow(clamp(dk,0,1),opts.gamma);
+      s+=dotSvgMarkup(x,y,(opts.cell/2)*dk,opts.dotShape,angle,color);
+    });
+    return s;
+  }
+  let body='';
+  if(opts.cmyk) CMYK.forEach(ch=>{ body+=`<g style="mix-blend-mode:multiply" opacity="0.82">${passSvg(ch.a,ch.c)}</g>`; });
+  else body=`<g fill="${opts.dot}">${passSvg(opts.angle,opts.dot)}</g>`;
+  const bg=opts.transparent?'':`<rect width="100%" height="100%" fill="${opts.bg}"/>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${bg}${body}</svg>`;
+  download(new Blob([svg],{type:'image/svg+xml'}),'halftone.svg');
+};
+
+// ---------- batch auto-generate ----------
+const PATTERNS=['circle','square','triangle','wave','burst','ring','grid','spiral','curve','gradient'];
+const DOTCOLORS=['#1c1b1a','#3a3733','#8a6d3b','#b5792e'];
+const BGCOLORS=['#f2efe9','#ffffff','#ece7de'];
+function randomVariant(){
+  return { pattern:pick(PATTERNS), cell:Math.round(rnd(6,20)), gamma:rnd(0.6,1.8), angle:Math.round(rnd(0,90)),
+    invert:Math.random()<0.25, dotShape:pick(['circle','square','diamond','line']),
+    dot:pick(DOTCOLORS), bg:pick(BGCOLORS), transparent:false, cmyk:Math.random()<0.25, phase:rnd(0,Math.PI*2), img:null };
+}
+document.getElementById('genBatch').onclick=()=>{
+  const n=+document.getElementById('batchCount').value;
+  const w=hCanvas.width,h=hCanvas.height, tw=Math.min(300,w);
+  const box=document.getElementById('thumbs'); box.innerHTML='';
+  for(let i=0;i<n;i++){
+    const opts=randomVariant();
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    renderToCanvas(c,opts);
+    const wrap=document.createElement('div'); wrap.className='thumb';
+    const prev=document.createElement('canvas'); prev.width=tw; prev.height=Math.round(tw*h/w);
+    prev.getContext('2d').drawImage(c,0,0,prev.width,prev.height);
+    prev.title='Click to load into the editor';
+    prev.onclick=()=>{
+      shapeSel.value=opts.pattern; cellSize.value=opts.cell; document.getElementById('cellVal').textContent=opts.cell+'px';
+      gamma.value=Math.round(opts.gamma*10); document.getElementById('gammaVal').textContent=opts.gamma.toFixed(1);
+      angleSlider.value=opts.angle; document.getElementById('angleVal').textContent=opts.angle+'°';
+      invert.checked=opts.invert; dotShapeSel.value=opts.dotShape; dotColor.value=opts.dot; bgColor.value=opts.bg;
+      cmykBox.checked=opts.cmyk; phase=opts.phase; renderMain(); toast('Loaded into editor');
+    };
+    const bar=document.createElement('div'); bar.className='tbar';
+    bar.innerHTML=`<span>${opts.pattern}</span>`;
+    const dl=document.createElement('button'); dl.textContent='Download';
+    dl.onclick=(e)=>{ e.stopPropagation(); c.toBlob(b=>download(b,`halftone-${opts.pattern}-${i+1}.png`)); };
+    bar.appendChild(dl);
+    wrap.appendChild(prev); wrap.appendChild(bar); box.appendChild(wrap);
+  }
+};
+renderMain();
+</script>
+</body>
+</html>
