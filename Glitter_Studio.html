@@ -23,7 +23,10 @@ input[type=range]{width:100%;accent-color:var(--ac)}
 label.chk{display:flex;gap:5px;align-items:center;color:var(--mu)}
 input[type=text]{font:inherit;color:var(--tx);background:transparent;border:1px solid var(--bd);border-radius:6px;padding:4px 8px;width:9em;letter-spacing:.04em}
 #pm,#einfo{color:var(--mu);font-size:12px}
-#erow button:disabled{opacity:.4;cursor:default}
+#erow button:disabled,#pk:disabled{opacity:.4;cursor:default}
+#adv{margin-bottom:8px}#adv summary{cursor:pointer;color:var(--mu);margin-bottom:6px}
+#vsl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 14px;margin-bottom:6px}#vsl label{display:flex;flex-direction:column;color:var(--mu);font-size:12px}
+#fwh{color:var(--mu);font-size:12px}.fc{font-size:11px;padding:2px 7px}.fc[data-w="0"]{opacity:.4;text-decoration:line-through}.fc[data-w="2"]{border-color:var(--ac)}.fc[data-w="3"]{background:var(--ac);border-color:var(--ac);color:#150f02}
 </style></head><body>
 <div id="stage"><canvas id="c"></canvas><div id="hint">Drag to paint glitter · Pen: click points, Enter to finish</div></div>
 <div id="pn">
@@ -38,9 +41,12 @@ input[type=text]{font:inherit;color:var(--tx);background:transparent;border:1px 
  </div>
  <div class="row"><select id="pr" title="Look preset"></select><button id="fdust">Dust field</button><button id="ftex">Glitter texture</button><label class="chk">BG<input type="color" id="bgc" value="#0a0805"></label><button id="bgr">Default BG</button></div>
  <div class="row"><select id="fs" title="Flare style"></select><label class="chk"><input type="checkbox" id="he">Flare at stroke end</label>
-  <select id="pkn" title="Pack size"><option>12</option><option selected>18</option><option>24</option></select><select id="pks" title="Pack type"><option>Stars</option><option>Lens</option><option>All</option></select><button id="pk">Generate pack</button><button id="zpk">Each element to PNG zip</button></div>
+  <select id="pkn" title="Pack size"><option>12</option><option selected>18</option><option>24</option><option>50</option><option>100</option><option>250</option><option>500</option></select><select id="pks" title="Pack type"><option>Stars</option><option>Lens</option><option>All</option></select><select id="gm" title="Generation mode: Quick = fast, Balanced = normal, Diverse = strong family/structure balancing, Extreme = maximum structural diversity"><option value="Quick">Mode: Quick</option><option value="Balanced" selected>Mode: Balanced</option><option value="Diverse">Mode: Diverse</option><option value="Extreme">Mode: Extreme</option></select><button id="pk">Generate pack</button><button id="pkx" hidden>Cancel generation</button><button id="zpk">Each element to PNG zip</button></div>
  <div class="row" id="vrow"><label class="chk">Seed<input type="text" id="mseed" spellcheck="false" autocomplete="off" title="Master seed: same seed + same settings = same pack"></label><button id="sgen">Generate seed</button><button id="scp">Copy seed</button><label class="chk"><input type="checkbox" id="slk">Lock seed</label><select id="uq" title="Uniqueness: how different each pack element must be"><option value="70">Uniqueness: Conservative</option><option value="55" selected>Uniqueness: Balanced</option><option value="45">Uniqueness: Strict</option><option value="35">Uniqueness: Extreme</option></select><span id="pm"></span></div>
- <div class="row" id="erow"><button id="eprv" title="Previous element">&#9664;</button><button id="enxt" title="Next element">&#9654;</button><span id="einfo">Select tool: click an element</span><button id="elck">Lock</button><button id="erg">Regenerate</button><button id="erd">Regenerate different</button><button id="edl">Delete</button></div>
+ <details id="adv"><summary>Advanced variation</summary><div id="vsl"></div>
+  <div class="row"><label class="chk"><input type="checkbox" id="vab" checked>Auto balance families</label><span id="fwh">Family weights (click to cycle off/1/2/3; off also excludes a family with auto balance on):</span></div>
+  <div class="row" id="fwr"></div></details>
+ <div class="row" id="erow"><button id="eprv" title="Previous element">&#9664;</button><button id="enxt" title="Next element">&#9654;</button><span id="einfo">Select tool: click an element</span><button id="elck">Lock</button><button id="eflk">Lock family</button><button id="erg">Regenerate</button><button id="erd">Regenerate different</button><button id="ers">Regenerate similar</button><button id="erst">Regenerate structure</button><button id="erap">Regenerate appearance</button><button id="edup">Duplicate DNA</button><button id="edl">Delete</button><label class="chk"><input type="checkbox" id="elb" checked>Labels</label></div>
  <div class="row" id="sw"></div>
  <div id="sl"></div>
  <div class="row"><label class="chk"><input type="checkbox" id="tw" checked>Twinkle</label><label class="chk"><input type="checkbox" id="fl">Fill closed shapes</label><label class="chk"><input type="checkbox" id="cm">Color mix</label><label class="chk"><input type="checkbox" id="all">Sliders edit all strokes</label></div>
@@ -98,7 +104,7 @@ function one(s,t,fr=1){
   if(hz&&(z>.9||st)){X.globalAlpha=Math.min(1,al*.22*hz);if(hal)X.fillStyle=hal;X.beginPath();X.arc(x,y,z*(2.5+3*hz),0,6.283);X.fill();if(hal)X.fillStyle=base}
   if(st==1&&al>.3){const L=z*(4+4*gl),q=L*.14;X.globalAlpha=al;X.beginPath();X.moveTo(x,y-L);X.lineTo(x+q,y-q);X.lineTo(x+L,y);X.lineTo(x+q,y+q);X.lineTo(x,y+L);X.lineTo(x-q,y+q);X.lineTo(x-L,y);X.lineTo(x-q,y-q);X.closePath();X.fill()}}
  X.globalAlpha=1}
-let anim=null,E=0,NORMAL=0,busy=0,BGC=null,REC=0;
+let anim=null,E=0,NORMAL=0,busy=0,BGC=null,REC=0,PT=0;
 const total=()=>(Math.max(strokes.length,1)-1)*.7+1.8;
 const frac=i=>{if(!anim)return 1;const f=Math.min(1,Math.max(0,(E-i*.7)/1.8));return 1-(1-f)*(1-f)};
 function paint(t,bg=1,list){
@@ -109,7 +115,7 @@ function paint(t,bg=1,list){
  (list||(cur?strokes.concat(cur):strokes)).forEach((s,i)=>one(s,t,frac(i)))}
 function loop(t){requestAnimationFrame(loop);if(!(W>0&&H>0)||busy)return;
  if(anim){E=(t-anim.t0)/1000;if(E>total()+anim.hold){const f=anim.done;anim=null;f&&f()}}
- if(anim||P.twinkle||dirty){try{paint(t);overlay()}catch(e){console.error(e)}dirty=0}}
+ if(anim||P.twinkle||dirty){SPB=12;SPN=0;const t0=performance.now();try{paint(t);overlay()}catch(e){console.error(e)}PT=performance.now()-t0;dirty=SPN}}
 fit();requestAnimationFrame(loop);
 const pos=e=>{const r=C.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
 const prev=()=>{cur=pen.length?build([...pen,hov],{seed}):null};
@@ -341,208 +347,431 @@ $('#pr').selectedIndex=0;$('#pr').onchange({target:$('#pr')});
 // Procedural decisions use rng(hsh(...)) so a master seed reproduces a pack.
 // ============================================================
 const hsh=(...a)=>{let h=0x811c9dc5;const s=a.join('|');for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),0x01000193);h^=h>>>16;h=Math.imul(h,0x85ebca6b);h^=h>>>13;h=Math.imul(h,0xc2b2ae35);h^=h>>>16;return h>>>0};
-const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),pick=(r,a)=>a[r()*a.length|0];
+const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),pick=(r,a)=>a[r()*a.length|0],lerp=(a,b,t)=>a+(b-a)*t;
 let MSEED='',NID=1;const nid=()=>NID++;
 const newSeed=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<8;i++)s+=a[Math.random()*a.length|0];return s.slice(0,4)+'-'+s.slice(4)};
 function setSeed(v){MSEED=String(v).trim()||newSeed();$('#mseed').value=MSEED}
 
 // ============================================================
-// VARIATION DNA
-// Every element carries its own DNA. Pack elements (s.dv) are rendered from it;
-// manual strokes/flares get a descriptive DNA and keep their original renderer.
+// DESIGN GRAMMAR (families)
+// Every family has its own renderer branch in renderDNA() and its own archetype:
+//  rays/sym/cores/rings/clusters = integer ranges or allowed values
+//  modes = allowed symmetry modes; rl/el/rad/tail/hs/pd/cs/rw/cv = ranges for
+//  rayLength/elongation/radiality/tailLength/haloSize/particleDensity/clusterSpread/rayWidth/curvature
+//  clan = related families (used by similarity and "Regenerate different")
 // ============================================================
-const FAM={
- burst:['Classic star','Starburst','Sparkle burst','Radial spokes'],
- symmetric:['8-ray halo','8-ray sharp','6-ray warm'],
- cross:['Slim cross','Fine 4-point','Needle cross','Halo cross','Square halo cross'],
- glint:['Diagonal glint','X wisp'],
- streak:['Anamorphic streak','Vertical flare'],
- ring:['Ring halo','Lens ghosts'],
- orb:['Soft orb'],
- cluster:['Sparkle cluster','Twin star']};
-const famOf=t=>Object.keys(FAM).find(f=>FAM[f].includes(t))||'burst';
-// family archetypes: allowed ray-count range and symmetry orders (0 = free/random angles)
-const ARC={burst:{rays:[8,30],sym:[0,0,8,12]},symmetric:{rays:[4,24],sym:[4,5,6,8,12]},cross:{rays:[0,8],sym:[4,6,8]},glint:{rays:[0,10],sym:[0,4]},
- streak:{rays:[0,6],sym:[0,2]},ring:{rays:[0,12],sym:[0,4,6]},orb:{rays:[0,4],sym:[0]},cluster:{rays:[0,6],sym:[0,4]}};
-const DNA_KEYS=['complexity','density','scale','aspectRatio','rotation','rayLength','rayWidth','particleDensity','particleSize','clusterAmount','glow','core','halo','sparkleAmount','bokehAmount','irregularity','curvature','elongation','colorVariation'];
-function fitFam(m,r){const A=ARC[m.shapeFamily]||ARC.burst;
- if(!A.sym.includes(m.symmetry))m.symmetry=pick(r,A.sym);
- let n=Math.round(cl(m.rayCount,A.rays[0],A.rays[1]));
- if(m.symmetry>=4&&n>0){n=Math.max(m.symmetry,Math.round(n/m.symmetry)*m.symmetry);if(n>A.rays[1])n=Math.floor(A.rays[1]/m.symmetry)*m.symmetry}
- m.rayCount=n;
- if(m.shapeFamily=='streak')m.elongation=Math.max(m.elongation,.45);
+const SYM_MODES=['perfect','balanced','organic','asymmetric','chaotic'];
+const FAMS={
+ burst:{clan:'radiant',types:['Classic star','Starburst','Sparkle burst','Radial spokes'],rays:[8,30],sym:[0,8,12],modes:['balanced','organic','chaotic'],rl:[.45,1],rad:[.75,1]},
+ symmetric:{clan:'radiant',types:['8-ray halo','8-ray sharp','6-ray warm'],rays:[4,24],sym:[4,5,6,8,12],modes:['perfect','balanced'],rl:[.35,.9],rad:[.9,1]},
+ cross:{clan:'pointed',types:['Slim cross','Fine 4-point','Needle cross','Halo cross','Square halo cross'],rays:[0,8],sym:[4,6,8],modes:['perfect','balanced','organic'],rl:[.3,1],el:[.2,1]},
+ glint:{clan:'pointed',types:['Diagonal glint','X wisp'],rays:[0,10],sym:[0,4],modes:['balanced','organic','asymmetric'],rl:[.3,1],el:[.4,1]},
+ streak:{clan:'directional',types:['Anamorphic streak','Vertical flare'],rays:[0,6],sym:[0,2],modes:['balanced','organic'],el:[.5,1],rad:[.1,.5],tail:[0,.35]},
+ ring:{clan:'circular',types:['Ring halo','Lens ghosts'],rays:[0,12],sym:[0,4,6],modes:['perfect','balanced','organic'],rings:[1,3]},
+ orb:{clan:'soft',types:['Soft orb'],rays:[0,4],sym:[0],modes:['organic','chaotic'],pd:[.4,1],hs:[.5,1]},
+ cluster:{clan:'multi',types:['Sparkle cluster','Twin star'],rays:[0,6],sym:[0,4],modes:['organic','chaotic','asymmetric'],clusters:[2,7]},
+ comet:{clan:'directional',types:['Comet'],rays:[0,6],sym:[0],modes:['organic','asymmetric'],tail:[.45,1],rad:[.2,.6]},
+ halo:{clan:'circular',types:['Halo'],rays:[0,12],sym:[0,4,6,8],modes:['perfect','balanced'],hs:[.6,1],rings:[1,2]},
+ radial:{clan:'radiant',types:['Radial'],rays:[16,48],sym:[8,12,16],modes:['perfect','balanced'],rings:[1,3],rw:[0,.35]},
+ star:{clan:'pointed',types:['Star'],rays:[4,8],sym:[4,5,6,8],modes:['perfect','balanced','organic'],rl:[.5,1]},
+ diamond:{clan:'pointed',types:['Diamond'],rays:[0,4],sym:[4],modes:['perfect','balanced'],el:[.3,1]},
+ lens:{clan:'circular',types:['Lens chain'],rays:[0,6],sym:[0,6],modes:['balanced','organic'],rings:[1,2],clusters:[3,8]},
+ arc:{clan:'circular',types:['Arc'],rays:[0,8],sym:[0],modes:['asymmetric','organic'],rings:[1,3],cv:[.3,1]},
+ sparkle:{clan:'pointed',types:['Sparkle field'],rays:[0,4],sym:[4],modes:['balanced','organic','chaotic'],clusters:[5,14]},
+ 'particle-burst':{clan:'radiant',types:['Particle burst'],rays:[8,28],sym:[0,6,8,12],modes:['perfect','balanced','organic','chaotic'],pd:[.5,1]},
+ 'double-core':{clan:'multi',types:['Double core'],rays:[0,12],sym:[0,4],modes:['balanced','organic'],cores:[2,3],cs:[.4,.9]},
+ 'asymmetric-burst':{clan:'radiant',types:['Asymmetric burst'],rays:[8,24],sym:[0],modes:['asymmetric','chaotic'],rad:[.2,.7]},
+ 'organic-glow':{clan:'soft',types:['Organic glow'],rays:[0,0],sym:[0],modes:['organic','chaotic'],cores:[1,4],cv:[.3,1],pd:[.2,.8]}};
+const FNAMES=Object.keys(FAMS);
+const famOf=t=>FNAMES.find(f=>FAMS[f].types.includes(t))||'burst';
+
+// ============================================================
+// VARIATION DNA (v2)
+// Pack elements (s.dv) are rendered from their DNA; manual strokes/flares get a
+// descriptive DNA and keep their original renderer.
+// ============================================================
+const GEO_K=['aspectRatio','rayLength','rayWidth','elongation','curvature','radiality','tailLength','rayCount','coreCount','ringCount'];
+const DIST_K=['density','particleDensity','particleSize','clusterAmount','clusterCount','clusterSpread','tailDensity','irregularity','complexity'];
+const APP_K=['glow','core','haloStrength','haloSize','brightness','sparkleAmount','bokehAmount','colorVariation'];
+const INT_SPAN={rayCount:48,coreCount:3,ringCount:3,clusterCount:14};
+const INT_R={rayCount:'rays',coreCount:'cores',ringCount:'rings',clusterCount:'clusters'},INT_D={rays:[0,0],cores:[1,2],rings:[0,1],clusters:[2,6]};
+const RNG_K={rl:'rayLength',el:'elongation',rad:'radiality',tail:'tailLength',hs:'haloSize',pd:'particleDensity',cs:'clusterSpread',rw:'rayWidth',cv:'curvature'};
+// clamp a DNA into its family's grammar
+function fitFam(m,r){const F=FAMS[m.shapeFamily];if(!F)return m;
+ if(!F.sym.includes(m.symmetry))m.symmetry=pick(r,F.sym);
+ if(!F.modes.includes(m.symMode))m.symMode=pick(r,F.modes);
+ for(const k in INT_R){const[a,b]=F[INT_R[k]]||INT_D[INT_R[k]];m[k]=Math.round(cl(m[k]||0,a,b))}
+ for(const x in RNG_K)if(F[x])m[RNG_K[x]]=cl(m[RNG_K[x]],F[x][0],F[x][1]);
+ if(m.shapeFamily=='star')m.symmetry=m.rayCount=cl(m.rayCount,4,8);
+ else{let n=m.rayCount;if(m.symmetry>=4&&n>0){n=Math.max(m.symmetry,Math.round(n/m.symmetry)*m.symmetry);if(n>F.rays[1])n=Math.floor(F.rays[1]/m.symmetry)*m.symmetry}m.rayCount=n}
  if(m.shapeFamily=='cluster')m.clusterAmount=Math.max(m.clusterAmount,.4);
- if(m.shapeFamily=='cross'||m.shapeFamily=='glint')m.rayLength=Math.max(m.rayLength,.25);
- if(!FAM[m.shapeFamily].includes(m.structureType))m.structureType=FAM[m.shapeFamily][0];
+ if(!F.types.includes(m.structureType))m.structureType=F.types[0];
  return m}
-// DNA that describes an existing flare preset (used for legacy flares and as the seed of new DNA)
+// descriptive DNA of an original flare preset (legacy flares; also blends preset character into new DNA)
 function dnaFromType(ty,sd){const T=FT[ty]||{},f=famOf(ty),r=rng(hsh('type',ty,sd));
  const n=(T.dust?1:0)+(T.rays?1:0)+(T.cross?1:0)+(T.ring?1:0)+(T.ghosts?1:0)+(T.haloBg||T.squareBg?1:0)+(T.diag||T.streak||T.vstreak?1:0);
- return fitFam({v:1,shapeFamily:f,structureType:ty,seed:sd>>>0,symmetry:T.symRays?T.rays:f=='cross'?4:f=='streak'?2:0,rayCount:T.rays||0,
-  complexity:cl(n/5),density:.5,scale:.5,aspectRatio:.5,rotation:r(),rayLength:cl(((T.rl||.7)-.3)/.85),rayWidth:cl(((T.cw||1.2)-.6)/1.8),
-  particleDensity:cl((T.dust||0)/110),particleSize:.35,clusterAmount:T.cluster?.75:T.twin?.5:0,glow:cl(((T.glow||1)-.45)/1.5),core:.5,
-  halo:cl(T.haloBg||(T.squareBg?.8:0)),sparkleAmount:0,bokehAmount:0,irregularity:T.uneven?.6:T.symRays?.1:.4,curvature:T.ring?.5:0,
-  elongation:cl(Math.max((T.longcross||T.long||1)-1,(T.streak||T.vstreak||0)/3)/1.2),colorVariation:.5},r)}
-// DNA that describes a brush/pen/shape stroke or a dust field (descriptive only)
+ return fitFam({v:2,shapeFamily:f,structureType:ty,seed:sd>>>0,symmetry:T.symRays?T.rays:f=='cross'?4:f=='streak'?2:0,symMode:T.symRays?(T.uneven?'balanced':'perfect'):T.uneven?'organic':'chaotic',
+  rayCount:T.rays||0,complexity:cl(n/5),density:.5,scale:.5,aspectRatio:.5,rotation:r(),rayLength:cl(((T.rl||.7)-.3)/.85),rayWidth:cl(((T.cw||1.2)-.6)/1.8),
+  elongation:cl(Math.max((T.longcross||T.long||1)-1,(T.streak||T.vstreak||0)/3)/1.2),curvature:T.ring?.5:0,radiality:T.streak||T.vstreak?.3:1,irregularity:T.uneven?.6:T.symRays?.1:.4,
+  particleDensity:cl((T.dust||0)/110),particleSize:.35,clusterAmount:T.cluster?.75:T.twin?.5:0,clusterCount:T.cluster||(T.twin?2:3),clusterSpread:.5,
+  coreCount:T.twin?2:1,ringCount:T.ring?1:0,tailLength:0,tailDensity:0,glow:cl(((T.glow||1)-.45)/1.5),core:.5,haloStrength:cl(T.haloBg||(T.squareBg?.8:0)),haloSize:.5,
+  brightness:.5,sparkleAmount:0,bokehAmount:0,colorVariation:.5},r)}
+// descriptive DNA of a brush/pen/shape stroke or a dust field
 function dnaFromStroke(s){const Q=s.P||P,f=s.kind=='field'?'field':'stroke';let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
  for(const[x,y]of s.pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}
  const w=s.geo&&s.geo.w||x1-x0||1,h=s.geo&&s.geo.h||y1-y0||1;
- return{v:1,legacy:1,shapeFamily:f,structureType:f=='field'?(s.geo&&s.geo.tex?'texture':'dust'):['trail','comet','swirl','filament','spray','cloud'][Q.mode|0]||'trail',
-  symmetry:0,rayCount:0,complexity:cl(s.pts.length/400),density:cl(Q.amount/100),scale:.5,aspectRatio:cl(.5+Math.log2(Math.max(w,1)/Math.max(h,1))/4),rotation:0,
+ return{v:2,legacy:1,shapeFamily:f,structureType:f=='field'?(s.geo&&s.geo.tex?'texture':'dust'):['trail','comet','swirl','filament','spray','cloud'][Q.mode|0]||'trail',
+  symmetry:0,symMode:'organic',rayCount:0,coreCount:0,ringCount:0,clusterCount:Q.mode==3?3:1,clusterSpread:cl(Q.spread/90),tailLength:cl(Q.taper/3),tailDensity:cl(Q.amount/100),
+  complexity:cl(s.pts.length/400),density:cl(Q.amount/100),scale:.5,aspectRatio:cl(.5+Math.log2(Math.max(w,1)/Math.max(h,1))/4),rotation:0,radiality:0,
   rayLength:0,rayWidth:cl(Q.core/100),particleDensity:cl(Q.amount/100),particleSize:cl((Q.size-.5)/3.5),clusterAmount:Q.mode==3?.6:Q.mode==5?.4:.1,
-  glow:cl(Q.glow/100),core:cl(Q.core/100),halo:cl(Q.halo/100),sparkleAmount:cl(Q.stars/40),bokehAmount:cl(Q.bokeh/30),irregularity:cl(Q.spread/90),
-  curvature:s.closed?1:.5,elongation:cl(Q.taper/3),colorVariation:Q.mix?1:0,seed:s.seed>>>0}}
+  glow:cl(Q.glow/100),core:cl(Q.core/100),haloStrength:cl(Q.halo/100),haloSize:.5,brightness:cl((Q.bright-.4)/1.6),sparkleAmount:cl(Q.stars/40),bokehAmount:cl(Q.bokeh/30),
+  irregularity:cl(Q.spread/90),curvature:s.closed?1:.5,elongation:cl(Q.taper/3),colorVariation:Q.mix?1:0,seed:s.seed>>>0}}
+// upgrade Phase-1 DNA (v1) in place
+function upDNA(d){if(!d||d.v===2)return d;const f=d.shapeFamily;
+ Object.assign(d,{v:2,haloStrength:d.halo??0,haloSize:.5,brightness:.5,radiality:f=='streak'?.3:1,coreCount:1,ringCount:f=='ring'?1:0,clusterCount:3,clusterSpread:.5,
+  tailLength:0,tailDensity:0,symMode:d.symmetry?(d.irregularity<.3?'perfect':'balanced'):'organic'});delete d.halo;
+ return FAMS[f]?fitFam(d,rng(d.seed)):d}
 // Backward compatibility: any element without id/DNA gets one on demand
 function ensureEl(s){if(!s.id)s.id=nid();else NID=Math.max(NID,s.id+1);
- if(!s.dna)s.dna=s.kind=='flare'?dnaFromType(s.geo.type,s.seed):dnaFromStroke(s);return s}
-// Fresh DNA for a pack slot: preset character + deterministic structural variation
-function dnaNew(ty,sd){const d=dnaFromType(ty,sd),r=rng(hsh('new',sd));
- for(const k of['rayLength','rayWidth','elongation','glow','halo','particleDensity','clusterAmount','complexity'])d[k]=cl(d[k]+(r()*2-1)*.3);
- d.density=r();d.scale=r();d.aspectRatio=r()<.6?.5+(r()-.5)*.2:r();d.rotation=r();d.particleSize=r();d.core=r();
- d.sparkleAmount=r()<.5?0:r();d.bokehAmount=r()<.6?0:r();d.irregularity=r();d.curvature=r()<.55?r()*.15:r();d.colorVariation=r();
- const A=ARC[d.shapeFamily];d.symmetry=pick(r,A.sym);d.rayCount=A.rays[0]+r()*(A.rays[1]-A.rays[0]+1)|0;
+ if(!s.dna)s.dna=s.kind=='flare'?dnaFromType(s.geo.type,s.seed):dnaFromStroke(s);else upDNA(s.dna);return s}
+
+// ============================================================
+// VARIATION CONTROLS + GENERATION MODES
+// Diversity sliders set how far each DNA may stray from the collection's
+// seeded "centre" (0 = coherent set, 100 = full range).
+// ============================================================
+const GMODE={Quick:{maxA:25,cand:1,kBal:.6,boost:0,run:.2},Balanced:{maxA:60,cand:2,kBal:1.2,boost:0,run:.5},Diverse:{maxA:90,cand:4,kBal:2.2,boost:.15,run:.8},Extreme:{maxA:140,cand:6,kBal:3.2,boost:.3,run:1}};
+const VCTL=[['family','Family diversity',80],['shape','Shape diversity',75],['sym','Symmetry diversity',70],['density','Density diversity',65],['size','Size diversity',50],['complexity','Complexity diversity',70]];
+const FW={};FNAMES.forEach(f=>FW[f]=1);
+function ctxNow(ms=MSEED){const G=GMODE[$('#gm').value]||GMODE.Balanced,V={};for(const[k]of VCTL)V[k]=cl(+$('#v_'+k).value/100+G.boost);
+ const r=rng(hsh(ms,'collection')),C={};for(const k of[...GEO_K,...DIST_K,...APP_K,'scale','irregularity'])C[k]=r();
+ const pref={};FNAMES.forEach(f=>pref[f]=r());
+ return{G,V,C,pref,dom:r(),auto:$('#vab').checked,W:{...FW}}}
+// Fresh DNA for a family: seeded, shaped by the family grammar and the diversity controls
+function dnaNew(fam,sd,cx=ctxNow()){const F=FAMS[fam],r=rng(hsh('dna2',fam,sd)),V=cx.V,C=cx.C;
+ const pv=(k,rg,sv)=>{rg=rg||[0,1];return rg[0]+(rg[1]-rg[0])*cl(lerp(C[k],r(),sv))};
+ const pd=(list,sv)=>r()<sv?pick(r,list):list[Math.floor(cx.dom*list.length)];
+ const d={v:2,shapeFamily:fam,structureType:pick(r,F.types),seed:sd>>>0,rotation:r(),
+  symmetry:pd(F.sym,V.sym),symMode:pd(F.modes,V.sym),irregularity:pv('irregularity',null,V.sym),
+  rayCount:pv('rayCount',F.rays,V.shape),rayLength:pv('rayLength',F.rl,V.shape),rayWidth:pv('rayWidth',F.rw,V.shape),elongation:pv('elongation',F.el||[0,.5],V.shape),
+  aspectRatio:pv('aspectRatio',[.3,.7],V.shape),curvature:pv('curvature',F.cv||[0,.6],V.shape),radiality:pv('radiality',F.rad||[.7,1],V.shape),
+  coreCount:pv('coreCount',F.cores||[1,1.4],V.shape),ringCount:pv('ringCount',F.rings||[0,.8],V.shape),
+  tailLength:F.tail?pv('tailLength',F.tail,V.shape):r()<.1*V.shape?.1+r()*.2:0,tailDensity:pv('tailDensity',null,V.density),
+  density:pv('density',null,V.density),particleDensity:pv('particleDensity',F.pd||[0,.8],V.density),particleSize:pv('particleSize',null,V.density),
+  clusterAmount:pv('clusterAmount',null,V.density),clusterCount:pv('clusterCount',F.clusters||[2,6],V.density),clusterSpread:pv('clusterSpread',F.cs,V.density),
+  scale:pv('scale',null,V.size),complexity:pv('complexity',null,V.complexity),
+  glow:pv('glow',null,.85),core:pv('core',null,.85),haloStrength:pv('haloStrength',null,.85),haloSize:pv('haloSize',F.hs,.85),brightness:pv('brightness',[.25,.85],.85),
+  sparkleAmount:r()<.5?0:pv('sparkleAmount',null,.85),bokehAmount:r()<.6?0:pv('bokehAmount',null,.85),colorVariation:pv('colorVariation',null,.85)};
+ if(FT[d.structureType]){const b=dnaFromType(d.structureType,sd);for(const k of['rayLength','rayWidth','elongation','glow','haloStrength','particleDensity'])d[k]=lerp(d[k],b[k],.4)}
  return fitFam(d,r)}
-// DNA -> render parameters (cached per DNA object)
-const TC=new WeakMap();
-function dnaT(d){let T=TC.get(d);if(T)return T;const f=d.shapeFamily,cx=d.complexity;
- T={glow:.45+d.glow*1.5,halo:d.halo,core:.55+d.core*1.1,rays:d.rayCount|0,sym:d.symmetry,rl:.3+d.rayLength*.85,rw:.35+d.rayWidth*1.5,irr:d.irregularity,
-  curve:d.curvature*.6,aspect:.62+d.aspectRatio*.95,psz:.35+d.particleSize*1.5,clump:d.clusterAmount,
+
+// ============================================================
+// SYMMETRY ENGINE
+// Geometry-level placement of rays (symLayout) and particles (symScatter).
+// perfect = equal spacing / rotational copies, balanced = mirrored with small
+// variation, organic = smooth irregularity, asymmetric = one-sided,
+// chaotic = free placement. radiality 0..1 squeezes energy toward the main axis.
+// ============================================================
+function symLayout(n,d,r){const out=[];if(n<=0)return out;
+ const fold=d.symmetry||0,irr=d.irregularity||0,m=d.symMode||'balanced',sp=6.2832/n,sq=.2+.8*(d.radiality??1),
+  pat=i=>fold>=2&&n>fold&&i%Math.max(1,Math.round(n/fold))?.62:1,rs=a=>Math.atan2(Math.sin(a)*sq,Math.cos(a));
+ if(m=='asymmetric'){const back=Math.round(n*.15),f=n-back,sec=Math.PI*(.35+.55*(d.radiality??.5));
+  for(let i=0;i<f;i++){const t=f>1?i/(f-1):.5;out.push([(t-.5)*sec+(r()-.5)*sp*.4*(.3+irr),(.3+.7*Math.pow(1-Math.abs(t-.5)*2,.6))*(1-.3*r()*irr),.6+.8*r()])}
+  for(let i=0;i<back;i++)out.push([Math.PI+(r()-.5)*.9,.2+.15*r(),.5]);return out}
+ if(m=='chaotic'){for(let i=0;i<n;i++)out.push([rs(r()*6.2832),.2+r()*1.1,.3+r()*1.5]);return out}
+ const J=[],L=[],Wd=[],p1=r()*6.2832,p2=r()*6.2832;
+ for(let i=0;i<n;i++){
+  if(m=='perfect'){J.push(0);L.push(1);Wd.push(1)}
+  else if(m=='balanced'){J.push((r()-.5)*sp*.25*(.4+irr));L.push(1-.25*r()*(.4+irr));Wd.push(.8+.4*r())}
+  else{J.push(Math.sin(i*1.7+p1)*sp*.35*(.4+irr)+(r()-.5)*sp*.15);L.push((.6+.4*(.5+.5*Math.sin(i*2.3+p2)))*(1-.25*r()*irr));Wd.push(.6+.8*r())}}
+ for(let i=0;i<n;i++){let j=J[i],l=L[i],w=Wd[i];
+  if(m=='balanced'){if(2*i>n){j=-J[n-i];l=L[n-i];w=Wd[n-i]}else if(i==0||2*i==n)j=0}
+  out.push([rs(i*sp+j),l*pat(i),w])}
+ return out}
+function symScatter(N,d,r,r0,r1){const out=[];if(N<=0)return out;
+ const m=d.symMode||'balanced',fold=d.symmetry>=2?d.symmetry:6,sq=.2+.8*(d.radiality??1),irr=d.irregularity||0,
+  nc=Math.max(1,d.clusterCount|0),ca=d.clusterAmount||0,cs=d.clusterSpread??.5,cc=[];
+ for(let i=0;i<nc;i++){const a=r()*6.2832,q=lerp(r0,r1,.3+.6*cs*r());cc.push([Math.cos(a)*q,Math.sin(a)*q*sq])}
+ const pt=()=>{if(r()<ca){const c=cc[r()*nc|0],s=(r1-r0)*(.08+.25*(1-ca));return[c[0]+(r()+r()-1)*s,c[1]+(r()+r()-1)*s]}
+  let a,q=lerp(r0,r1,Math.pow(r(),.7+irr*.8));
+  if(m=='asymmetric'){a=(r()-.5)*Math.PI*(1+(d.radiality??.5));q*=.6+.5*Math.cos(a*.5)}else a=r()*6.2832;
+  if(m=='organic')q*=.75+.35*Math.sin(a*3+irr*5);
+  if(m=='chaotic')q*=.4+r()*1.1;
+  return[Math.cos(a)*q,Math.sin(a)*q*(m=='asymmetric'?1:sq)]};
+ if(m=='perfect'){while(out.length<N){const[x,y]=pt();for(let k=0;k<fold&&out.length<N;k++){const a=k*6.2832/fold,c=Math.cos(a),s=Math.sin(a);out.push([x*c-y*s,x*s+y*c])}}}
+ else if(m=='balanced'){while(out.length<N){const[x,y]=pt(),j=(r()-.5)*(r1-r0)*.05*irr;out.push([x,y]);if(out.length<N)out.push([x+j,-y+j])}}
+ else for(let i=0;i<N;i++)out.push(pt());
+ return out}
+
+// ============================================================
+// DNA RENDERER
+// dnaT() compiles DNA -> numbers (cached); renderDNA() draws one element in its
+// local frame. Three independent RNG streams keep geometry / particles /
+// appearance extras stable when only one of them changes.
+// ============================================================
+const TC=new WeakMap(),RADIANT=['burst','symmetric','ring','halo','asymmetric-burst'];
+function dnaT(d){let T=TC.get(d);if(T)return T;upDNA(d);const f=d.shapeFamily,cx=d.complexity;
+ T={glow:.45+d.glow*1.5,haloR:.8+d.haloSize*1.4,haloS:d.haloStrength,core:.55+d.core*1.1,bright:.6+d.brightness*.8,rays:d.rayCount|0,rl:.3+d.rayLength*.85,rw:.35+d.rayWidth*1.5,
+  curve:d.curvature*.6,aspect:.62+d.aspectRatio*.95,psz:.35+d.particleSize*1.5,
   dust:Math.round((d.particleDensity*110+(f=='orb'?30:0))*(.35+.65*d.density)),spk:Math.round(d.sparkleAmount*9),bok:Math.round(d.bokehAmount*7),
-  axes:f=='cross'?Math.max(2,d.symmetry/2|0):f=='glint'?4:f=='streak'?(cx>.5?2:1):f=='orb'?(cx>.55?2:0):f=='cluster'?0:(d.rayLength>.25||cx>.4)?2:0,
+  axes:f=='cross'?Math.max(2,d.symmetry/2|0):f=='glint'?4:f=='streak'?(cx>.5?2:1):f=='orb'?(cx>.55?2:0):RADIANT.includes(f)?((d.rayLength>.25||cx>.4)?2:0):(f=='diamond'||f=='star')&&cx>.6?2:0,
   arm:f=='streak'?.8+d.rayLength*.3:.7+d.rayLength*.8,long:f=='streak'?1.8+d.elongation*.9:1+d.elongation*1.1,
   alt:f=='glint'?.45+.3*(1-d.elongation):f=='streak'?.25:1-d.elongation*.5,cw:f=='streak'?2+d.rayWidth*1.6:.6+d.rayWidth*1.8,inner:f=='streak',
-  ring:f=='ring'?.38+d.curvature*.35:cx>.85?.55:0,ghosts:f=='ring'?2+Math.round(cx*3):0,cluster:f=='cluster'?2+Math.round(d.clusterAmount*4):0};
+  tail:d.tailLength>.06?(f=='comet'?1+d.tailLength*1.6:.5+d.tailLength*1.4):0};
  if(T.arm*T.long>2.2)T.long=2.2/T.arm;
- T.sub={halo:0,glow:T.glow*.8,rays:Math.min(T.rays,6)||4,sym:4,rl:T.rl,rw:T.rw,irr:T.irr,curve:T.curve,axes:2,arm:1.1+d.rayLength*.5,long:1+d.elongation*.8,alt:1,cw:T.cw*.85,core:T.core};
- const sa=Math.sqrt(T.aspect);
- T.ext=Math.max(T.glow,T.halo>.04?1.3:0,T.rl*1.1,T.arm*T.long,T.ring*1.2,T.ghosts?(.35+T.ghosts*.28)*1.2:0,1.3,T.cluster?1.6:0)*Math.max(sa,1/sa)*1.08;
+ if(f=='diamond'||f=='star')T.arm*=.7;
+ const sa=Math.sqrt(T.aspect),rc=d.ringCount|0,cs=d.clusterSpread??.5;
+ T.ext=Math.max(1.3,T.glow,T.haloS>.03?T.haloR:0,T.rays?T.rl*(f=='particle-burst'?1.35:1.1):0,T.axes?T.arm*T.long:0,rc?(.55+.3*rc)*1.2:0,f=='lens'?2.2:f=='ring'?1.9:0,
+  T.tail?T.tail+.2:0,f=='cluster'||f=='sparkle'?1.4+cs*.6:0,f=='double-core'?1.4+cs*.5:0,f=='diamond'?.8+d.elongation*.9:0,d.coreCount>1?1+cs*.5:0)*Math.max(sa,1/sa)*1.08;
  TC.set(d,T);return T}
-// DNA-driven flare renderer (reuses the flare drawing kit)
-function drawDNA(s,t,fr){
- const{x,y,r,rot}=s.geo,d=s.dna,T=dnaT(d),[R,G,B]=rgb(s.col.h),k=P.twinkle?.85+.15*Math.sin(t*.003+s.seed%9):1,rr=rng(d.seed),sa=Math.sqrt(T.aspect),sw=rr()<.5?-1:1;
- const c=(m,a)=>`rgba(${R+(255-R)*m|0},${G+(255-G)*m|0},${B+(255-B)*m|0},${a})`,{glow,ln}=fkit(c,k,d.glow);
+function renderDNA(s,fr,k,x,y){
+ const d=s.dna,T=dnaT(d),f=d.shapeFamily,r=s.geo.r,[R,G,B]=rgb(s.col.h),br=T.bright,cx=d.complexity,cs=d.clusterSpread??.5,
+  rG=rng(d.seed),rP=rng((d.seed^0x51ed27)>>>0),rA=rng((d.seed^0x2c1b3c6d)>>>0),sa=Math.sqrt(T.aspect),sw=rG()<.5?-1:1;
+ const c=(m,a)=>`rgba(${R+(255-R)*m|0},${G+(255-G)*m|0},${B+(255-B)*m|0},${Math.min(1,a*br)})`,{glow,ln}=fkit(c,k,d.glow);
+ const A=a=>{X.globalAlpha=Math.min(1,fr*a)};
  const ray=(px,py,a,l,w,cv)=>{const ex=px+Math.cos(a)*l,ey=py+Math.sin(a)*l;if(Math.abs(cv)<.04)return ln(px,py,ex,ey,w,.7,.3,0);
   const q=X.createLinearGradient(px,py,ex,ey);q.addColorStop(0,c(.9,.7*k));q.addColorStop(.5,c(.6,.3*k));q.addColorStop(1,c(.9,0));X.strokeStyle=q;X.lineWidth=w;
   X.beginPath();X.moveTo(px,py);X.quadraticCurveTo(px+(Math.cos(a)-Math.sin(a)*cv)*l*.5,py+(Math.sin(a)+Math.cos(a)*cv)*l*.5,ex,ey);X.stroke()};
- const burst=(px,py,pr,o)=>{
-  if(o.halo>.04){X.globalAlpha=fr*o.halo*.5*k;const q=X.createRadialGradient(px,py,0,px,py,pr*1.3);q.addColorStop(0,c(.5,.55));q.addColorStop(.55,c(.15,.22));q.addColorStop(1,c(0,0));X.fillStyle=q;X.beginPath();X.arc(px,py,pr*1.3,0,6.283);X.fill();X.globalAlpha=fr}
-  glow(px,py,pr*o.glow,.95);
-  const n=o.rays,sp=6.2832/(n||1);
-  for(let i=0;i<n;i++){const a=o.sym?i*sp+(rr()-.5)*o.irr*sp*.8:rr()*6.2832,
-   l=pr*o.rl*(o.sym?(1-o.irr*rr()*.55)*(n>o.sym&&i%2?.6:1):.45+rr()*(.5+o.irr*.6));ray(px,py,a,l,o.rw*(.55+rr()*.8),o.curve*sw*(.7+rr()*.6))}
-  for(let j=0;j<o.axes;j++){const a=j*Math.PI/o.axes,f=j==0?o.long:o.axes==2?o.alt:j%2?o.alt:o.alt*.8,l=pr*o.arm*f,dx=Math.cos(a)*l,dy=Math.sin(a)*l;
-   ln(px-dx,py-dy,px+dx,py+dy,o.cw*(j?.8:1),0,.95,0);if(o.inner&&!j)ln(px-dx*.6,py-dy*.6,px+dx*.6,py+dy*.6,1,0,1,0)}
-  if(o.core>1.1){X.globalAlpha=fr*.9*k;X.fillStyle=c(.85,1);X.beginPath();X.arc(px,py,pr*.05*o.core,0,6.283);X.fill();X.globalAlpha=fr}
-  glow(px,py,pr*.16*o.core,1)};
- X.save();X.translate(x,y);X.rotate(rot);X.scale(sa,1/sa);X.globalAlpha=fr;X.lineCap='round';
- if(T.cluster){glow(0,0,r*T.glow*.6,.6);for(let i=0;i<T.cluster;i++){const a=rr()*6.2832,dd=r*.5*Math.sqrt(rr());burst(Math.cos(a)*dd,Math.sin(a)*dd,r*(.3+rr()*.35),T.sub)}}
- else burst(0,0,r,T);
- if(T.ring){X.globalAlpha=fr;X.strokeStyle=c(.3,.6*k);X.lineWidth=1.5;X.beginPath();X.arc(0,0,r*T.ring,0,6.283);X.stroke();X.strokeStyle=c(.3,.18);X.beginPath();X.arc(0,0,r*T.ring*1.18,0,6.283);X.stroke()}
- for(let i=1;i<=T.ghosts;i++){const dd=r*(.35+i*.28)*(1+rr()*.15),a=.6+(rr()-.5)*T.irr*.6,gx=Math.cos(a)*dd,gy=Math.sin(a)*dd,gr=r*(.05+rr()*.13),q=X.createRadialGradient(gx,gy,0,gx,gy,gr);
-  q.addColorStop(0,c(.5,.05));q.addColorStop(.8,c(.3,.22*k));q.addColorStop(1,c(.3,0));X.globalAlpha=fr;X.fillStyle=q;X.beginPath();X.arc(gx,gy,gr,0,6.283);X.fill();if(i%2){X.strokeStyle=c(.4,.4);X.lineWidth=1;X.stroke()}}
- if(T.dust){X.fillStyle=c(.5,1);const cc=[rr()*6.2832,rr()*6.2832,rr()*6.2832];
-  for(let i=0;i<T.dust;i++){let a=rr()*6.2832;if(rr()<T.clump)a=cc[i%3]+(rr()-.5)*1.1;const dd=r*(.12+Math.pow(rr(),.7+T.irr*.8)),z=T.psz*(.35+rr()*rr()*2.2);
-   X.globalAlpha=fr*(.25+rr()*.75)*k;X.beginPath();X.arc(Math.cos(a)*dd,Math.sin(a)*dd,z,0,6.283);X.fill()}}
- if(T.spk){X.fillStyle=c(.8,1);for(let i=0;i<T.spk;i++){const a=rr()*6.2832,dd=r*(.3+rr()*.9),px=Math.cos(a)*dd,py=Math.sin(a)*dd,L=r*(.05+rr()*.08),q=L*.16;
-  X.globalAlpha=fr*(.5+rr()*.5)*k;X.beginPath();X.moveTo(px,py-L);X.lineTo(px+q,py-q);X.lineTo(px+L,py);X.lineTo(px+q,py+q);X.lineTo(px,py+L);X.lineTo(px-q,py+q);X.lineTo(px-L,py);X.lineTo(px-q,py-q);X.closePath();X.fill()}}
- for(let i=0;i<T.bok;i++){const a=rr()*6.2832,dd=r*(.3+rr()),br=r*(.05+rr()*.12),ring=rr()<.4;X.fillStyle=c(.2,1);X.globalAlpha=fr*(.12+rr()*.2)*k;
-  X.beginPath();X.arc(Math.cos(a)*dd,Math.sin(a)*dd,br,0,6.283);X.fill();if(ring){X.globalAlpha=fr*.35*k;X.strokeStyle=c(.4,1);X.lineWidth=1;X.stroke()}}
+ const halo=(px,py,R0,str)=>{if(str<.03)return;A(str*.55*k);const q=X.createRadialGradient(px,py,0,px,py,R0);q.addColorStop(0,c(.5,.55));q.addColorStop(.55,c(.15,.22));q.addColorStop(1,c(0,0));X.fillStyle=q;X.beginPath();X.arc(px,py,R0,0,6.283);X.fill();A(1)};
+ const core=(px,py,pr)=>{if(T.core>1.1){A(.9*k);X.fillStyle=c(.85,1);X.beginPath();X.arc(px,py,pr*.05*T.core,0,6.283);X.fill();A(1)}glow(px,py,pr*.16*T.core,1)};
+ const fan=(px,py,pr,n,rl,rw,cv)=>{for(const[a,l,w]of symLayout(n,d,rG))ray(px,py,a,pr*rl*l,rw*w,cv*sw*(.7+rG()*.6))};
+ const arms=(px,py,pr,o)=>{for(let j=0;j<o.axes;j++){const a=j*Math.PI/o.axes,m=j==0?o.long:o.axes==2?o.alt:j%2?o.alt:o.alt*.8,l=pr*o.arm*m,dx=Math.cos(a)*l,dy=Math.sin(a)*l;
+  ln(px-dx,py-dy,px+dx,py+dy,o.cw*(j?.8:1),0,.95,0);if(o.inner&&!j)ln(px-dx*.6,py-dy*.6,px+dx*.6,py+dy*.6,1,0,1,0)}};
+ const ring=(q,a,w)=>{A(1);X.strokeStyle=c(.3,a*k);X.lineWidth=w;X.beginPath();X.arc(0,0,q,0,6.283);X.stroke()};
+ const star4=(px,py,L,a)=>{const q=L*.16;A(a);X.beginPath();X.moveTo(px,py-L);X.lineTo(px+q,py-q);X.lineTo(px+L,py);X.lineTo(px+q,py+q);X.lineTo(px,py+L);X.lineTo(px-q,py+q);X.lineTo(px-L,py);X.lineTo(px-q,py-q);X.closePath();X.fill()};
+ const tail=(L,hw,al)=>{const bend=d.curvature*sw*.45,cy=t=>bend*t*t*L,N=16;
+  X.beginPath();for(let i=0;i<=N;i++){const t=i/N;X.lineTo(-t*L,cy(t)-hw*(1-t)*(1-t*.3))}for(let i=N;i>=0;i--){const t=i/N;X.lineTo(-t*L,cy(t)+hw*(1-t)*(1-t*.3))}X.closePath();
+  const q=X.createLinearGradient(0,0,-L,0);q.addColorStop(0,c(.8,.75*k));q.addColorStop(.35,c(.35,.3*k));q.addColorStop(1,c(0,0));X.fillStyle=q;A(al);X.fill();
+  const ns=2+Math.round(cx*4);for(let i=0;i<ns;i++){const o=(rG()-.5)*hw*1.4,l=L*(.5+rG()*.5),t=l/L,g=X.createLinearGradient(0,0,-l,0);g.addColorStop(0,c(.7,.5*k));g.addColorStop(1,c(0,0));
+   X.strokeStyle=g;X.lineWidth=.5+d.rayWidth;A(al);X.beginPath();X.moveTo(0,o*.3);X.quadraticCurveTo(-l*.5,cy(t*.5)+o,-l,cy(t)+o*1.6);X.stroke()}
+  const np=Math.round(d.tailDensity*90);X.fillStyle=c(.6,1);for(let i=0;i<np;i++){const t=Math.pow(rP(),.8),z=T.psz*(1.3-t)*(.5+rP());A((1-t)*(.4+.6*rP())*k*al);
+   X.beginPath();X.arc(-t*L,cy(t)+(rP()-.5)*2*hw*(.4+t*1.5),Math.max(.2,z),0,6.283);X.fill()}A(1)};
+ const mini=(px,py,pr,n)=>{glow(px,py,pr*T.glow*.8,.95);fan(px,py,pr,n,T.rl,T.rw,T.curve);arms(px,py,pr,{axes:2,arm:.9+d.rayLength*.6,long:1+d.elongation*.8,alt:1-.3*d.elongation,cw:T.cw*.85});core(px,py,pr)};
+
+ X.save();X.translate(x,y);X.rotate(s.geo.rot);X.scale(sa,1/sa);A(1);X.lineCap='round';
+ halo(0,0,r*T.haloR,T.haloS);
+ if(T.tail)tail(r*T.tail,r*(.12+.2*d.rayWidth),f=='comet'?1:.55);
+ switch(f){
+  case 'burst':case 'symmetric':case 'asymmetric-burst':case 'cross':case 'glint':case 'streak':
+   glow(0,0,r*T.glow,.95);fan(0,0,r,T.rays,T.rl,T.rw,T.curve);arms(0,0,r,T);core(0,0,r);break;
+  case 'orb':glow(0,0,r*T.glow*1.15,.95);fan(0,0,r,T.rays,T.rl*.7,T.rw,T.curve);arms(0,0,r,T);core(0,0,r);break;
+  case 'ring':{glow(0,0,r*T.glow,.95);fan(0,0,r,T.rays,T.rl*.8,T.rw,T.curve);arms(0,0,r,T);
+   for(let i=0;i<d.ringCount;i++){const q=r*(.38+d.curvature*.35)*(1+.28*i);ring(q,.6-.15*i,1.5);ring(q*1.18,.18,1)}
+   const g=2+Math.round(cx*3),ga=.6+(rG()-.5)*d.irregularity*.6;
+   for(let i=1;i<=g;i++){const dd=r*(.35+i*.28)*(1+rG()*.15),gx=Math.cos(ga)*dd,gy=Math.sin(ga)*dd,gr=r*(.05+rG()*.13),q=X.createRadialGradient(gx,gy,0,gx,gy,gr);
+    q.addColorStop(0,c(.5,.05));q.addColorStop(.8,c(.3,.22*k));q.addColorStop(1,c(.3,0));A(1);X.fillStyle=q;X.beginPath();X.arc(gx,gy,gr,0,6.283);X.fill();if(i%2){X.strokeStyle=c(.4,.4);X.lineWidth=1;X.stroke()}}
+   core(0,0,r);break}
+  case 'cluster':glow(0,0,r*T.glow*.6,.6);for(const[px,py]of symScatter(d.clusterCount,d,rG,r*.1,r*(.35+.55*cs)))mini(px,py,r*(.3+rG()*.35),Math.min(T.rays,6)||4);break;
+  case 'comet':glow(0,0,r*T.glow*.8,.95);fan(0,0,r*.7,T.rays,T.rl,T.rw,T.curve);core(0,0,r);break;
+  case 'halo':{glow(0,0,r*T.glow*.85,.9);const hr=r*(.45+.4*d.haloSize),bw=r*(.1+.22*d.rayWidth),q=X.createRadialGradient(0,0,Math.max(0,hr-bw),0,0,hr+bw);
+   q.addColorStop(0,c(.2,0));q.addColorStop(.5,c(.5,.45*d.haloStrength+.15));q.addColorStop(1,c(.2,0));X.fillStyle=q;A(k);X.beginPath();X.arc(0,0,hr+bw,0,6.283);X.fill();A(1);
+   for(let i=0;i<d.ringCount;i++)ring(hr*(1.15+.18*i),.45-.12*i,1);fan(0,0,r,T.rays,T.rl*.55,T.rw,T.curve);arms(0,0,r,T);core(0,0,r);break}
+  case 'radial':glow(0,0,r*T.glow*.8,.9);fan(0,0,r,T.rays,T.rl,T.rw*.6,T.curve*.5);X.fillStyle=c(.7,1);
+   for(let i=0;i<d.ringCount;i++){const q=r*(.3+.22*i)*(.8+.4*d.rayLength);for(const[a,l]of symLayout(Math.max(6,(d.symmetry||8)*(i+1)),d,rG)){A((.5+.4*Math.min(1,l))*k);X.beginPath();X.arc(Math.cos(a)*q*(.9+.1*l),Math.sin(a)*q*(.9+.1*l),T.psz*(1.3-.25*i),0,6.283);X.fill()}}
+   core(0,0,r);break;
+  case 'star':{glow(0,0,r*T.glow*.7,.8);const n=Math.max(4,T.rays),Ro=r*T.rl*1.15,Ri=r*(.1+.22*d.rayWidth)*(1-.5*d.curvature),L=symLayout(n,d,rG).sort((p,q)=>p[0]-q[0]);
+   X.beginPath();L.forEach(([a,l],i)=>{const nx=L[(i+1)%n],a2=(a+nx[0]+(i==n-1?6.2832:0))/2;i?X.lineTo(Math.cos(a)*Ro*l,Math.sin(a)*Ro*l):X.moveTo(Math.cos(a)*Ro*l,Math.sin(a)*Ro*l);X.lineTo(Math.cos(a2)*Ri,Math.sin(a2)*Ri)});X.closePath();
+   const q=X.createRadialGradient(0,0,0,0,0,Ro);q.addColorStop(0,c(1,.95*k));q.addColorStop(.3,c(.6,.55*k));q.addColorStop(1,c(.2,.05));X.fillStyle=q;A(1);X.fill();X.strokeStyle=c(.8,.5*k);X.lineWidth=.8;X.stroke();
+   arms(0,0,r,T);core(0,0,r);break}
+  case 'diamond':{glow(0,0,r*T.glow*.6,.8);const h=r*(.55+.75*d.elongation),w=r*(.2+.3*d.rayWidth)*(.8+.4*(1-d.elongation)),cc=1-.75*d.curvature;
+   for(const[s2,al]of[[1,.8],[.5,1]]){const H2=h*s2,W2=w*s2;X.beginPath();X.moveTo(0,-H2);X.quadraticCurveTo(W2*cc*.5,-H2*cc*.5,W2,0);X.quadraticCurveTo(W2*cc*.5,H2*cc*.5,0,H2);X.quadraticCurveTo(-W2*cc*.5,H2*cc*.5,-W2,0);X.quadraticCurveTo(-W2*cc*.5,-H2*cc*.5,0,-H2);
+    const q=X.createRadialGradient(0,0,0,0,0,H2);q.addColorStop(0,c(1,.95*k));q.addColorStop(.3,c(.55,.5*k));q.addColorStop(1,c(.2,0));X.fillStyle=q;A(al);X.fill()}
+   A(1);arms(0,0,r,T);core(0,0,r);break}
+  case 'lens':{const Ls=r*(1.2+d.elongation*.9),tl=(d.curvature-.5)*.5;ln(-Ls,0,Ls,0,T.cw*3,0,.18,0);ln(-Ls,0,Ls,0,T.cw,0,.55,0);glow(0,0,r*T.glow*.9,.95);
+   for(let i=0;i<d.clusterCount;i++){const t=(i+1)/(d.clusterCount+1),sd=i%2?-1:1,dd=r*(.35+t*1.8)*sd*(.9+rG()*.2),gx=Math.cos(tl)*dd,gy=Math.sin(tl)*dd,gr=r*(.05+rG()*.16);
+    X.beginPath();if(d.symmetry>=6){for(let j=0;j<=6;j++){const a=j*1.0472+.3;j?X.lineTo(gx+Math.cos(a)*gr,gy+Math.sin(a)*gr):X.moveTo(gx+Math.cos(a)*gr,gy+Math.sin(a)*gr)}X.closePath()}else X.arc(gx,gy,gr,0,6.283);
+    A(1);X.fillStyle=c(.4,.08+.1*rG());X.fill();X.strokeStyle=c(.5,.35*k);X.lineWidth=.8;X.stroke()}
+   for(let i=0;i<d.ringCount;i++)ring(r*(.5+.3*i),.3,1);core(0,0,r);break}
+  case 'arc':glow(0,0,r*T.glow*.75,.9);X.fillStyle=c(.85,1);
+   for(let i=0;i<Math.max(1,d.ringCount);i++){const q=r*(.45+.25*i)*(.8+.4*d.rayLength),sp=(.25+.7*d.curvature)*6.2832*(1-.15*i),st=-sp/2+(d.symMode=='asymmetric'?.6:0)+(rG()-.5)*d.irregularity*1.5+i*(rG()-.5)*.8;
+    A(1);X.strokeStyle=c(.3,.18*k);X.lineWidth=3+8*d.rayWidth;X.beginPath();X.arc(0,0,q,st,st+sp);X.stroke();X.strokeStyle=c(.85,.75*k);X.lineWidth=.8+1.2*d.rayWidth;X.beginPath();X.arc(0,0,q,st,st+sp);X.stroke();
+    star4(Math.cos(st+sp)*q,Math.sin(st+sp)*q,r*.12,.9*k)}
+   A(1);fan(0,0,r,T.rays,T.rl*.5,T.rw,T.curve);core(0,0,r);break;
+  case 'sparkle':glow(0,0,r*T.glow*.45,.7);X.fillStyle=c(.85,1);star4(0,0,r*(.3+.35*d.rayLength),.95*k);glow(0,0,r*.18,1);
+   for(const[px,py]of symScatter(d.clusterCount,d,rG,r*.12,r*(.3+.8*cs))){const L=r*(.06+.2*rG())*(1-.4*Math.min(1,Math.hypot(px,py)/r));X.fillStyle=c(.85,1);star4(px,py,L,(.5+.5*rG())*k);glow(px,py,L*.8,.5)}
+   A(1);break;
+  case 'particle-burst':{glow(0,0,r*T.glow*.6,.9);const m=3+Math.round(d.particleDensity*9);X.fillStyle=c(.6,1);
+   for(const[a,l,w]of symLayout(T.rays,d,rG)){const Lr=r*T.rl*1.3*Math.min(1.2,l);if(d.rayWidth>.5)ray(0,0,a,Lr*.8,T.rw*.4*w,0);X.fillStyle=c(.6,1);
+    for(let j=0;j<m;j++){const t=(j+1)/m+(rP()-.5)*.08,j2=r*.04*(1+d.irregularity*2);A((1-t*.7)*k);X.beginPath();X.arc(Math.cos(a)*Lr*t+(rP()-.5)*j2,Math.sin(a)*Lr*t+(rP()-.5)*j2,Math.max(.25,T.psz*(1.7-1.2*t)*Math.min(1.3,w)),0,6.283);X.fill()}}
+   A(1);core(0,0,r);break}
+  case 'double-core':{const n=Math.max(2,d.coreCount),gap=r*(.3+.5*cs),P2=[];
+   for(let i=0;i<n;i++)P2.push([(i-(n-1)/2)*gap,(i%2?1:-1)*gap*.25*d.irregularity]);
+   for(let i=1;i<n;i++)ln(P2[i-1][0],P2[i-1][1],P2[i][0],P2[i][1],.8,.3,.6,.3);
+   P2.forEach(([px,py],i)=>mini(px,py,r*(.55-.08*n)*(i==0?1.15:.9),Math.round(T.rays/n)));break}
+  case 'organic-glow':{const nb=2+Math.round(cx*3)+Math.max(0,d.coreCount-1),p0=rG()*6.28;
+   for(let i=0;i<nb;i++){const a=p0+i*2.4+(rG()-.5)*d.irregularity*2,dd=r*(.12+.35*(d.irregularity+.3)*rG()),px=Math.cos(a)*dd,py=Math.sin(a)*dd*(.3+.7*d.radiality),q0=r*(.3+.45*rG())*(.6+.6*d.haloSize),
+    q=X.createRadialGradient(px,py,0,px,py,q0);q.addColorStop(0,c(.6,.35*k));q.addColorStop(.5,c(.2,.12*k));q.addColorStop(1,c(0,0));A(1);X.fillStyle=q;X.beginPath();X.arc(px,py,q0,0,6.283);X.fill()}
+   for(let i=0,nw=Math.round(d.curvature*7);i<nw;i++){const a0=rG()*6.2832,ra=r*(.3+.6*rG()),da=(.6+rG())*sw;X.strokeStyle=c(.6,.25*k);X.lineWidth=.6+d.rayWidth*.6;A(1);
+    X.beginPath();X.moveTo(Math.cos(a0)*ra*.3,Math.sin(a0)*ra*.3);X.quadraticCurveTo(Math.cos(a0+da*.5)*ra*1.1,Math.sin(a0+da*.5)*ra*1.1,Math.cos(a0+da)*ra,Math.sin(a0+da)*ra);X.stroke()}
+   glow(0,0,r*T.glow*.5,.7);core(0,0,r*.7);break}}
+ // shared grammar pieces
+ if(d.ringCount&&!['ring','halo','lens','arc','radial'].includes(f))for(let i=0;i<d.ringCount;i++)ring(r*(.55+.25*i),.35,1);
+ if(d.coreCount>1&&!['double-core','organic-glow','cluster','sparkle'].includes(f))for(let i=1;i<d.coreCount;i++){const px=(i%2?1:-1)*r*(.25+.35*cs)*Math.ceil(i/2);glow(px,0,r*.25*T.glow,.8);core(px,0,r*.5)}
+ if(T.dust){X.fillStyle=c(.5,1);for(const[px,py]of symScatter(T.dust,d,rP,r*.12,r*1.1)){const z=T.psz*(.35+rP()*rP()*2.2);A((.25+rP()*.75)*k);X.beginPath();X.arc(px,py,z,0,6.283);X.fill()}}
+ if(T.spk){X.fillStyle=c(.8,1);for(let i=0;i<T.spk;i++){const a=rA()*6.2832,dd=r*(.3+rA()*.9);star4(Math.cos(a)*dd,Math.sin(a)*dd,r*(.05+rA()*.08),(.5+rA()*.5)*k)}}
+ for(let i=0;i<T.bok;i++){const a=rA()*6.2832,dd=r*(.3+rA()),q=r*(.05+rA()*.12),rg=rA()<.4;X.fillStyle=c(.2,1);A((.12+rA()*.2)*k);
+  X.beginPath();X.arc(Math.cos(a)*dd,Math.sin(a)*dd,q,0,6.283);X.fill();if(rg){A(.35*k);X.strokeStyle=c(.4,1);X.lineWidth=1;X.stroke()}}
  X.restore();X.globalAlpha=1}
+// On screen, DNA elements are cached as small sprites (built within a per-frame
+// time budget) so packs of hundreds stay fluid. Exports/video always render vectors.
+const SPR=new WeakMap();let SPB=0,SPN=0;
+function sprite(s,h,dp,key){const cv=document.createElement('canvas');cv.width=cv.height=Math.ceil(2*h*dp);const g=cv.getContext('2d'),X0=X;X=g;g.globalCompositeOperation='lighter';g.setTransform(dp,0,0,dp,h*dp,h*dp);
+ try{renderDNA(s,1,1,0,0)}finally{X=X0}return{c:cv,key}}
+function drawDNA(s,t,fr){const k=P.twinkle?.85+.15*Math.sin(t*.003+s.seed%9):1;
+ if(X===MX&&!busy){const T=dnaT(s.dna),dp=devicePixelRatio||1,h=Math.ceil(s.geo.r*T.ext*1.02),key=s.col.h+'|'+s.geo.r+'|'+s.geo.rot+'|'+dp;
+  if(h*dp<=256){let sp=SPR.get(s);
+   if(!sp||sp.key!==key){if(SPB<=0){SPN=1;return}const t0=performance.now();sp=sprite(s,h,dp,key);SPR.set(s,sp);SPB-=performance.now()-t0}
+   const a=X.globalAlpha;X.globalAlpha=fr*k;X.drawImage(sp.c,s.geo.x-h,s.geo.y-h,2*h,2*h);X.globalAlpha=a;return}}
+ renderDNA(s,fr,k,s.geo.x,s.geo.y)}
 const hexH=(h,l)=>'#'+(hs(h,l).match(/\d+/g)).map(v=>(+v).toString(16).padStart(2,'0')).join('');
 const tintOf=d=>col.rb?hexH(d.colorVariation*360,.68):sh(col.h,-.22+d.colorVariation*.6);
 
 // ============================================================
-// SIMILARITY ENGINE
-// Structural (DNA) comparison, not pixels. 0 = completely different, 1 = identical.
-// Rotation and hue are deliberately ignored: a rotated/recoloured copy is still a clone.
+// SIMILARITY ENGINE (multi-level)
+// Structural DNA comparison, not pixels. Returns geometry / distribution /
+// appearance sub-scores + weighted overall (45/30/25), calibrated so 0 = unrelated
+// and 1 = identical. Rotation, scale and hue are ignored: a rotated, resized or
+// recoloured copy is still a clone.
 // ============================================================
-// SIM_FLOOR calibrates the scale: two unrelated random designs score ~.3 raw, so that maps to 0%.
-const SIM_W={geo:.45,dist:.30,app:.25},SIG=.28,SIM_FLOOR=.3;
-const SIM_G=[['aspectRatio',1],['rayLength',1],['elongation',1.2],['curvature',.8],['rayWidth',.6]],
- SIM_D=[['density',1],['particleDensity',1.2],['clusterAmount',1],['particleSize',1],['irregularity',1],['complexity',.8]],
- SIM_A=[['glow',1],['core',1],['halo',1],['sparkleAmount',1],['bokehAmount',1],['colorVariation',.35]];
-const REL={burstsymmetric:1,symmetricburst:1,crossglint:1,glintcross:1,ringorb:1,orbring:1,crossstreak:1,streakcross:1};
-const grp=(a,b,K)=>{let s=0,w=0;for(const[k,wt]of K){const x=(a[k]-b[k])/SIG;s+=wt*Math.exp(-x*x);w+=wt}return[s,w]};
-function similarity(a,b){
- const fam=a.shapeFamily==b.shapeFamily?1:REL[a.shapeFamily+b.shapeFamily]?.4:0,
-  sym=a.symmetry==b.symmetry?1:!a.symmetry||!b.symmetry?0:Math.exp(-(((a.symmetry-b.symmetry)/3)**2)),
-  ray=Math.exp(-(((a.rayCount-b.rayCount)/5)**2)),[gs,gw]=grp(a,b,SIM_G),[ds,dw]=grp(a,b,SIM_D),[as,aw]=grp(a,b,SIM_A);
- const geo=(3*fam+1.2*sym+1.2*ray+gs)/(5.4+gw);
- return cl((SIM_W.geo*geo+SIM_W.dist*ds/dw+SIM_W.app*as/aw-SIM_FLOOR)/(1-SIM_FLOOR))}
-function nearest(d,L){let m=0,w=null;for(const o of L){const s=similarity(d,o);if(s>m){m=s;w=o}}return{sim:m,d:w}}
+const SIM_W={geo:.45,dist:.30,app:.25},SIM_FLOOR=.36;
+const FEAT=(K,W,S)=>({K,W:Float64Array.from(W),S:Float64Array.from(S)});
+const FG=FEAT(GEO_K,[1,1,.6,1.2,.8,1,1.2,1.2,.8,.8],[.28,.28,.28,.28,.28,.28,.22,.1,.3,.3]),
+ FD=FEAT(DIST_K,[1,1.2,1,1,.8,.8,.6,1,.8],[.28,.28,.28,.28,.2,.28,.28,.28,.28]),
+ FA=FEAT(APP_K,[1,1,1,.7,.6,1,1,.35],[.28,.28,.28,.28,.28,.28,.28,.28]);
+const FV=new WeakMap();
+function fv(d){let v=FV.get(d);if(v)return v;upDNA(d);const val=k=>(d[k]??0)/(INT_SPAN[k]||1);
+ v={f:d.shapeFamily,c:FAMS[d.shapeFamily]?FAMS[d.shapeFamily].clan:d.shapeFamily,s:d.symmetry|0,m:Math.max(0,SYM_MODES.indexOf(d.symMode)),
+  g:Float64Array.from(FG.K,val),d:Float64Array.from(FD.K,val),a:Float64Array.from(FA.K,val)};FV.set(d,v);return v}
+function grp(x,y,F){let s=0,w=0;for(let i=0;i<x.length;i++){const t=(x[i]-y[i])/F.S[i];s+=F.W[i]*Math.exp(-t*t);w+=F.W[i]}return s/w}
+const SR=[0,0,0];
+function simRaw(A,B){const fam=A.f==B.f?1:A.c==B.c?.4:0,sym=A.s==B.s?1:!A.s||!B.s?0:Math.exp(-(((A.s-B.s)/3)**2)),mode=A.m==B.m?1:Math.abs(A.m-B.m)==1?.4:0;
+ SR[0]=(3*fam+sym+mode+4*grp(A.g,B.g,FG))/9;SR[1]=grp(A.d,B.d,FD);SR[2]=grp(A.a,B.a,FA);
+ return SIM_W.geo*SR[0]+SIM_W.dist*SR[1]+SIM_W.app*SR[2]}
+const cal=v=>cl((v-SIM_FLOOR)/(1-SIM_FLOOR));
+function similarity(a,b){const o=cal(simRaw(fv(a),fv(b)));return{geometry:cal(SR[0]),distribution:cal(SR[1]),appearance:cal(SR[2]),overall:o,
+ geometrySimilarity:cal(SR[0]),distributionSimilarity:cal(SR[1]),appearanceSimilarity:cal(SR[2]),overallSimilarity:o}}
+// nearest neighbour; stops at the first element at/above `stop` (enough to reject)
+function nearest(d,L,stop=2){const A=fv(d);let m=0,w=null;for(const o of L){const s=cal(simRaw(A,fv(o)));if(s>m||!w){m=s;w=o;if(s>=stop)break}}return{sim:m,d:w}}
 
 // ============================================================
-// MUTATION ENGINE
-// Mutates structure (not just colour). Pushes parameters away from the clone it collided with.
+// MUTATION ENGINE (targeted)
+// The group (geometry / distribution / appearance) that caused the clash gets
+// most of the mutation budget; parameters are pushed away from the clone.
 // ============================================================
-const MUT={LOW:{amt:.12,n:4,sym:.1,fam:0},MEDIUM:{amt:.22,n:7,sym:.25,fam:.06},HIGH:{amt:.35,n:11,sym:.45,fam:.22},EXTREME:{amt:.55,n:99,sym:.7,fam:.5}};
-const MUT_KEYS=['aspectRatio','rayLength','rayWidth','elongation','density','particleDensity','particleSize','clusterAmount','irregularity','curvature','glow','core','halo','sparkleAmount','bokehAmount','complexity'];
-const poolFams=types=>[...new Set(types.map(famOf))];
-function mutate(d,lv,r,away,types,forceFam){const M=MUT[lv],m={...d},K=MUT_KEYS.slice();
- for(let i=K.length-1;i>0;i--){const j=r()*(i+1)|0;[K[i],K[j]]=[K[j],K[i]]}
- for(const k of K.slice(0,M.n)){const dir=away?Math.sign(m[k]-away[k])||(r()<.5?-1:1):r()<.5?-1:1;let v=m[k]+dir*M.amt*(.5+r()*.5)+(r()-.5)*M.amt*.3;
-  if(v<0||v>1)v=m[k]-dir*M.amt*(.5+r()*.5);m[k]=cl(v)}
- m.rotation=(m.rotation+r()*M.amt)%1;
- m.rayCount=Math.round(m.rayCount+(r()*2-1)*M.amt*20);
- const fs=poolFams(types||FK).filter(f=>f!=d.shapeFamily);
- if(fs.length&&(forceFam||r()<M.fam)){m.shapeFamily=pick(r,fs);const ts=FAM[m.shapeFamily].filter(t=>!types||types.includes(t));m.structureType=pick(r,ts.length?ts:FAM[m.shapeFamily]);
-  const A=ARC[m.shapeFamily];m.rayCount=A.rays[0]+r()*(A.rays[1]-A.rays[0]+1)|0;m.symmetry=pick(r,A.sym)}
- else if(r()<M.sym){const o=ARC[m.shapeFamily].sym.filter(s=>s!=d.symmetry);if(o.length)m.symmetry=pick(r,o)}
- m.seed=hsh(d.seed,lv,r()*1e9|0);
+const MUT={LOW:{amt:.12,n:4,sym:.1,fam:0},MEDIUM:{amt:.22,n:6,sym:.25,fam:.08},HIGH:{amt:.35,n:9,sym:.45,fam:.25},EXTREME:{amt:.55,n:14,sym:.7,fam:.5}};
+const GROUPS={geo:GEO_K,dist:DIST_K,app:APP_K},GSUB={geo:'geometry',dist:'distribution',app:'appearance'};
+function mutate(d,lv,r,conf,fams,o={}){const M=MUT[lv],m={...d},gs=o.groups||['geo','dist','app'],away=conf&&conf.d;
+ const wt=gs.map(g=>conf?Math.pow(Math.max(.05,conf[GSUB[g]]),3):1),tw=wt.reduce((a,b)=>a+b,0),used=new Set();
+ for(let i=0;i<M.n;i++){let t=r()*tw,gi=0;while(gi<wt.length-1&&t>wt[gi]){t-=wt[gi];gi++}
+  const K=GROUPS[gs[gi]].filter(k=>!used.has(k));if(!K.length)continue;const k=pick(r,K);used.add(k);
+  const sp=INT_SPAN[k]||1,cur=(m[k]||0)/sp,dir=away?Math.sign(cur-(away[k]||0)/sp)||(r()<.5?-1:1):r()<.5?-1:1;
+  let v=cur+dir*M.amt*(.5+r()*.5)+(r()-.5)*M.amt*.3;if(v<0||v>1)v=cur-dir*M.amt*(.5+r()*.5);m[k]=cl(v)*sp}
+ if(gs.includes('geo')&&FAMS[m.shapeFamily]){const gw=wt[gs.indexOf('geo')]/Math.max(...wt);m.rotation=(m.rotation+r()*M.amt)%1;
+  const same=!away||away.shapeFamily==m.shapeFamily,pf=M.fam*(same?1.6:.6)*(.4+gw);
+  if(!o.famLock&&(o.forceFam||r()<pf)){let fs=fams.filter(f=>f!=d.shapeFamily);
+   if(o.avoidClan){const fx=fs.filter(f=>FAMS[f].clan!=(FAMS[d.shapeFamily]||{}).clan);if(fx.length)fs=fx}
+   if(fs.length){m.shapeFamily=pick(r,fs);const F=FAMS[m.shapeFamily];m.structureType=pick(r,F.types);m.rayCount=lerp(F.rays[0],F.rays[1],r());m.symmetry=pick(r,F.sym);m.symMode=pick(r,F.modes)}}
+  else if(r()<M.sym*(.4+gw)){const F=FAMS[m.shapeFamily];if(r()<.5){const x=F.modes.filter(q=>q!=m.symMode);if(x.length)m.symMode=pick(r,x)}else{const x=F.sym.filter(q=>q!=m.symmetry);if(x.length)m.symmetry=pick(r,x)}}}
+ if(gs.includes('geo')||gs.includes('dist'))m.seed=hsh(d.seed,lv,r()*1e9|0);
  return fitFam(m,r)}
-// Test -> reject -> mutate -> retest, with a hard attempt cap (no infinite loops)
+function pullToward(d,ref,r,groups){const m={...d};for(const g of groups||['geo','dist','app'])for(const k of GROUPS[g])m[k]=lerp(m[k]||0,ref[k]||0,.35+.3*r());
+ m.shapeFamily=ref.shapeFamily;m.structureType=ref.structureType;m.seed=hsh(d.seed,'pull');return fitFam(m,r)}
+// Test -> reject -> targeted mutation -> retest, with a hard attempt cap (no infinite loops).
+// o.away/awayThr/awayKey: must also differ from a reference; o.band: must stay within [lo,hi] of it.
 const MAXA=80;
-function uniqueDNA(key,d,others,thr,types,S,away,awayThr){
- for(let a=0;a<MAXA;a++){S.attempts++;
-  const nn=nearest(d,others),as=away?similarity(d,away):0;
-  if(nn.sim<thr&&(!away||as<awayThr)){S.accepted++;S.simSum+=nn.sim;return{dna:d,sim:nn.sim}}
-  S.rejected++;S.mutations++;
-  const ref=away&&as>=awayThr&&as>=nn.sim?away:nn.d;
-  d=mutate(d,a<8?'LOW':a<20?'MEDIUM':a<45?'HIGH':'EXTREME',rng(hsh(key,'m',a)),ref,types,away&&a==0)}
+function uniqueDNA(key,d,others,thr,fams,S,o={}){const maxA=o.maxA||MAXA;
+ for(let a=0;a<maxA;a++){S.attempts++;
+  const nn=nearest(d,others,thr);let conf=nn.sim>=thr?{d:nn.d,...similarity(d,nn.d)}:null,pull=0;
+  if(!conf&&o.away){const sa=similarity(d,o.away),v=sa[o.awayKey||'overall'];
+   if(o.band){if(v>o.band[1])conf={d:o.away,...sa};else if(v<o.band[0])pull=1}else if(v>=o.awayThr)conf={d:o.away,...sa}}
+  if(!conf&&!pull){S.accepted++;S.simSum+=nn.sim;return{dna:d,sim:nn.sim}}
+  S.rejected++;S.mutations++;const r=rng(hsh(key,'m',a));
+  d=pull?pullToward(d,o.away,r,o.groups):mutate(d,o.band?(a<20?'LOW':'MEDIUM'):a<8?'LOW':a<20?'MEDIUM':a<45?'HIGH':'EXTREME',r,conf,fams,
+   {famLock:o.famLock,groups:o.groups,forceFam:o.forceFam&&a==0,avoidClan:o.avoidClan})}
  return null}
 
 // ============================================================
 // PACK GENERATOR
+// DNA first -> similarity/diversity checks -> only accepted designs become
+// elements. Runs in async batches; Cancel keeps what was accepted.
 // ============================================================
-const PACKS={Stars:['Classic star','Starburst','Ring halo','Slim cross','Sparkle cluster','Diagonal glint'],Lens:['Lens ghosts','Anamorphic streak','Soft orb','Sparkle burst','Ring halo','Diagonal glint'],All:FK};
-let STATS=null;
+const PACKS={Stars:['burst','symmetric','cross','glint','star','diamond','sparkle','radial','cluster','double-core','asymmetric-burst','particle-burst'],
+ Lens:['ring','halo','lens','arc','streak','comet','orb','organic-glow','glint'],All:FNAMES};
+let STATS=null,GEN=null;
 const newStats=()=>({accepted:0,rejected:0,mutations:0,attempts:0,simSum:0,failed:0});
 function grid(n){const cols=Math.ceil(Math.sqrt(n*W/H)),rows=Math.ceil(n/cols),cw=W/cols,ch=H/rows;
  return{r:Math.min(cw,ch)*.36,pos:i=>[(i%cols+.5)*cw,(Math.floor(i/cols)+.5)*ch],cell:(x,y)=>cl(y/ch|0,0,rows-1)*cols+cl(x/cw|0,0,cols-1)}}
 function makeEl(d,p,r0,pool,id){const T=dnaT(d),r=r0*(.8+d.scale*.4),m=r*T.ext;
  return{kind:'flare',id:id||nid(),pk:1,dv:1,lock:0,pool,base:r0,dna:d,pts:[],nr:[],parts:[],col:{h:tintOf(d),rb:0},seed:d.seed,closed:0,
   geo:{x:p[0],y:p[1],r,type:d.structureType,rot:d.rotation*6.2832},box:[p[0]-m,p[1]-m,p[0]+m,p[1]+m]}}
-function packSim(){const L=strokes.filter(s=>s.pk).map(s=>s.dna);let t=0,c=0,mx=0;
- for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const v=similarity(L[i],L[j]);t+=v;c++;mx=Math.max(mx,v)}return{avg:c?t/c:0,max:mx}}
-function genPack(){
- if(!(W>0&&H>0))return;
+const tally=(L,k)=>{const c={};for(const d of L)c[d[k]]=(c[d[k]]||0)+1;return c};
+// FAMILY DISTRIBUTION: auto balance (under-represented families rise, recent runs fall)
+// or user weights; low family diversity lets seeded favourite families dominate.
+function pickFamily(r,fams,cnt,recent,total,cx){const fd=cx.V.family,act=fams.filter(f=>(cx.W[f]||0)>0),ws=[];let sum=0;
+ for(const f of fams){const b=cx.W[f]||0;let w=0;
+  if(b>0){if(cx.auto){const ex=(total+1)/act.length;w=Math.sqrt(b)*Math.exp(-cx.G.kBal*(.3+fd)*((cnt[f]||0)-ex)/Math.max(1,ex));let run=0;for(const x of recent)if(x==f)run++;w*=Math.pow(1-.6*cx.G.run,run)}
+   else w=b;w*=Math.exp((cx.pref[f]-.5)*(1-fd)*5)}
+  ws.push(w);sum+=w}
+ let t=r()*sum;for(let i=0;i<fams.length;i++){if(ws[i]<=0)continue;t-=ws[i];if(t<=0)return fams[i]}return act[act.length-1]||fams[0]}
+const candScore=(d,acc,cnt,mcnt,n,cx)=>(1-nearest(d,acc).sim)+.35*cx.V.family*(1-(cnt[d.shapeFamily]||0)/Math.max(1,n))+.2*cx.V.sym*(1-(mcnt[d.symMode]||0)/Math.max(1,n));
+// COLLECTION DIVERSITY: family entropy, structural spread (nearest-neighbour
+// geometry distance), symmetry entropy and the spread of size/density/complexity.
+const entropy=(c,n,k)=>{if(n<2||k<2)return 0;let h=0;for(const v of Object.values(c)){const p=v/n;h-=p*Math.log(p)}return cl(h/Math.log(Math.min(n,k)))};
+const sdev=a=>{const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length)};
+function packQuality(nf){const L=strokes.filter(s=>s.pk&&s.dna),n=L.length;if(!n)return null;const F=L.map(s=>fv(ensureEl(s).dna)),nn=new Float64Array(n),ng=new Float64Array(n);let tot=0,pr=0;
+ for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const o=cal(simRaw(F[i],F[j])),g=cal(SR[0]);tot+=o;pr++;if(o>nn[i])nn[i]=o;if(o>nn[j])nn[j]=o;if(g>ng[i])ng[i]=g;if(g>ng[j])ng[j]=g}
+ L.forEach((s,i)=>s.uq=n>1?Math.round((1-nn[i])*100)/100:1);
+ const D=L.map(s=>s.dna),q={family:entropy(tally(D,'shapeFamily'),n,nf||FNAMES.length),structure:cl(ng.reduce((a,b)=>a+1-b,0)/n/.75),
+  symmetry:(entropy(tally(D,'symMode'),n,5)+entropy(tally(D,'symmetry'),n,6))/2,size:cl(sdev(D.map(d=>d.scale))/.29),
+  density:cl(sdev(D.map(d=>(d.density+d.particleDensity)/2))/.22),complexity:cl(sdev(D.map(d=>d.complexity))/.29)};
+ q.diversity=n>1?.25*q.family+.25*q.structure+.15*q.symmetry+.1*q.size+.1*q.density+.15*q.complexity:0;
+ q.avg=pr?tot/pr:0;q.n=n;q.families=Object.keys(tally(D,'shapeFamily')).length;return q}
+function genUI(on){$('#pkx').hidden=!on;$('#pk').disabled=!!on}
+async function genPack(){
+ if(GEN||!(W>0&&H>0))return;
  strokes.forEach(ensureEl);
  if(!$('#slk').checked)setSeed(newSeed());else setSeed($('#mseed').value);
- const n=+$('#pkn').value,pt=$('#pks').value,types=PACKS[pt],thr=+$('#uq').value/100,ms=MSEED,G=grid(n);
+ const n=+$('#pkn').value,pt=$('#pks').value,fams=PACKS[pt].filter(f=>FW[f]>0),thr=+$('#uq').value/100,ms=MSEED,gm=$('#gm').value,G=grid(n),cx=ctxNow(ms);
+ if(!fams.length)return st('Every family in this pack type has weight 0. Raise one in Advanced variation.');
  hist();
  const locked=strokes.filter(s=>s.pk&&s.lock);strokes=strokes.filter(s=>!s.pk||s.lock);
  const used=new Set(locked.map(s=>G.cell(s.geo.x,s.geo.y))),free=[];for(let i=0;i<n;i++)if(!used.has(i))free.push(i);
- const acc=locked.map(s=>s.dna),o=rng(hsh(ms,'pack',n,pt))()*types.length|0,S=newStats(),t0=performance.now();
- for(const slot of free){
-  if(performance.now()-t0>4000){S.failed++;continue}
-  const key=[ms,n,pt,slot].join('/'),res=uniqueDNA(key,dnaNew(types[(slot+o)%types.length],hsh(key,'dna')),acc,thr,types,S);
-  if(!res){S.failed++;continue}
-  acc.push(res.dna);strokes.push(makeEl(res.dna,G.pos(slot),G.r,pt))}
- STATS=S;const Q=packSim(),made=S.accepted+locked.length;
- $('#pm').textContent=`${made}/${n} unique · ${S.rejected} rejected duplicates · ${S.mutations} mutations · ${S.attempts} tests · avg similarity ${Math.round(Q.avg*100)}%`+(locked.length?` · ${locked.length} locked kept`:'');
- st(S.failed?`Only ${made}/${n} unique elements at this uniqueness level. Try a lower level, a smaller pack, or pack type "All".`:`${made} unique elements generated · seed ${ms}`);
+ const acc=locked.map(s=>s.dna),cnt=tally(acc,'shapeFamily'),mcnt=tally(acc,'symMode'),recent=[],S=newStats(),t0=performance.now(),SA=strokes,job=GEN={cancel:0};
+ let buf=[],tb=performance.now(),done=0;
+ const flush=()=>{if(strokes===SA)strokes.push(...buf);else job.cancel=1;buf=[];dirty=1};
+ genUI(1);
+ try{for(const slot of free){if(job.cancel)break;
+   const key=[ms,n,pt,gm,slot].join('/');let best=null,bs=-1;
+   for(let c=0;c<cx.G.cand;c++){const d=dnaNew(pickFamily(rng(hsh(key,'fam',c)),fams,cnt,recent,acc.length,cx),hsh(key,'dna',c),cx);
+    if(cx.G.cand==1){best=d;break}const sc=candScore(d,acc,cnt,mcnt,acc.length,cx);if(sc>bs){bs=sc;best=d}}
+   const res=uniqueDNA(key,best,acc,thr,fams,S,{maxA:cx.G.maxA});
+   if(!res)S.failed++;
+   else{const d=res.dna;acc.push(d);cnt[d.shapeFamily]=(cnt[d.shapeFamily]||0)+1;mcnt[d.symMode]=(mcnt[d.symMode]||0)+1;recent.push(d.shapeFamily);if(recent.length>4)recent.shift();buf.push(makeEl(d,G.pos(slot),G.r,pt))}
+   done++;
+   if(performance.now()-tb>Math.max(14,Math.min(120,PT*1.5))){flush();$('#pm').textContent=`Generating ${done}/${free.length} · ${S.accepted} accepted · ${S.rejected} rejected`;await new Promise(r=>setTimeout(r));tb=performance.now()}}
+  flush()}
+ finally{GEN=null;genUI(0)}
+ STATS=S;const Q=packQuality(fams.length),made=S.accepted+locked.length,sec=((performance.now()-t0)/1000).toFixed(1);
+ $('#pm').textContent=`${made}/${n} unique · ${S.rejected} rejected duplicates · ${S.mutations} mutations · ${S.attempts} tests · avg similarity ${Math.round((Q?Q.avg:0)*100)}% · collection diversity ${Math.round((Q?Q.diversity:0)*100)}% · ${Q?Q.families:0} families · ${sec}s`+(locked.length?` · ${locked.length} locked kept`:'')+(job.cancel?' · cancelled':'');
+ st(job.cancel?`Generation cancelled · ${made} elements kept`:S.failed?`Only ${made}/${n} unique elements at this uniqueness level. Try a lower level, a smaller pack, pack type "All" or mode Diverse/Extreme.`:`${made} unique elements generated · seed ${ms}`);
  dirty=1;updEl()}
-$('#pk').onclick=genPack;
+$('#pk').onclick=genPack;$('#pkx').onclick=()=>{if(GEN)GEN.cancel=1};
 setSeed(newSeed());
 $('#sgen').onclick=()=>{setSeed(newSeed());st('New seed '+MSEED)};
 $('#mseed').onchange=()=>{setSeed($('#mseed').value);$('#slk').checked=true;st('Seed locked: '+MSEED)};
 $('#scp').onclick=async()=>{try{await navigator.clipboard.writeText(MSEED);st('Seed copied: '+MSEED)}catch{const i=$('#mseed');i.select();try{document.execCommand('copy');st('Seed copied: '+MSEED)}catch{st('Copy failed, select the seed field manually')}}};
+// Advanced variation panel
+for(const[k,n,v]of VCTL){const l=document.createElement('label'),i=document.createElement('input'),t=document.createElement('span');i.type='range';i.min=0;i.max=100;i.step=1;i.value=v;i.id='v_'+k;
+ t.textContent=`${n} ${v}`;i.oninput=()=>t.textContent=`${n} ${i.value}`;l.append(t,i);$('#vsl').append(l)}
+for(const f of FNAMES){const b=document.createElement('button');b.className='fc';b.dataset.w=1;const u=()=>{b.dataset.w=FW[f];b.textContent=`${f} ${'●'.repeat(FW[f])||'off'}`};u();
+ b.title='Family weight (click to cycle 0-3)';b.onclick=()=>{FW[f]=(FW[f]+1)%4;u()};$('#fwr').append(b)}
 
 // ============================================================
 // ELEMENT CONTROLS
-// Select tool picks an element; Lock / Regenerate / Regenerate different / Delete act on it.
+// Select tool picks an element. Lock / Lock family / Regenerate (new, different,
+// similar, structure, appearance) / Duplicate DNA / Delete act on it.
 // ============================================================
-let SEL=0;
+let SEL=0,RGN=0;
 const selEl=()=>strokes.find(s=>s.id==SEL);
 function elBox(s){if(s.kind=='flare'){const{x,y,r}=s.geo;return[x-r*1.1,y-r*1.1,x+r*1.1,y+r*1.1]}const B=bbox([s]);return[B.x0,B.y0,B.x1,B.y1]}
 function pickAt([x,y]){let f=null;
@@ -551,39 +780,73 @@ function pickAt([x,y]){let f=null;
   else if(s.kind=='field')f=f||s;
   else{const tol=Math.max(10,(s.P||P).spread);for(const p of s.pts)if(Math.abs(p[0]-x)<tol&&Math.abs(p[1]-y)<tol)return s}}
  return f}
-function overlay(){if(anim||REC||busy||X!==MX)return;const L=strokes.filter(s=>s.lock||s.id==SEL);if(!L.length)return;
- X.save();X.globalCompositeOperation='source-over';X.globalAlpha=1;
- for(const s of L){const[a,b,c,d]=elBox(s);
+// COLLECTION PREVIEW: index · family · uniqueness + lock marks, drawn on screen only
+function overlay(){if(anim||REC||busy||X!==MX)return;const lab=$('#elb').checked;let idx=0,any=0;
+ for(const s of strokes)if(s.lock||s.id==SEL||s.famLock||(lab&&s.pk)){any=1;break}if(!any)return;
+ X.save();X.globalCompositeOperation='source-over';X.globalAlpha=1;X.textAlign='center';
+ for(const s of strokes){if(s.pk)idx++;if(!(s.lock||s.id==SEL||s.famLock||(lab&&s.pk)))continue;const[a,b,c,d]=elBox(s);
   if(s.id==SEL){X.setLineDash([5,4]);X.strokeStyle='rgba(242,193,78,.9)';X.lineWidth=1.2;X.strokeRect(a,b,c-a,d-b);X.setLineDash([])}
   if(s.lock){const px=a+4,py=b+4;X.fillStyle='rgba(10,8,5,.75)';X.fillRect(px-2,py-2,15,17);X.strokeStyle=X.fillStyle='#f2c14e';X.lineWidth=1.6;
-   X.beginPath();X.arc(px+5.5,py+6,3.5,Math.PI,0);X.stroke();X.fillRect(px+1,py+6,9,7)}}
+   X.beginPath();X.arc(px+5.5,py+6,3.5,Math.PI,0);X.stroke();X.fillRect(px+1,py+6,9,7)}
+  if(s.famLock){X.fillStyle='rgba(10,8,5,.75)';X.fillRect(a+(s.lock?19:2),b+2,13,15);X.fillStyle='#f2c14e';X.font='bold 10px system-ui';X.fillText('F',a+(s.lock?25.5:8.5),b+13)}
+  if(lab&&s.pk&&s.kind=='flare'&&s.geo.r>=14){X.font=`${s.geo.r>=40?11:9}px system-ui`;X.fillStyle='rgba(243,234,210,.78)';
+   X.fillText(s.geo.r>=30?`${idx} · ${s.dna.shapeFamily}${s.uq!=null?' · '+Math.round(s.uq*100)+'%':''}`:`${idx}${s.uq!=null?' · '+Math.round(s.uq*100)+'%':''}`,s.geo.x,s.geo.y+(s.base||s.geo.r)*1.3)}}
  X.restore()}
+const EB=['#elck','#eflk','#erg','#erd','#ers','#erst','#erap','#edup','#edl'];
 function updEl(){const s=selEl(),on=!!s,fl=on&&s.kind=='flare';
- ['#elck','#edl'].forEach(q=>$(q).disabled=!on);['#erg'].forEach(q=>$(q).disabled=!on||s.kind=='field');$('#erd').disabled=!fl;
- $('#elck').textContent=on&&s.lock?'Unlock':'Lock';
+ EB.forEach(q=>$(q).disabled=!on);['#eflk','#erd','#ers','#erst','#erap','#edup'].forEach(q=>$(q).disabled=!fl);$('#erg').disabled=!on||s.kind=='field';
+ $('#elck').textContent=on&&s.lock?'Unlock':'Lock';$('#eflk').textContent=on&&s.famLock?'Unlock family':'Lock family';
  if(!on){$('#einfo').textContent=strokes.length?'Select tool: click an element':'No elements yet';return}
  ensureEl(s);const d=s.kind=='flare'||s.kind=='field'?s.dna:(s.dna=dnaFromStroke(s)),i=strokes.indexOf(s)+1;
  let t=`#${i}/${strokes.length} · ${d.shapeFamily} · ${d.structureType}`;
- if(s.kind=='flare')t+=` · ${d.symmetry?d.symmetry+'-fold':'free'} · ${d.rayCount} rays`;
- if(s.pk){const nn=nearest(d,strokes.filter(o=>o.pk&&o!==s).map(o=>o.dna));t+=` · nearest ${Math.round(nn.sim*100)}%`}
- $('#einfo').textContent=t+(s.lock?' · locked':'')}
+ if(s.kind=='flare')t+=` · ${d.symMode} · ${d.symmetry?d.symmetry+'-fold':'free'} · ${d.rayCount} rays`;
+ if(s.pk){const nn=nearest(d,strokes.filter(o=>o.pk&&o!==s).map(o=>ensureEl(o).dna));t+=` · uniqueness ${Math.round((1-nn.sim)*100)}%`}
+ $('#einfo').textContent=t+(s.famLock?' · family locked':'')+(s.lock?' · locked':'')}
 function select(s){SEL=s?s.id:0;updEl();dirty=1}
 function stepSel(k){if(!strokes.length)return;const i=strokes.indexOf(selEl());select(strokes[(i<0?(k>0?0:strokes.length-1):(i+k+strokes.length)%strokes.length)])}
 function lockEl(){const s=selEl();if(!s)return;s.lock=s.lock?0:1;st(s.lock?'Locked: pack regeneration will keep it':'Unlocked');updEl();dirty=1}
-function delEl(){const s=selEl();if(!s)return;if(s.lock)return st('Element is locked. Unlock it first.');hist();strokes=strokes.filter(o=>o!==s);SEL=0;updEl();dirty=1}
-let RGN=0;
-function regenEl(diff){const s=selEl();if(!s)return st('Select an element first (Select tool)');if(s.lock)return st('Element is locked. Unlock it to regenerate.');
+function famLockEl(){const s=selEl();if(!s||s.kind!='flare')return;s.famLock=s.famLock?0:1;st(s.famLock?`Family locked: ${ensureEl(s).dna.shapeFamily}`:'Family unlocked');updEl();dirty=1}
+function delEl(){const s=selEl();if(!s)return;if(s.lock)return st('Element is locked. Unlock it first.');hist();strokes=strokes.filter(o=>o!==s);SEL=0;packQuality();updEl();dirty=1}
+// "different": other clan, symmetry, density and complexity, same glow language + colour treatment
+function dnaDifferent(cur,r,fams,cx,key){const fc=(FAMS[cur.shapeFamily]||{}).clan;let fs=fams.filter(f=>FAMS[f].clan!=fc);if(!fs.length)fs=fams.filter(f=>f!=cur.shapeFamily);if(!fs.length)fs=fams;
+ const d=dnaNew(pick(r,fs),hsh(key,'dna'),cx),F=FAMS[d.shapeFamily],flip=v=>v<.5?.6+r()*.4:r()*.4;
+ const mo=F.modes.filter(m=>m!=cur.symMode);if(mo.length)d.symMode=pick(r,mo);
+ const so=F.sym.filter(x=>x!=cur.symmetry);if(so.length)d.symmetry=pick(r,so);
+ d.density=flip(cur.density);d.particleDensity=flip(cur.particleDensity);d.complexity=flip(cur.complexity);
+ for(const k of['glow','core','brightness','colorVariation'])d[k]=cl(cur[k]+(r()-.5)*.16);
+ return fitFam(d,r)}
+// "appearance": same geometry + same seed (identical placement), new light treatment
+function dnaAppearance(cur,r){const d={...cur};for(const k of APP_K)d[k]=r();d.particleSize=r();if(r()<.4)d.sparkleAmount=0;if(r()<.5)d.bokehAmount=0;d.brightness=.25+.6*d.brightness;return d}
+function regenEl(kind){if(GEN)return st('Wait for generation to finish, or cancel it');
+ const s=selEl();if(!s)return st('Select an element first (Select tool)');if(s.lock)return st('Element is locked. Unlock it to regenerate.');
  ensureEl(s);
  if(s.kind!='flare'){if(s.kind=='field')return;hist();const i=strokes.indexOf(s),n={...s,seed:hsh(MSEED,'stroke',s.id,++RGN)};gen(n);n.dna=dnaFromStroke(n);strokes[i]=n;dirty=1;updEl();return st('Stroke regenerated')}
- const types=PACKS[s.pool]||FK,thr=+$('#uq').value/100,key=[MSEED,'regen',s.id,++RGN,diff?'D':'R'].join('/'),S=newStats(),cur=s.dna,
-  others=strokes.filter(o=>o!==s&&o.kind=='flare'&&o.pk).map(o=>ensureEl(o).dna),
-  first=diff?mutate(cur,'EXTREME',rng(hsh(key,'first')),cur,types,1):dnaNew(pick(rng(hsh(key,'type')),types),hsh(key,'dna')),
-  res=uniqueDNA(key,first,others,thr,types,S,cur,diff?Math.min(.3,thr*.6):thr);
- if(!res)return st('Could not find a unique variation in '+MAXA+' tries. Try a lower uniqueness level.');
- hist();const i=strokes.indexOf(s),base=s.base||s.geo.r;
- strokes[i]=makeEl(res.dna,[s.geo.x,s.geo.y],base,s.pool||'All',s.id);if(!s.pk)strokes[i].col={...s.col};
- st(`Regenerated${diff?' (different)':''} · ${Math.round(similarity(res.dna,cur)*100)}% like before · ${S.rejected} rejected`);dirty=1;updEl()}
-$('#elck').onclick=lockEl;$('#edl').onclick=delEl;$('#erg').onclick=()=>regenEl(0);$('#erd').onclick=()=>regenEl(1);$('#eprv').onclick=()=>stepSel(-1);$('#enxt').onclick=()=>stepSel(1);
+ const pool=PACKS[s.pool]?s.pool:'All',fams=PACKS[pool],thr=+$('#uq').value/100,cx=ctxNow(),cur=s.dna,key=[MSEED,kind,s.id,++RGN].join('/'),S=newStats(),r=rng(hsh(key,'start')),
+  others=strokes.filter(o=>o!==s&&o.kind=='flare'&&(o.pk||o.dv)).map(o=>ensureEl(o).dna),fl=s.famLock?1:0;let first,o;
+ if(kind=='new'){first=dnaNew(fl?cur.shapeFamily:pickFamily(r,fams,tally(others,'shapeFamily'),[],others.length,cx),hsh(key,'dna'),cx);o={away:cur,awayThr:thr,famLock:fl}}
+ else if(kind=='different'){first=dnaDifferent(cur,r,fams,cx,key);o={away:cur,awayThr:Math.min(.25,thr*.5),avoidClan:1}}
+ else if(kind=='similar'){first=mutate(cur,'MEDIUM',r,{d:cur,geometry:1,distribution:.7,appearance:.05},fams,{famLock:1,groups:['geo','dist']});first.complexity=lerp(first.complexity,cur.complexity,.8);o={away:cur,band:[.35,.75],famLock:1,groups:['geo','dist']}}
+ else if(kind=='structure'){first=dnaNew(fl?cur.shapeFamily:pickFamily(r,fams,tally(others,'shapeFamily'),[],others.length,cx),hsh(key,'dna'),cx);for(const k of APP_K)first[k]=cur[k];o={away:cur,awayKey:'geometry',awayThr:.5,famLock:fl,groups:['geo','dist']}}
+ else{first=dnaAppearance(cur,r);o={away:cur,awayKey:'appearance',awayThr:.55,groups:['app']}}
+ let res=uniqueDNA(key,first,others,thr,fams,S,o);
+ if(!res&&kind=='appearance')res=uniqueDNA(key+'/solo',first,[],thr,fams,S,o);
+ if(!res)return st('Could not find a valid variation in '+MAXA+' tries. Try a lower uniqueness level.');
+ hist();const i=strokes.indexOf(s),el=makeEl(res.dna,[s.geo.x,s.geo.y],s.base||s.geo.r,pool,s.id);
+ el.pk=s.pk?1:0;el.famLock=fl;if(kind=='structure'||!s.pk&&kind!='appearance')el.col={...s.col};strokes[i]=el;packQuality();
+ const sm=similarity(res.dna,cur);
+ st(`${{new:'Regenerated',different:'Regenerated different',similar:'Regenerated similar',structure:'Structure regenerated',appearance:'Appearance regenerated'}[kind]} · ${res.dna.shapeFamily} · ${Math.round(sm.overall*100)}% like before (geometry ${Math.round(sm.geometry*100)}%, appearance ${Math.round(sm.appearance*100)}%) · ${S.rejected} rejected`);dirty=1;updEl()}
+function freeSpot(s){const r=s.geo.r;for(const[a,b]of[[2.3,0],[-2.3,0],[0,2.3],[0,-2.3],[2.3,2.3],[-2.3,2.3],[2.3,-2.3],[-2.3,-2.3]]){const x=s.geo.x+a*r,y=s.geo.y+b*r;
+ if(x<r||y<r||x>W-r||y>H-r)continue;if(strokes.every(o=>o.kind!='flare'||Math.hypot(o.geo.x-x,o.geo.y-y)>r*1.5))return[x,y]}return[cl(s.geo.x+r*2.3,r,W-r),s.geo.y]}
+function dupEl(){if(GEN)return st('Wait for generation to finish, or cancel it');const s=selEl();if(!s||s.kind!='flare')return st('Select a flare element to duplicate');ensureEl(s);
+ const pool=PACKS[s.pool]?s.pool:'All',fams=PACKS[pool],thr=+$('#uq').value/100,cur=s.dna,key=[MSEED,'dup',s.id,++RGN].join('/'),S=newStats(),fl=s.famLock?1:0,
+  others=strokes.filter(o=>o.kind=='flare'&&(o.pk||o.dv)).map(o=>ensureEl(o).dna).concat(s.pk||s.dv?[]:[cur]),
+  res=uniqueDNA(key,mutate(cur,'MEDIUM',rng(hsh(key,'first')),{d:cur,geometry:1,distribution:.6,appearance:.3},fams,{famLock:fl}),others,thr,fams,S,{famLock:fl});
+ if(!res)return st('Could not derive a unique variation from this DNA. Try a lower uniqueness level.');
+ hist();const el=makeEl(res.dna,freeSpot(s),s.base||s.geo.r,pool);el.pk=s.pk?1:0;el.famLock=fl;strokes.push(el);packQuality();select(el);
+ st(`Duplicated DNA · ${res.dna.shapeFamily} · ${Math.round(similarity(res.dna,cur).overall*100)}% like the source · ${S.rejected} rejected`)}
+$('#elck').onclick=lockEl;$('#eflk').onclick=famLockEl;$('#edl').onclick=delEl;$('#edup').onclick=dupEl;
+$('#erg').onclick=()=>regenEl('new');$('#erd').onclick=()=>regenEl('different');$('#ers').onclick=()=>regenEl('similar');$('#erst').onclick=()=>regenEl('structure');$('#erap').onclick=()=>regenEl('appearance');
+$('#eprv').onclick=()=>stepSel(-1);$('#enxt').onclick=()=>stepSel(1);$('#elb').onchange=()=>{dirty=1};
 {const od=C.onpointerdown;C.onpointerdown=e=>{if(tool=='select'){if(!e.button){select(pickAt(pos(e)));$('#hint').style.opacity=0}return}od(e)}}
 document.querySelectorAll('[data-t]').forEach(b=>b.addEventListener('click',()=>{C.style.cursor=tool=='select'?'pointer':'crosshair'}));
 addEventListener('keydown',e=>{if(tool!='select'||e.target.matches&&e.target.matches('input[type=text]'))return;
