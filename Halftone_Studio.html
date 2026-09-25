@@ -54,6 +54,20 @@ hr{border:none;border-top:1px solid var(--line);margin:2px 0;}
 .thumb button{border:none;background:none;color:var(--accent);font-weight:600;cursor:pointer;font-size:11.5px;}
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;}
 .toast.show{opacity:.95;}
+details.grp{border:1px solid var(--line);border-radius:10px;padding:8px 10px;}
+details.grp>summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink);}
+details.grp[open]>summary{margin-bottom:8px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;}
+.g2 label{margin-bottom:2px;}
+input[type=text]{padding:7px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:inherit;font-size:13px;}
+.vpanel{grid-column:1/-1;display:flex;flex-direction:column;gap:12px;}
+.btns{display:flex;flex-wrap:wrap;gap:6px;}
+.btns button.ghost{padding:6px 10px;font-size:12.5px;}
+.checks{display:flex;flex-wrap:wrap;gap:4px 14px;}
+.stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.stat{border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--muted);}
+.stat b{color:var(--ink);font-size:14px;margin-right:4px;}
+.sectitle{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 6px;text-transform:uppercase;letter-spacing:.06em;}
 </style>
 </head>
 <body>
@@ -106,6 +120,13 @@ hr{border:none;border-top:1px solid var(--line);margin:2px 0;}
         <option value="square">Square</option>
         <option value="diamond">Diamond</option>
         <option value="line">Line</option>
+        <option value="ellipse">Ellipse</option>
+        <option value="roundsquare">Rounded square</option>
+        <option value="triangle">Triangle</option>
+        <option value="hexagon">Hexagon</option>
+        <option value="cross">Cross</option>
+        <option value="dash">Dash</option>
+        <option value="capsule">Capsule</option>
       </select>
     </div>
     <div>
@@ -120,6 +141,52 @@ hr{border:none;border-top:1px solid var(--line);margin:2px 0;}
       <label>Contrast <span class="val" id="gammaVal">1.0</span></label>
       <input type="range" id="gamma" min="4" max="25" value="10">
     </div>
+    <div class="g2">
+      <div><label>Density</label><select id="densPreset"><option value="0.1">Very sparse</option><option value="0.3">Sparse</option><option value="0.5" selected>Medium</option><option value="0.7">Dense</option><option value="0.9">Very dense</option></select></div>
+      <div><label>Fine <span class="val" id="densVal">50</span></label><input type="range" id="density" min="0" max="100" value="50"></div>
+    </div>
+    <details class="grp"><summary>Dot geometry</summary>
+      <div class="g2">
+        <div><label>Dot width <span class="val" id="dotWVal">1.00</span></label><input type="range" id="dotW" min="30" max="200" value="100"></div>
+        <div><label>Dot height <span class="val" id="dotHVal">1.00</span></label><input type="range" id="dotH" min="30" max="200" value="100"></div>
+        <div><label>Aspect ratio <span class="val" id="aspVal">1.00</span></label><input type="range" id="aspect" min="-200" max="200" value="0"></div>
+        <div><label>Size variation</label><select id="sizeMode"><option value="uniform">Uniform</option><option value="subtle">Subtle</option><option value="medium">Medium</option><option value="strong">Strong</option><option value="organic">Organic</option></select></div>
+      </div>
+    </details>
+    <details class="grp"><summary>Distribution &amp; offset</summary>
+      <div class="g2">
+        <div><label>Spacing variation</label><select id="spacingMode"><option value="uniform">Uniform</option><option value="subtle">Subtle</option><option value="medium">Medium</option><option value="organic">Organic</option></select></div>
+        <div><label>Position jitter <span class="val" id="posVal">0</span></label><input type="range" id="posVar" min="0" max="30" value="0"></div>
+        <div><label>Phase <span class="val" id="phaseVal">0°</span></label><input type="range" id="phaseR" min="0" max="360" value="0"></div>
+        <div><label>Density direction</label><select id="dirSel"><option value="uniform">Uniform</option><option value="horizontal">Horizontal</option><option value="vertical">Vertical</option><option value="diagonal">Diagonal</option><option value="radial">Radial</option><option value="center">Center</option><option value="edge">Edge</option><option value="top">Top</option><option value="bottom">Bottom</option><option value="left">Left</option><option value="right">Right</option></select></div>
+        <div><label>X offset <span class="val" id="oxVal">0%</span></label><input type="range" id="offX" min="-50" max="50" value="0"></div>
+        <div><label>Y offset <span class="val" id="oyVal">0%</span></label><input type="range" id="offY" min="-50" max="50" value="0"></div>
+        <div><label>Direction strength <span class="val" id="dirAVal">80</span></label><input type="range" id="dirAmt" min="0" max="100" value="80"></div>
+      </div>
+    </details>
+    <details class="grp"><summary>Rotation &amp; warp</summary>
+      <div class="g2">
+        <div><label>Pattern rotation</label><select id="rotSel"><option value="0">0°</option><option value="15">15°</option><option value="22.5">22.5°</option><option value="30">30°</option><option value="45">45°</option><option value="60">60°</option><option value="90">90°</option><option value="custom">Custom</option><option value="random">Random (controlled)</option></select></div>
+        <div><label>Custom °</label><input type="number" id="rotCustom" min="-180" max="180" value="0"></div>
+        <div><label>Warp amount <span class="val" id="warpVal">0</span></label><input type="range" id="warp" min="0" max="100" value="0"></div>
+        <div><label>Warp scale <span class="val" id="warpSVal">50</span></label><input type="range" id="warpScale" min="0" max="100" value="50"></div>
+        <div><label>Warp direction</label><select id="warpDir"><option value="both">Both</option><option value="x">Horizontal</option><option value="y">Vertical</option><option value="radial">Radial</option><option value="swirl">Swirl</option></select></div>
+      </div>
+    </details>
+    <details class="grp"><summary>Pattern &amp; tone (advanced)</summary>
+      <div class="g2">
+        <div><label>Pattern scale <span class="val" id="pscVal">1.00</span></label><input type="range" id="pScale" min="40" max="250" value="100"></div>
+        <div><label>Frequency <span class="val" id="freqVal">1.00</span></label><input type="range" id="freq" min="30" max="400" value="100"></div>
+        <div><label>Amplitude <span class="val" id="ampVal">0.50</span></label><input type="range" id="amp" min="5" max="100" value="50"></div>
+        <div><label>Symmetry</label><select id="symSel"><option value="0">None</option><option value="2">Mirror</option><option value="4">Quad</option><option value="6">6-fold</option><option value="8">8-fold</option></select></div>
+        <div><label>Radiality <span class="val" id="radVal">0</span></label><input type="range" id="radial" min="0" max="100" value="0"></div>
+        <div><label>Midtone contrast <span class="val" id="conVal">1.00</span></label><input type="range" id="contrast2" min="30" max="250" value="100"></div>
+        <div><label>Edge softness <span class="val" id="softVal">100</span></label><input type="range" id="soft" min="0" max="100" value="100"></div>
+        <div><label>Noise <span class="val" id="noiseVal">0</span></label><input type="range" id="noise" min="0" max="100" value="0"></div>
+        <div><label>Noise scale <span class="val" id="noiseSVal">50</span></label><input type="range" id="noiseScale" min="0" max="100" value="50"></div>
+        <div><label>Edge fade <span class="val" id="fadeVal">0</span></label><input type="range" id="fade" min="0" max="100" value="0"></div>
+      </div>
+    </details>
     <label class="checklabel"><input type="checkbox" id="invert"> Invert tones</label>
     <label class="checklabel"><input type="checkbox" id="cmyk"> Print-separation style (CMYK look)</label>
     <div class="row">
@@ -140,22 +207,66 @@ hr{border:none;border-top:1px solid var(--line);margin:2px 0;}
     <canvas id="hCanvas" width="900" height="600"></canvas>
   </section>
 
-  <section class="panel batch">
-    <div class="row">
-      <div><label>Batch size</label>
-        <select id="batchCount"><option>4</option><option selected>6</option><option>9</option><option>12</option></select>
+  <section class="panel vpanel" id="vpanel">
+    <div><p class="sectitle">Seed &amp; master design</p>
+      <div class="row" style="flex-wrap:wrap">
+        <input type="text" id="mseed" style="width:130px" spellcheck="false" title="Master seed: same seed + same settings = same results">
+        <button class="ghost" id="sgen">Generate seed</button><button class="ghost" id="scp">Copy seed</button>
+        <label class="checklabel"><input type="checkbox" id="slk"> Lock seed</label>
+        <span style="flex:1"></span>
+        <button class="primary" id="saveMaster">Save master</button><button class="ghost" id="makeVar">Create variation</button><button class="ghost" id="resetMaster">Reset master</button>
       </div>
-      <button class="primary" id="genBatch" style="margin-top:18px">Auto-generate artboards</button>
+      <p class="note" id="masterInfo">No master saved yet: the current editor design is used as the master.</p>
     </div>
-    <p class="note">Generates random pattern/angle/colour variants at the current artboard size. Click a thumbnail to load it into the editor, or download it directly.</p>
+    <div class="row" style="flex-wrap:wrap;align-items:flex-end">
+      <div style="width:170px"><label>Variation amount</label><select id="vAmount"><option value="0">0 · almost identical</option><option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="75">75</option><option value="100">100 · strong</option></select></div>
+      <div style="width:190px"><label>Variation mode (batch)</label><select id="vMode"><option value="similar">Make similar</option><option value="different">Make different</option><option value="denser">Make denser</option><option value="sparser">Make sparser</option><option value="softer">Make softer</option><option value="sharper">Make sharper</option><option value="larger">Make larger dots</option><option value="smaller">Make smaller dots</option><option value="organic">Make more organic</option><option value="geometric">Make more geometric</option><option value="minimal">Make more minimal</option><option value="complex">Make more complex</option></select></div>
+    </div>
+    <div><label>Apply to the editor</label>
+      <div class="btns" id="modeBtns"></div></div>
+    <div class="g2" style="grid-template-columns:1fr 1fr">
+      <div><label>Locks (never changed by variations)</label><div class="checks" id="lockBox"></div></div>
+      <div><label>Variation matrix (allowed to vary)</label><div class="checks" id="matrixBox"></div></div>
+    </div>
+    <div class="btns"><button class="ghost" id="saveDNA">Save DNA</button><button class="ghost" id="loadDNA">Load DNA</button><button class="ghost" id="copyDNA">Copy DNA</button><input type="file" id="dnaFile" accept=".json,application/json" style="display:none"></div>
+  </section>
+
+  <section class="panel batch">
+    <div class="row" style="flex-wrap:wrap;align-items:flex-end">
+      <div style="width:110px"><label>Batch size</label>
+        <select id="batchCount"><option>4</option><option>6</option><option>9</option><option selected>12</option><option>24</option><option>50</option><option>100</option></select>
+      </div>
+      <div style="width:170px"><label>Source</label><select id="batchSrc"><option value="master" selected>From master</option><option value="random">Random collection</option></select></div>
+      <div style="width:170px"><label>Uniqueness</label><select id="uniq"><option value="conservative">Conservative</option><option value="balanced" selected>Balanced</option><option value="strict">Strict</option><option value="extreme">Extreme</option></select></div>
+      <button class="primary" id="genBatch">Auto-generate artboards</button>
+    </div>
+    <p class="note">From master: related variations of the saved master (same pattern, dot and colour language). Random collection: seeded random patterns. Near-duplicates are rejected by DNA similarity. Click a thumbnail to load it into the editor, or download it directly.</p>
+    <div class="stats" id="stats"></div>
     <div class="thumbs" id="thumbs"></div>
   </section>
 </main>
 <div class="toast" id="toast"></div>
 <script>
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
+// UI-only randomness (e.g. creating a brand-new seed string). Procedural generation uses the seeded RNG below.
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+
+// ---------- SEEDED RNG ----------
+// Everything procedural (batch, variations, shuffle, noise) is derived from these, so seed + settings reproduce results.
+function hashStr(s){let h=2166136261>>>0;s=String(s);for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);h^=h>>>16;h=Math.imul(h,2246822507);h^=h>>>13;h=Math.imul(h,3266489909);h^=h>>>16;return h>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rngOf=(...k)=>mulberry(hashStr(k.join('|')));
+const spick=(r,a)=>a[Math.floor(r()*a.length)];
+const gauss=r=>{const u=Math.max(1e-9,r()),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2831853*v)};
+// smooth, deterministic value noise (controlled variation, never chaotic per-dot noise)
+function vnoise(x,y,seed){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+  const h=(i,j)=>{let n=(Math.imul(i,374761393)+Math.imul(j,668265263)+Math.imul(seed|0,1274126177))|0;n=Math.imul(n^(n>>>13),1103515245);return((n^(n>>>16))>>>0)/4294967296};
+  const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);return lerp(lerp(h(xi,yi),h(xi+1,yi),u),lerp(h(xi,yi+1),h(xi+1,yi+1),u),v)}
+const fbm=(x,y,s)=>.65*vnoise(x,y,s)+.35*vnoise(x*2.13+7.3,y*2.13-3.1,s+17);
+const hash01=(i,j,s)=>{let n=(Math.imul(i,73856093)^Math.imul(j,19349663)^Math.imul(s|0,83492791))|0;n=Math.imul(n^(n>>>15),2246822519);return((n^(n>>>13))>>>0)/4294967296};
 
 // ---------- download via artifact capability ----------
 async function download(blob,filename){
@@ -170,24 +281,61 @@ async function download(blob,filename){
 }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 
+// ---------- HALFTONE DNA ----------
+// One DNA per design. The renderer reads every field below; the defaults reproduce the original look exactly.
+const DNA0={v:1,pattern:'wave',dotShape:'circle',cellSize:10,dotWidth:1,dotHeight:1,aspectRatio:1,angle:15,gamma:1,contrast:1,density:.5,
+  phase:0,offsetX:0,offsetY:0,invert:false,color:'#1c1b1a',background:'#f2efe9',transparent:false,cmyk:false,
+  scale:1,rotation:0,frequency:1,amplitude:.5,warp:0,warpScale:.5,warpDirection:'both',noise:0,noiseScale:.5,fade:0,edgeSoftness:1,
+  direction:'uniform',directionAmount:.8,symmetry:0,radiality:0,spacingVariation:0,spacingMode:'uniform',sizeVariation:0,sizeMode:'uniform',positionVariation:0,seed:1};
+const SIZE_MODES={uniform:0,subtle:.12,medium:.24,strong:.4,organic:.32},SPACE_MODES={uniform:0,subtle:.08,medium:.16,organic:.26};
+const SHAPES=['circle','square','diamond','line','ellipse','roundsquare','triangle','hexagon','cross','dash','capsule'];
+const normDNA=d=>{const o={...DNA0,...(d||{})};if(!SHAPES.includes(o.dotShape))o.dotShape='circle';return o};
+
 // ---------- pattern field ----------
-let phase=0;
-function darknessField(mode,u,v,fx,fy,ph){
-  const d=Math.hypot(u,v);
+// frequency / amplitude generalise the original fields; at frequency 1 and amplitude .5 they are identical to the original.
+function darknessField(mode,u,v,fx,fy,ph,d){
+  const f=d?d.frequency:1,am=d?d.amplitude:.5,dd=Math.hypot(u,v);
   switch(mode){
-    case 'circle': return clamp(1-d,0,1);
+    case 'circle': return clamp(1-dd,0,1);
     case 'square': return clamp(1-Math.max(Math.abs(u),Math.abs(v)),0,1);
     case 'triangle': { if(v>1||v<-1) return 0; const allowed=(1-v)/2; return clamp(1-Math.abs(u)/Math.max(allowed,0.001),0,1); }
-    case 'wave': { const path=0.5*Math.sin(fx*Math.PI*2+ph); return clamp(1-Math.abs(v-path)/0.35,0,1); }
-    case 'burst': return clamp(d+0.05*Math.sin(ph*3),0,1);
-    case 'ring': { const r0=0.55+0.05*Math.sin(ph); return clamp(1-Math.abs(d-r0)/0.18,0,1); }
-    case 'grid': { const p=Math.round(ph*2); return 0.4+0.25*((Math.floor((u+1)*8)+Math.floor((v+1)*8)+p)%2); }
-    case 'spiral': { const ang=Math.atan2(v,u); return clamp(1-Math.abs(Math.sin(ang*3+d*10+ph)),0,1); }
-    case 'curve': { const path=0.6*Math.sin(fx*Math.PI*1.3+ph); return clamp(1-Math.abs(v-path)/0.15,0,1); }
+    case 'wave': { const path=am*Math.sin(fx*Math.PI*2*f+ph); return clamp(1-Math.abs(v-path)/0.35,0,1); }
+    case 'burst': { const ang=Math.atan2(v,u); return clamp(dd+0.05*Math.sin(ph*3)+(am-.5)*.4*Math.sin(ang*Math.max(2,Math.round(8*f))+ph),0,1); }
+    case 'ring': { const r0=0.55+0.05*Math.sin(ph),dist=Math.abs(f-1)<1e-6?Math.abs(dd-r0):Math.abs((((dd-r0)*f+.5)%1+1)%1-.5)/f; return clamp(1-dist/(0.18*am*2),0,1); }   // frequency > 1 repeats the ring
+    case 'grid': { const p=Math.round(ph*2),n=8*f; return 0.4+0.25*((Math.floor((u+1)*n)+Math.floor((v+1)*n)+p)%2); }   // original expression (incl. its negative-modulo tones)
+    case 'spiral': { const ang=Math.atan2(v,u),arms=Math.max(1,Math.round(3*f)); return clamp(1-Math.abs(Math.sin(ang*arms+dd*10*f*am*2+ph)),0,1); }
+    case 'curve': { const path=am*1.2*Math.sin(fx*Math.PI*1.3*f+ph); return clamp(1-Math.abs(v-path)/0.15,0,1); }
     case 'gradient': return clamp((fx+1)/2,0,1);
   }
   return 0;
 }
+// DNA field: pattern rotation / scale / radiality / symmetry -> field -> noise -> midtone contrast -> edge softness -> invert
+// -> density direction -> edge fade -> gamma. Returns dot "darkness" 0..1 at a design-space point.
+function makeFieldDNA(d,w,h,img){
+  const cx=w/2,cy=h/2,sc0=Math.min(w,h)/2,rot=-(d.rotation||0)*Math.PI/180,cr=Math.cos(rot),sr=Math.sin(rot),S=d.scale||1,R=d.radiality||0,sym=d.symmetry|0;
+  const tf=(a,b)=>{let x=(a*cr-b*sr)/S,y=(a*sr+b*cr)/S;
+    if(R>0){const dd=Math.hypot(x,y),an=Math.atan2(y,x);x=lerp(x,an/Math.PI,R);y=lerp(y,dd*2-1,R)}
+    if(sym==2)x=Math.abs(x);else if(sym==4){x=Math.abs(x);y=Math.abs(y)}
+    else if(sym>=5){const dd=Math.hypot(x,y),seg=2*Math.PI/sym;let an=Math.atan2(y,x);an=((an%seg)+seg)%seg;an=Math.abs(an-seg/2);x=dd*Math.cos(an);y=dd*Math.sin(an)}
+    return[x,y]};
+  let imgS=null;
+  if(img){const iw=img.width,ih=img.height,data=img.getContext('2d').getImageData(0,0,iw,ih).data;
+    imgS=(x,y)=>{const ix=clamp(Math.floor(x/w*iw),0,iw-1),iy=clamp(Math.floor(y/h*ih),0,ih-1),i=(iy*iw+ix)*4;return 1-((data[i]*0.3+data[i+1]*0.59+data[i+2]*0.11)/255)}}
+  const ns=lerp(18,2,d.noiseScale??.5)/Math.min(w,h),sw=.06+.3*(d.edgeSoftness??1),dir=d.direction||'uniform',dA=d.directionAmount??.8;
+  return(x,y)=>{let dk;
+    if(imgS)dk=imgS(x,y);
+    else{const[U,V]=tf((x-cx)/sc0,(y-cy)/sc0),[FX,FY]=tf(x/w*2-1,y/h*2-1);dk=darknessField(d.pattern,U,V,FX,FY,d.phase||0,d)}
+    if(d.noise>0)dk+=(fbm(x*ns,y*ns,d.seed+101)-.5)*d.noise*1.1;
+    if(d.contrast!==1)dk=(dk-.5)*d.contrast+.5;
+    if(d.edgeSoftness<1)dk=lerp(smooth(.5-sw,.5+sw,dk),clamp(dk,0,1),d.edgeSoftness);
+    if(d.invert)dk=1-dk;
+    if(dir!=='uniform'&&dA>0){const fx=x/w,fy=y/h,r=Math.hypot(fx-.5,fy-.5)/.7072;let g=1;
+      switch(dir){case'horizontal':g=1-Math.abs(fy-.5)*2;break;case'vertical':g=1-Math.abs(fx-.5)*2;break;case'diagonal':g=(fx+fy)/2;break;case'radial':g=1-r;break;
+        case'center':g=1-smooth(.1,.85,r);break;case'edge':g=smooth(.15,1,r);break;case'top':g=1-fy;break;case'bottom':g=fy;break;case'left':g=1-fx;break;case'right':g=fx;break}
+      dk*=lerp(1,clamp(g,0,1),dA)}
+    if(d.fade>0){const r=Math.hypot(x/w-.5,y/h-.5)/.7072;dk*=1-d.fade*smooth(.35,1,r)}
+    return Math.pow(clamp(dk,0,1),d.gamma)}}
+// legacy sampler (kept for compatibility with the original API)
 function makeSampler(pattern,ph,imgCanvas){
   if(imgCanvas){
     const w=imgCanvas.width,h=imgCanvas.height;
@@ -216,59 +364,120 @@ function forEachDot(w,h,cell,angleDeg,cb){
     cb(x,y);
   }
 }
-function paintDot(ctx,x,y,r,shape,angleRad){
+// DNA lattice: density sets the real dot pitch (more / fewer dots at the same dot size), offsets shift it,
+// spacing variation bends it smoothly, position jitter is small and bounded, warp moves actual dot positions,
+// size variation is a smooth field. cb(x, y, sizeFactor).
+function forEachDotDNA(w,h,d,angleDeg,cb){
+  const cell=d.cellSize,pitch=cell*Math.pow(2,(.5-d.density)*1.6),rad=angleDeg*Math.PI/180,cosA=Math.cos(rad),sinA=Math.sin(rad);
+  const n=Math.ceil(Math.hypot(w,h)/pitch)+3,ox=(d.offsetX||0)*pitch,oy=(d.offsetY||0)*pitch,sd=d.seed|0,m=Math.min(w,h);
+  const sv=d.spacingVariation||0,sf=d.spacingMode==='organic'?.12:.35,pv=d.positionVariation||0,zv=d.sizeVariation||0,zf=(d.sizeMode==='organic'?3:9)/m;
+  const wa=(d.warp||0)*m*.06,wf=lerp(9,1.5,d.warpScale??.5)/m,wd=d.warpDirection||'both',cxm=w/2,cym=h/2,pad=cell*1.5+wa;
+  for(let j=-n;j<=n;j++)for(let i=-n;i<=n;i++){
+    let lx=i*pitch+ox,ly=j*pitch+oy;
+    if(sv>0){lx+=(vnoise(i*sf,j*sf+11.3,sd+7)-.5)*2*sv*pitch;ly+=(vnoise(i*sf+5.1,j*sf,sd+13)-.5)*2*sv*pitch}
+    if(pv>0){lx+=(hash01(i,j,sd+3)-.5)*pv*pitch;ly+=(hash01(j,i,sd+5)-.5)*pv*pitch}
+    let x=cxm+lx*cosA-ly*sinA,y=cym+lx*sinA+ly*cosA;
+    if(x<-pad||x>w+pad||y<-pad||y>h+pad)continue;
+    if(wa>0){const n1=fbm(x*wf,y*wf,sd+21)-.5,n2=fbm(x*wf+31.7,y*wf-17.3,sd+29)-.5;
+      if(wd==='x')x+=n1*2*wa;else if(wd==='y')y+=n2*2*wa;
+      else if(wd==='radial'||wd==='swirl'){const dx=x-cxm,dy=y-cym,l=Math.hypot(dx,dy)||1;if(wd==='radial'){x+=dx/l*n1*2*wa;y+=dy/l*n1*2*wa}else{x+=-dy/l*n1*2*wa;y+=dx/l*n1*2*wa}}
+      else{x+=n1*2*wa;y+=n2*2*wa}}
+    if(x<-cell||x>w+cell||y<-cell||y>h+cell)continue;
+    cb(x,y,zv>0?Math.max(0,1+(fbm(x*zf,y*zf,sd+41)-.5)*2*zv):1)}}
+// dot shapes: unit shapes scaled by (rx, ry) so the same dot can morph between circle / ellipse / line / dash / diamond
+function unitPath(ctx,shape){
+  switch(shape){
+    case 'circle': ctx.arc(0,0,1,0,Math.PI*2); break;
+    case 'ellipse': ctx.ellipse(0,0,1,.62,0,0,Math.PI*2); break;
+    case 'square': ctx.rect(-1,-1,2,2); break;
+    case 'roundsquare': ctx.roundRect?ctx.roundRect(-1,-1,2,2,.42):ctx.rect(-1,-1,2,2); break;
+    case 'diamond': ctx.moveTo(0,-1); ctx.lineTo(1,0); ctx.lineTo(0,1); ctx.lineTo(-1,0); ctx.closePath(); break;
+    case 'triangle': ctx.moveTo(0,-1.15); ctx.lineTo(1,.62); ctx.lineTo(-1,.62); ctx.closePath(); break;
+    case 'hexagon': for(let k=0;k<6;k++){const a=k*Math.PI/3; k?ctx.lineTo(Math.cos(a),Math.sin(a)):ctx.moveTo(1,0)} ctx.closePath(); break;
+    case 'cross': { const t=.34; ctx.moveTo(-t,-1);ctx.lineTo(t,-1);ctx.lineTo(t,-t);ctx.lineTo(1,-t);ctx.lineTo(1,t);ctx.lineTo(t,t);ctx.lineTo(t,1);ctx.lineTo(-t,1);ctx.lineTo(-t,t);ctx.lineTo(-1,t);ctx.lineTo(-1,-t);ctx.lineTo(-t,-t);ctx.closePath(); break; }
+    case 'dash': ctx.roundRect?ctx.roundRect(-.85,-.27,1.7,.54,.27):ctx.rect(-.85,-.27,1.7,.54); break;
+    case 'capsule': ctx.roundRect?ctx.roundRect(-1,-.5,2,1,.5):ctx.rect(-1,-.5,2,1); break;
+  }
+}
+function paintDot(ctx,x,y,r,shape,angleRad,sx=1,sy=1){
   if(r<=0.6) return;
-  ctx.save(); ctx.translate(x,y); if(shape!=='circle') ctx.rotate(angleRad);
-  if(shape==='circle'){ ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill(); }
-  else if(shape==='square'){ ctx.fillRect(-r,-r,r*2,r*2); }
-  else if(shape==='diamond'){ ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(r,0); ctx.lineTo(0,r); ctx.lineTo(-r,0); ctx.closePath(); ctx.fill(); }
-  else if(shape==='line'){ const hh=Math.max(1,r*0.28); ctx.fillRect(-r,-hh,r*2,hh*2); }
+  ctx.save(); ctx.translate(x,y); if(shape!=='circle'||sx!==sy) ctx.rotate(angleRad);
+  if(shape==='line'){ const hh=Math.max(1,r*sy*0.28); ctx.fillRect(-r*sx,-hh,r*sx*2,hh*2); ctx.restore(); return; }
+  if(shape==='square'&&sx===1&&sy===1){ ctx.fillRect(-r,-r,r*2,r*2); ctx.restore(); return; }
+  ctx.scale(r*sx,r*sy); ctx.beginPath(); unitPath(ctx,shape); ctx.fill();
   ctx.restore();
 }
 const CMYK=[{c:'#00AEEF',a:15},{c:'#EC008C',a:75},{c:'#FFF200',a:0},{c:'#1c1b1a',a:45}];
-
-function renderToCanvas(canvas,opts){
-  const ctx=canvas.getContext('2d'), w=canvas.width, h=canvas.height;
-  const sampler=makeSampler(opts.pattern,opts.phase,opts.img);
-  ctx.clearRect(0,0,w,h);
-  if(!opts.transparent){ ctx.fillStyle=opts.bg; ctx.fillRect(0,0,w,h); }
-  function pass(angle,color){
-    ctx.fillStyle=color;
-    forEachDot(w,h,opts.cell,angle,(x,y)=>{
-      let dk=sampler(x,y,w,h); if(opts.invert) dk=1-dk;
-      dk=Math.pow(clamp(dk,0,1),opts.gamma);
-      paintDot(ctx,x,y,(opts.cell/2)*dk,opts.dotShape,angle*Math.PI/180);
-    });
-  }
-  if(opts.cmyk){
-    ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=0.82;
-    CMYK.forEach(ch=>pass(ch.a,ch.c));
-    ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1;
-  } else pass(opts.angle,opts.dot);
+// one dot iterator shared by canvas and SVG output
+function eachRenderedDot(d,w,h,img,cb){
+  const field=makeFieldDNA(d,w,h,img),sa=Math.sqrt(d.aspectRatio||1),sx=(d.dotWidth||1)*sa,sy=(d.dotHeight||1)/sa;
+  const pass=(angle,color)=>forEachDotDNA(w,h,d,angle,(x,y,z)=>cb(x,y,(d.cellSize/2)*field(x,y)*z,angle,color,sx,sy));
+  if(d.cmyk)CMYK.forEach(ch=>pass(ch.a,ch.c));else pass(d.angle,d.color)}
+// render a DNA into any canvas; the design is laid out in artboard units (w, h) and scaled to the canvas
+function renderDNA(canvas,d,img,w=canvas.width,h=canvas.height){
+  const ctx=canvas.getContext('2d'),k=canvas.width/w;
+  ctx.setTransform(1,0,0,1,0,0);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.setTransform(k,0,0,k,0,0);
+  if(!d.transparent){ ctx.fillStyle=d.background; ctx.fillRect(0,0,w,h); }
+  if(d.cmyk){ctx.globalCompositeOperation='multiply';ctx.globalAlpha=0.82}
+  let last=null;
+  eachRenderedDot(d,w,h,img,(x,y,r,angle,color,sx,sy)=>{if(color!==last){ctx.fillStyle=color;last=color}paintDot(ctx,x,y,r,d.dotShape,angle*Math.PI/180,sx,sy)});
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.setTransform(1,0,0,1,0,0);
 }
+// original entry point, now DNA-backed
+function optsToDNA(o){return normDNA({...CUR,pattern:o.pattern,cellSize:o.cell,gamma:o.gamma,angle:o.angle,invert:o.invert,dotShape:o.dotShape,color:o.dot,background:o.bg,transparent:o.transparent,cmyk:o.cmyk,phase:o.phase})}
+function renderToCanvas(canvas,opts){ renderDNA(canvas,opts.pattern!==undefined&&opts.cell!==undefined?optsToDNA(opts):opts,opts.img||null); }
 
-// ---------- live editor state ----------
-const hCanvas=document.getElementById('hCanvas');
-const shapeSel=document.getElementById('shapeSel'), cellSize=document.getElementById('cellSize'),
-      gamma=document.getElementById('gamma'), invert=document.getElementById('invert'),
-      dotColor=document.getElementById('dotColor'), bgColor=document.getElementById('bgColor'),
-      transparentBg=document.getElementById('transparentBg'), angleSlider=document.getElementById('angle'),
-      dotShapeSel=document.getElementById('dotShapeSel'), cmykBox=document.getElementById('cmyk');
-let srcCanvas=null;
-
+// ---------- live editor state (the MASTER-in-progress) ----------
+const $=id=>document.getElementById(id);
+const hCanvas=$('hCanvas');
+const shapeSel=$('shapeSel'), cellSize=$('cellSize'), gamma=$('gamma'), invert=$('invert'), dotColor=$('dotColor'), bgColor=$('bgColor'),
+      transparentBg=$('transparentBg'), angleSlider=$('angle'), dotShapeSel=$('dotShapeSel'), cmykBox=$('cmyk');
+let srcCanvas=null, CUR=normDNA(DNA0), MASTER=null;
+// UI <-> DNA bindings: [id, key, toDNA(value), toUI(dnaValue), label id, label format]
+const f2=v=>(+v).toFixed(2);
+const BIND=[
+  ['shapeSel','pattern',v=>v,v=>v],['dotShapeSel','dotShape',v=>v,v=>v],
+  ['angle','angle',v=>+v,v=>Math.round(v),'angleVal',v=>Math.round(v)+'°'],
+  ['cellSize','cellSize',v=>+v,v=>clamp(Math.round(v),6,28),'cellVal',v=>Math.round(v)+'px'],
+  ['gamma','gamma',v=>v/10,v=>Math.round(v*10),'gammaVal',v=>(+v).toFixed(1)],
+  ['invert','invert',null,null],['cmyk','cmyk',null,null],['transparentBg','transparent',null,null],
+  ['dotColor','color',v=>v,v=>v],['bgColor','background',v=>v,v=>v],
+  ['density','density',v=>v/100,v=>Math.round(v*100),'densVal',v=>Math.round(v*100)],
+  ['dotW','dotWidth',v=>v/100,v=>Math.round(v*100),'dotWVal',f2],['dotH','dotHeight',v=>v/100,v=>Math.round(v*100),'dotHVal',f2],
+  ['aspect','aspectRatio',v=>Math.pow(2,v/100),v=>Math.round(Math.log2(v)*100),'aspVal',f2],
+  ['sizeMode','sizeMode',v=>v,v=>v],['spacingMode','spacingMode',v=>v,v=>v],
+  ['posVar','positionVariation',v=>v/100,v=>Math.round(v*100),'posVal',v=>Math.round(v*100)],
+  ['phaseR','phase',v=>v*Math.PI/180,v=>Math.round((((v*180/Math.PI)%360)+360)%360),'phaseVal',v=>Math.round((((v*180/Math.PI)%360)+360)%360)+'°'],
+  ['offX','offsetX',v=>v/100,v=>Math.round(v*100),'oxVal',v=>Math.round(v*100)+'%'],['offY','offsetY',v=>v/100,v=>Math.round(v*100),'oyVal',v=>Math.round(v*100)+'%'],
+  ['dirSel','direction',v=>v,v=>v],['dirAmt','directionAmount',v=>v/100,v=>Math.round(v*100),'dirAVal',v=>Math.round(v*100)],
+  ['warp','warp',v=>v/100,v=>Math.round(v*100),'warpVal',v=>Math.round(v*100)],['warpScale','warpScale',v=>v/100,v=>Math.round(v*100),'warpSVal',v=>Math.round(v*100)],
+  ['warpDir','warpDirection',v=>v,v=>v],
+  ['pScale','scale',v=>v/100,v=>Math.round(v*100),'pscVal',f2],['freq','frequency',v=>v/100,v=>Math.round(v*100),'freqVal',f2],['amp','amplitude',v=>v/100,v=>Math.round(v*100),'ampVal',f2],
+  ['symSel','symmetry',v=>+v,v=>String(v)],['radial','radiality',v=>v/100,v=>Math.round(v*100),'radVal',v=>Math.round(v*100)],
+  ['contrast2','contrast',v=>v/100,v=>Math.round(v*100),'conVal',f2],['soft','edgeSoftness',v=>v/100,v=>Math.round(v*100),'softVal',v=>Math.round(v*100)],
+  ['noise','noise',v=>v/100,v=>Math.round(v*100),'noiseVal',v=>Math.round(v*100)],['noiseScale','noiseScale',v=>v/100,v=>Math.round(v*100),'noiseSVal',v=>Math.round(v*100)],
+  ['fade','fade',v=>v/100,v=>Math.round(v*100),'fadeVal',v=>Math.round(v*100)]];
+const ROT_PRESETS=[0,15,22.5,30,45,60,90];
+function syncUI(){
+  for(const[id,k,,toUI,lid,fmt]of BIND){const el=$(id);if(!el)continue;if(el.type==='checkbox')el.checked=!!CUR[k];else el.value=toUI(CUR[k]);if(lid)$(lid).textContent=fmt(CUR[k])}
+  const dp=[.1,.3,.5,.7,.9].reduce((a,b)=>Math.abs(b-CUR.density)<Math.abs(a-CUR.density)?b:a);$('densPreset').value=String(dp);
+  const rp=ROT_PRESETS.find(r=>Math.abs(r-CUR.rotation)<1e-6);$('rotSel').value=rp!==undefined?String(rp):'custom';$('rotCustom').value=+(+CUR.rotation).toFixed(2);
+}
 function currentOpts(){
-  return { pattern:shapeSel.value, cell:+cellSize.value, gamma:(+gamma.value)/10, angle:+angleSlider.value,
-    invert:invert.checked, dotShape:dotShapeSel.value, dot:dotColor.value, bg:bgColor.value,
-    transparent:transparentBg.checked, cmyk:cmykBox.checked, phase, img:srcCanvas };
+  return { pattern:CUR.pattern, cell:CUR.cellSize, gamma:CUR.gamma, angle:CUR.angle, invert:CUR.invert, dotShape:CUR.dotShape, dot:CUR.color, bg:CUR.background,
+    transparent:CUR.transparent, cmyk:CUR.cmyk, phase:CUR.phase, img:srcCanvas, dna:CUR };
 }
-function renderMain(){ renderToCanvas(hCanvas,currentOpts()); }
-[shapeSel,cellSize,gamma,invert,dotColor,bgColor,transparentBg,angleSlider,dotShapeSel,cmykBox].forEach(el=>el.addEventListener('input',renderMain));
-document.getElementById('cellSize').oninput=function(){document.getElementById('cellVal').textContent=this.value+'px';renderMain();};
-document.getElementById('gamma').oninput=function(){document.getElementById('gammaVal').textContent=(this.value/10).toFixed(1);renderMain();};
-document.getElementById('angle').oninput=function(){document.getElementById('angleVal').textContent=this.value+'°';renderMain();};
+function renderMain(){ renderDNA(hCanvas,CUR,srcCanvas); }
+for(const[id,k,toD,,lid,fmt]of BIND){const el=$(id);if(!el)continue;el.addEventListener('input',()=>{CUR[k]=el.type==='checkbox'?el.checked:toD(el.value);if(lid)$(lid).textContent=fmt(CUR[k]);
+  if(k==='sizeMode')CUR.sizeVariation=SIZE_MODES[CUR.sizeMode];if(k==='spacingMode')CUR.spacingVariation=SPACE_MODES[CUR.spacingMode];if(k==='density')syncUI();renderMain()})}
+$('densPreset').onchange=e=>{CUR.density=+e.target.value;syncUI();renderMain()};
+$('rotSel').onchange=e=>{const v=e.target.value;if(v==='custom')CUR.rotation=+$('rotCustom').value||0;
+  else if(v==='random'){const r=rngOf(MSEED,'rotation',++SHUF);CUR.rotation=spick(r,ROT_PRESETS)+(r()-.5)*6}else CUR.rotation=+v;syncUI();renderMain()};
+$('rotCustom').onchange=e=>{CUR.rotation=clamp(+e.target.value||0,-180,180);syncUI();renderMain()};
 
-// image drop
-const dropZone=document.getElementById('dropZone'), fileInput=document.getElementById('fileInput'), clearImg=document.getElementById('clearImg');
+// image drop (image data is never part of the DNA)
+const dropZone=$('dropZone'), fileInput=$('fileInput'), clearImg=$('clearImg');
 dropZone.onclick=()=>fileInput.click();
 ['dragover','dragenter'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add('over');}));
 ['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove('over');}));
@@ -287,101 +496,223 @@ function loadImage(file){
 }
 
 // artboard size
-const sizeSel=document.getElementById('sizeSel'), customSize=document.getElementById('customSize');
+const sizeSel=$('sizeSel'), customSize=$('customSize');
 sizeSel.onchange=()=>{
   if(sizeSel.value==='custom'){ customSize.style.display='flex'; return; }
   customSize.style.display='none';
   const [w,h]=sizeSel.value.split(',').map(Number);
   hCanvas.width=w; hCanvas.height=h; renderMain();
 };
-document.getElementById('applySize').onclick=()=>{
-  hCanvas.width=Math.max(50,+document.getElementById('cw').value||900);
-  hCanvas.height=Math.max(50,+document.getElementById('ch').value||600);
+$('applySize').onclick=()=>{
+  hCanvas.width=Math.max(50,+$('cw').value||900);
+  hCanvas.height=Math.max(50,+$('ch').value||600);
   renderMain();
 };
 
-// shuffle
-document.getElementById('shuffle').onclick=()=>{
-  phase=rnd(0,Math.PI*2);
-  angleSlider.value=Math.round(rnd(0,90)); document.getElementById('angleVal').textContent=angleSlider.value+'°';
-  cellSize.value=Math.round(rnd(6,22)); document.getElementById('cellVal').textContent=cellSize.value+'px';
-  dotShapeSel.value=pick(['circle','square','diamond','line']);
-  renderMain();
+// ---------- SEED ----------
+let MSEED='',SHUF=0,VARN=0;
+const newSeed=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<8;i++)s+=a[Math.floor(Math.random()*a.length)];return s.slice(0,4)+'-'+s.slice(4)};
+function setSeed(v){MSEED=String(v||'').trim()||newSeed();$('mseed').value=MSEED}
+setSeed(newSeed());
+$('sgen').onclick=()=>{setSeed(newSeed());SHUF=0;VARN=0;toast('New seed '+MSEED)};
+$('mseed').onchange=()=>{setSeed($('mseed').value);$('slk').checked=true;SHUF=0;VARN=0;toast('Seed locked: '+MSEED)};
+$('scp').onclick=async()=>{try{await navigator.clipboard.writeText(MSEED);toast('Seed copied')}catch(e){$('mseed').select();toast('Select the seed field to copy')}};
+
+// shuffle (original behaviour, now seeded and lock-aware)
+$('shuffle').onclick=()=>{
+  const r=rngOf(MSEED,'shuffle',++SHUF),L=lockedKeys();
+  if(!L.has('phase'))CUR.phase=r()*Math.PI*2;
+  if(!L.has('angle'))CUR.angle=Math.round(r()*90);
+  if(!L.has('cellSize'))CUR.cellSize=Math.round(6+r()*16);
+  if(!L.has('dotShape'))CUR.dotShape=spick(r,['circle','square','diamond','line']);
+  syncUI();renderMain();
 };
 
-// exports
-document.getElementById('expPNG').onclick=()=>hCanvas.toBlob(b=>download(b,'halftone.png'));
-document.getElementById('expJPG').onclick=()=>{
+// ---------- LOCKS + VARIATION MATRIX ----------
+const LOCKS=[['pattern','Pattern',['pattern']],['dotShape','Dot shape',['dotShape','aspectRatio']],['color','Color',['color','background','transparent','cmyk','invert']],
+  ['angle','Angle',['angle']],['density','Density',['density','direction','directionAmount']],['spacing','Spacing',['cellSize','spacingVariation','spacingMode','positionVariation']],
+  ['composition','Composition',['frequency','amplitude','symmetry','radiality','rotation','scale','phase','offsetX','offsetY','fade','direction']]];
+const MATRIX=[['size','Dot size',['dotWidth','dotHeight','sizeVariation'],1],['spacing','Spacing',['cellSize','spacingVariation','positionVariation'],1],['angle','Angle',['angle'],1],
+  ['density','Density',['density','directionAmount'],1],['shape','Dot shape',['dotShape','aspectRatio'],0],['contrast','Contrast',['gamma','contrast','edgeSoftness'],1],
+  ['warp','Warp',['warp','warpScale','noise','noiseScale'],1],['scale','Scale',['scale','frequency','amplitude'],1],['phase','Phase',['phase','offsetX','offsetY'],1],
+  ['rotation','Rotation',['rotation'],1],['fade','Fade',['fade'],1]];
+for(const[k,n]of LOCKS)$('lockBox').insertAdjacentHTML('beforeend',`<label class="checklabel"><input type="checkbox" id="lk_${k}"> ${n}</label>`);
+for(const[k,n,,on]of MATRIX)$('matrixBox').insertAdjacentHTML('beforeend',`<label class="checklabel"><input type="checkbox" id="mx_${k}"${on?' checked':''}> ${n}</label>`);
+function lockedKeys(){const s=new Set();for(const[k,,keys]of LOCKS)if($('lk_'+k).checked)keys.forEach(x=>s.add(x));return s}
+const matrixGroups=()=>MATRIX.filter(([k])=>$('mx_'+k).checked);
+
+// ---------- MUTATION ENGINE ----------
+// Parameter behaviour: [key, min, max, kind, spread at amount 1]. mult = multiplicative (log2 spread), add = additive, circ = wraps.
+const PS={cellSize:[4,40,'mult',.45],dotWidth:[.3,2,'mult',.3],dotHeight:[.3,2,'mult',.3],sizeVariation:[0,.6,'add',.15],aspectRatio:[.25,4,'mult',.35],
+  spacingVariation:[0,.4,'add',.1],positionVariation:[0,.3,'add',.08],angle:[0,90,'circ',18],density:[.05,.95,'add',.2],directionAmount:[0,1,'add',.2],
+  gamma:[.4,2.5,'mult',.35],contrast:[.3,2.5,'add',.3],edgeSoftness:[0,1,'add',.25],warp:[0,1,'add',.18],warpScale:[0,1,'add',.2],noise:[0,1,'add',.14],noiseScale:[0,1,'add',.2],
+  scale:[.4,2.5,'mult',.3],frequency:[.3,4,'mult',.25],amplitude:[.05,1,'add',.1],phase:[0,Math.PI*2,'circ',Math.PI],offsetX:[-.5,.5,'add',.35],offsetY:[-.5,.5,'add',.35],
+  fade:[0,1,'add',.22],rotation:[-180,180,'rot',0],radiality:[0,1,'add',.15]};
+const SHAPE_REL={circle:['ellipse','capsule'],ellipse:['circle','capsule'],capsule:['ellipse','dash'],square:['roundsquare','diamond'],roundsquare:['square','hexagon'],
+  diamond:['square','triangle'],hexagon:['roundsquare','circle'],line:['dash','capsule'],dash:['line','capsule'],triangle:['diamond','hexagon'],cross:['diamond','square']};
+function mutKey(d,base,k,r,a){const p=PS[k];if(!p)return;const[mn,mx,kind,sp]=p,g=gauss(r);
+  if(kind==='mult')d[k]=clamp(base[k]*Math.pow(2,g*sp*a),mn,mx);
+  else if(kind==='add')d[k]=clamp(base[k]+g*sp*a,mn,mx);
+  else if(kind==='circ'){const span=mx-mn;d[k]=((base[k]+g*sp*a-mn)%span+span)%span+mn}
+  else if(kind==='rot'){const i=ROT_PRESETS.indexOf(ROT_PRESETS.reduce((q,v)=>Math.abs(v-base.rotation)<Math.abs(q-base.rotation)?v:q));const st=Math.round(g*a*2);d.rotation=ROT_PRESETS[clamp(i+st,0,ROT_PRESETS.length-1)]+(base.rotation-ROT_PRESETS[i])}
+  if(k==='cellSize')d.cellSize=Math.round(d.cellSize)}
+// Directional art-direction moves (Make denser / softer / more organic ...). s = strength 0..1.
+const MODES={
+  similar:()=>{},different:()=>{},
+  denser:(d,s)=>{d.density=d.density+.25*s;d.cellSize=d.cellSize*Math.pow(2,-.25*s)},
+  sparser:(d,s)=>{d.density=d.density-.25*s;d.cellSize=d.cellSize*Math.pow(2,.25*s)},
+  softer:(d,s)=>{d.edgeSoftness=d.edgeSoftness+.4*s;d.contrast=d.contrast-.25*s;d.gamma=d.gamma*Math.pow(2,-.25*s);d.fade=d.fade+.12*s},
+  sharper:(d,s)=>{d.edgeSoftness=d.edgeSoftness-.5*s;d.contrast=d.contrast+.35*s;d.gamma=d.gamma*Math.pow(2,.25*s);d.noise=d.noise*(1-.6*s)},
+  larger:(d,s)=>{d.dotWidth*=Math.pow(2,.35*s);d.dotHeight*=Math.pow(2,.35*s)},
+  smaller:(d,s)=>{d.dotWidth*=Math.pow(2,-.35*s);d.dotHeight*=Math.pow(2,-.35*s)},
+  organic:(d,s)=>{d.noise+=.18*s;d.warp+=.2*s;d.sizeVariation+=.15*s;d.spacingVariation+=.1*s;d.positionVariation+=.06*s;d.edgeSoftness+=.2*s;if(s>.4){d.sizeMode='organic';d.spacingMode='organic'}},
+  geometric:(d,s)=>{const k=1-s;d.noise*=k;d.warp*=k;d.sizeVariation*=k;d.spacingVariation*=k;d.positionVariation*=k;d.edgeSoftness-=.25*s;if(s>.4){d.sizeMode='uniform';d.spacingMode='uniform'}},
+  minimal:(d,s)=>{d.density-=.18*s;d.cellSize*=Math.pow(2,.3*s);d.fade+=.2*s;d.noise*=1-s;d.sizeVariation*=1-s;d.warp*=1-.7*s;d.contrast+=.15*s},
+  complex:(d,s)=>{d.frequency*=Math.pow(2,.4*s);d.noise+=.1*s;d.warp+=.12*s;d.radiality+=.15*s;d.density+=.1*s;d.sizeVariation+=.1*s}};
+function fixDNA(d){for(const k in PS){const[mn,mx]=PS[k];if(typeof d[k]==='number')d[k]=clamp(d[k],mn,mx)}d.cellSize=Math.round(d.cellSize);d.symmetry=d.symmetry|0;return d}
+// One controlled variation of `base`: only a few matrix groups change at once, locks always win,
+// the pattern (visual family) is kept for "from master", and dot shape only moves to related shapes.
+function makeVariation(base,r,amt,mode,o={}){
+  const L=o.locks||lockedKeys(),groups=(o.matrix||matrixGroups()).filter(g=>g[2].some(k=>!L.has(k))),d={...base};
+  const a=mode==='different'?Math.min(1.2,amt*1.6+.15):mode==='similar'?amt*.6:amt;
+  const pool=groups.slice();for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  const nG=pool.length<=3?pool.length:Math.min(pool.length,2+Math.round(a*(mode==='different'?6:4)));
+  for(const[gk,,keys]of pool.slice(0,nG)){
+    if(gk==='size'){const g=gauss(r)*.3*a;d.dotWidth=clamp(base.dotWidth*Math.pow(2,g),.3,2);d.dotHeight=clamp(base.dotHeight*Math.pow(2,g),.3,2);if(!L.has('sizeVariation'))mutKey(d,base,'sizeVariation',r,a);continue}
+    if(gk==='shape'){if(!L.has('aspectRatio'))mutKey(d,base,'aspectRatio',r,a*.7);if(!L.has('dotShape')&&r()<.35*a&&SHAPE_REL[base.dotShape])d.dotShape=spick(r,SHAPE_REL[base.dotShape]);continue}
+    for(const k of keys)if(!L.has(k))mutKey(d,base,k,r,a)}
+  if(MODES[mode]){const s=Math.max(.35,amt);const b={...d};MODES[mode](d,s);for(const k in d)if(L.has(k))d[k]=b[k]}
+  for(const k of L)d[k]=base[k];
+  if(o.keepPattern!==false)d.pattern=base.pattern;
+  d.seed=(r()*1e9)>>>0;if(L.has('frequency'))d.seed=base.seed;   // composition lock keeps the noise / warp field
+  return fixDNA(d)}
+// random, seeded design for "Random collection"
+const PATTERNS=['circle','square','triangle','wave','burst','ring','grid','spiral','curve','gradient'];
+const DOTCOLORS=['#1c1b1a','#3a3733','#8a6d3b','#b5792e'];
+const BGCOLORS=['#f2efe9','#ffffff','#ece7de'];
+function randomDNA(r){const L=lockedKeys(),d=normDNA({...CUR,pattern:spick(r,PATTERNS),cellSize:Math.round(6+r()*14),gamma:.6+r()*1.2,angle:Math.round(r()*90),invert:r()<.25,
+  dotShape:spick(r,['circle','square','diamond','line','ellipse','roundsquare','hexagon','dash','capsule']),color:spick(r,DOTCOLORS),background:spick(r,BGCOLORS),transparent:false,cmyk:r()<.25,phase:r()*Math.PI*2,
+  density:.3+r()*.4,rotation:spick(r,ROT_PRESETS),frequency:Math.pow(2,(r()-.5)*1.2),scale:Math.pow(2,(r()-.5)*.8),seed:(r()*1e9)>>>0});
+  for(const k of L)d[k]=CUR[k];return fixDNA(d)}
+// the old random variant API (kept), now seeded
+function randomVariant(r=rngOf(MSEED,'legacy',++SHUF)){const d=randomDNA(r);return{pattern:d.pattern,cell:d.cellSize,gamma:d.gamma,angle:d.angle,invert:d.invert,dotShape:d.dotShape,dot:d.color,bg:d.background,transparent:false,cmyk:d.cmyk,phase:d.phase,img:null}}
+
+// ---------- SIMILARITY ENGINE (DNA, not pixels) ----------
+// weighted structural comparison; calibrated so an unrelated design scores ~0% and an identical one 100%
+const K=(x,s)=>Math.exp(-(x/s)*(x/s));
+const circD=(a,b,p)=>{const d=Math.abs(a-b)%p;return Math.min(d,p-d)};
+function simRaw(a,b){const t=[
+  [a.pattern===b.pattern?1:0,3],[a.dotShape===b.dotShape?1:(SHAPE_REL[a.dotShape]||[]).includes(b.dotShape)?.5:0,1.6],
+  [K(Math.log2(a.cellSize/b.cellSize),.3),1.5],[K(a.density-b.density,.12),1.4],[K(circD(a.angle,b.angle,90),10),1],
+  [K(Math.log2((a.dotWidth*a.dotHeight)/(b.dotWidth*b.dotHeight))/2,.22),1.2],[K(Math.log2(a.aspectRatio/b.aspectRatio),.3),.8],
+  [K(a.sizeVariation-b.sizeVariation,.1),.5],[K(a.spacingVariation-b.spacingVariation,.08),.5],[K(a.positionVariation-b.positionVariation,.06),.4],
+  [K(a.warp-b.warp,.1),1],[K(a.warpScale-b.warpScale,.2),.3],[K(a.noise-b.noise,.1),.6],
+  [K(Math.log2(a.scale/b.scale),.22),1],[K(Math.log2(a.frequency/b.frequency),.22),.9],[K(a.amplitude-b.amplitude,.1),.5],[K(circD(a.rotation,b.rotation,360),12),.8],
+  [a.symmetry===b.symmetry?1:0,.5],[K(a.radiality-b.radiality,.15),.5],[a.direction===b.direction?K(a.directionAmount-b.directionAmount,.25):0,.6],
+  [K(circD(a.phase,b.phase,Math.PI*2),.7),.6],[K(Math.hypot(a.offsetX-b.offsetX,a.offsetY-b.offsetY),.2),.4],
+  [K(Math.log2(a.gamma/b.gamma),.22),1],[K(a.contrast-b.contrast,.2),.6],[K(a.edgeSoftness-b.edgeSoftness,.2),.5],[K(a.fade-b.fade,.14),.5],
+  [a.invert===b.invert?1:0,.6],[a.cmyk===b.cmyk?1:0,.4]];let s=0,w=0;for(const[v,k]of t){s+=v*k;w+=k}return s/w}
+const SIM_FLOOR=.45;
+const simDNA=(a,b)=>clamp((simRaw(a,b)-SIM_FLOOR)/(1-SIM_FLOOR),0,1);
+// uniqueness levels = the maximum similarity allowed to any existing design
+const UNIQ={conservative:.96,balanced:.91,strict:.84,extreme:.75};
+
+// ---------- MASTER DESIGN ----------
+function masterDNA(){return MASTER?{...MASTER}:{...CUR}}
+function updMasterInfo(){$('masterInfo').textContent=MASTER?`Master: ${MASTER.pattern} · ${MASTER.dotShape} dots · ${MASTER.cellSize}px · ${Math.round(MASTER.angle)}° · density ${Math.round(MASTER.density*100)}`:'No master saved yet: the current editor design is used as the master.'}
+$('saveMaster').onclick=()=>{MASTER={...CUR};updMasterInfo();toast('Master saved')};
+$('resetMaster').onclick=()=>{if(!MASTER)return toast('Save a master first');CUR={...MASTER};syncUI();renderMain();toast('Editor reset to master')};
+$('makeVar').onclick=()=>{const base=masterDNA(),r=rngOf(MSEED,'variation',++VARN);CUR=makeVariation(base,r,+$('vAmount').value/100,$('vMode').value);syncUI();renderMain();
+  toast(`Variation ${VARN} · ${Math.round(simDNA(CUR,base)*100)}% similar to master`)};
+const MODE_BTNS=[['similar','Make similar'],['different','Make different'],['denser','Denser'],['sparser','Sparser'],['softer','Softer'],['sharper','Sharper'],['larger','Larger dots'],['smaller','Smaller dots'],['organic','More organic'],['geometric','More geometric'],['minimal','More minimal'],['complex','More complex']];
+for(const[m,n]of MODE_BTNS){const b=document.createElement('button');b.className='ghost';b.textContent=n;b.onclick=()=>{const r=rngOf(MSEED,'mode',m,++VARN),before={...CUR},amt=Math.max(.25,+$('vAmount').value/100);
+  CUR=m==='similar'||m==='different'?makeVariation(CUR,r,amt,m):(()=>{const d={...CUR},L=lockedKeys();MODES[m](d,Math.max(.35,amt));for(const k of L)d[k]=before[k];return fixDNA(d)})();
+  syncUI();renderMain();toast(`${n} · ${Math.round(simDNA(CUR,before)*100)}% similar to before`)};$('modeBtns').append(b)}
+
+// ---------- SAVE / LOAD / COPY DNA (plain JSON, never image data) ----------
+const dnaFile=()=>({type:'halftone-dna',v:1,seed:MSEED,dna:{...CUR},master:MASTER?{...MASTER}:null});
+$('saveDNA').onclick=()=>download(new Blob([JSON.stringify(dnaFile(),null,1)],{type:'application/json'}),`halftone-dna-${CUR.pattern}.json`);
+$('copyDNA').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(dnaFile(),null,1));toast('DNA copied')}catch(e){toast('Clipboard not available')}};
+$('loadDNA').onclick=()=>$('dnaFile').click();
+$('dnaFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const o=JSON.parse(await f.text()),d=o.dna||o;CUR=normDNA(d);if(o.master)MASTER=normDNA(o.master);if(o.seed){setSeed(o.seed);$('slk').checked=true}
+  syncUI();updMasterInfo();renderMain();toast('DNA loaded')}catch(err){toast('Not a valid DNA file')}};
+
+// ---------- exports ----------
+$('expPNG').onclick=()=>hCanvas.toBlob(b=>download(b,'halftone.png'));
+$('expJPG').onclick=()=>{
   const tmp=document.createElement('canvas'); tmp.width=hCanvas.width; tmp.height=hCanvas.height;
   const tctx=tmp.getContext('2d'); tctx.fillStyle=transparentBg.checked?'#ffffff':bgColor.value;
   tctx.fillRect(0,0,tmp.width,tmp.height); tctx.drawImage(hCanvas,0,0);
   tmp.toBlob(b=>download(b,'halftone.jpg'),'image/jpeg',0.92);
 };
-function dotSvgMarkup(x,y,r,shape,angleDeg,color){
+// SVG: same dots as the canvas; morphed / new shapes use one unit symbol per shape, scaled per dot
+const UNIT_SVG={circle:'<circle r="1"/>',ellipse:'<ellipse rx="1" ry="0.62"/>',square:'<rect x="-1" y="-1" width="2" height="2"/>',roundsquare:'<rect x="-1" y="-1" width="2" height="2" rx="0.42"/>',
+  diamond:'<polygon points="0,-1 1,0 0,1 -1,0"/>',triangle:'<polygon points="0,-1.15 1,0.62 -1,0.62"/>',hexagon:'<polygon points="1,0 0.5,0.866 -0.5,0.866 -1,0 -0.5,-0.866 0.5,-0.866"/>',
+  cross:'<polygon points="-0.34,-1 0.34,-1 0.34,-0.34 1,-0.34 1,0.34 0.34,0.34 0.34,1 -0.34,1 -0.34,0.34 -1,0.34 -1,-0.34 -0.34,-0.34"/>',
+  dash:'<rect x="-0.85" y="-0.27" width="1.7" height="0.54" rx="0.27"/>',capsule:'<rect x="-1" y="-0.5" width="2" height="1" rx="0.5"/>'};
+function dotSvgMarkup(x,y,r,shape,angleDeg,color,sx=1,sy=1){
   if(r<=0.6) return '';
-  const rot=shape==='circle'?'':` transform="rotate(${angleDeg} ${x.toFixed(1)} ${y.toFixed(1)})"`;
-  if(shape==='circle') return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="${color}"/>`;
-  if(shape==='square') return `<rect x="${(x-r).toFixed(1)}" y="${(y-r).toFixed(1)}" width="${(r*2).toFixed(2)}" height="${(r*2).toFixed(2)}" fill="${color}"${rot}/>`;
-  if(shape==='diamond') return `<polygon points="${x.toFixed(1)},${(y-r).toFixed(1)} ${(x+r).toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${(y+r).toFixed(1)} ${(x-r).toFixed(1)},${y.toFixed(1)}" fill="${color}"${rot}/>`;
-  const hh=Math.max(1,r*0.28); return `<rect x="${(x-r).toFixed(1)}" y="${(y-hh).toFixed(1)}" width="${(r*2).toFixed(2)}" height="${(hh*2).toFixed(2)}" fill="${color}"${rot}/>`;
-}
-document.getElementById('expSVG').onclick=()=>{
-  const opts=currentOpts(), w=hCanvas.width, h=hCanvas.height;
-  const sampler=makeSampler(opts.pattern,opts.phase,opts.img);
-  function passSvg(angle,color){
-    let s='';
-    forEachDot(w,h,opts.cell,angle,(x,y)=>{
-      let dk=sampler(x,y,w,h); if(opts.invert) dk=1-dk;
-      dk=Math.pow(clamp(dk,0,1),opts.gamma);
-      s+=dotSvgMarkup(x,y,(opts.cell/2)*dk,opts.dotShape,angle,color);
-    });
-    return s;
+  if(sx===1&&sy===1&&['circle','square','diamond','line'].includes(shape)){
+    const rot=shape==='circle'?'':` transform="rotate(${angleDeg} ${x.toFixed(1)} ${y.toFixed(1)})"`;
+    if(shape==='circle') return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="${color}"/>`;
+    if(shape==='square') return `<rect x="${(x-r).toFixed(1)}" y="${(y-r).toFixed(1)}" width="${(r*2).toFixed(2)}" height="${(r*2).toFixed(2)}" fill="${color}"${rot}/>`;
+    if(shape==='diamond') return `<polygon points="${x.toFixed(1)},${(y-r).toFixed(1)} ${(x+r).toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${(y+r).toFixed(1)} ${(x-r).toFixed(1)},${y.toFixed(1)}" fill="${color}"${rot}/>`;
+    const hh=Math.max(1,r*0.28); return `<rect x="${(x-r).toFixed(1)}" y="${(y-hh).toFixed(1)}" width="${(r*2).toFixed(2)}" height="${(hh*2).toFixed(2)}" fill="${color}"${rot}/>`;
   }
+  const rot=shape==='circle'&&sx===sy?'':` rotate(${angleDeg})`;
+  if(shape==='line'){const hh=Math.max(1,r*sy*0.28);return `<rect x="${(-r*sx).toFixed(2)}" y="${(-hh).toFixed(2)}" width="${(r*sx*2).toFixed(2)}" height="${(hh*2).toFixed(2)}" fill="${color}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})${rot}"/>`}
+  return `<use href="#u-${shape}" fill="${color}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})${rot} scale(${(r*sx).toFixed(3)} ${(r*sy).toFixed(3)})"/>`;
+}
+$('expSVG').onclick=()=>{
+  const d=CUR, w=hCanvas.width, h=hCanvas.height, parts={};
+  eachRenderedDot(d,w,h,srcCanvas,(x,y,r,angle,color,sx,sy)=>{(parts[color+'|'+angle]=parts[color+'|'+angle]||[]).push(dotSvgMarkup(x,y,r,d.dotShape,angle,color,sx,sy))});
   let body='';
-  if(opts.cmyk) CMYK.forEach(ch=>{ body+=`<g style="mix-blend-mode:multiply" opacity="0.82">${passSvg(ch.a,ch.c)}</g>`; });
-  else body=`<g fill="${opts.dot}">${passSvg(opts.angle,opts.dot)}</g>`;
-  const bg=opts.transparent?'':`<rect width="100%" height="100%" fill="${opts.bg}"/>`;
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${bg}${body}</svg>`;
+  if(d.cmyk) CMYK.forEach(ch=>{ body+=`<g style="mix-blend-mode:multiply" opacity="0.82">${(parts[ch.c+'|'+ch.a]||[]).join('')}</g>`; });
+  else body=`<g fill="${d.color}">${(parts[d.color+'|'+d.angle]||[]).join('')}</g>`;
+  const defs=UNIT_SVG[d.dotShape]&&!(d.dotShape==='line')?`<defs><g id="u-${d.dotShape}">${UNIT_SVG[d.dotShape]}</g></defs>`:'';
+  const bg=d.transparent?'':`<rect width="100%" height="100%" fill="${d.background}"/>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${defs}${bg}${body}</svg>`;
   download(new Blob([svg],{type:'image/svg+xml'}),'halftone.svg');
 };
 
-// ---------- batch auto-generate ----------
-const PATTERNS=['circle','square','triangle','wave','burst','ring','grid','spiral','curve','gradient'];
-const DOTCOLORS=['#1c1b1a','#3a3733','#8a6d3b','#b5792e'];
-const BGCOLORS=['#f2efe9','#ffffff','#ece7de'];
-function randomVariant(){
-  return { pattern:pick(PATTERNS), cell:Math.round(rnd(6,20)), gamma:rnd(0.6,1.8), angle:Math.round(rnd(0,90)),
-    invert:Math.random()<0.25, dotShape:pick(['circle','square','diamond','line']),
-    dot:pick(DOTCOLORS), bg:pick(BGCOLORS), transparent:false, cmyk:Math.random()<0.25, phase:rnd(0,Math.PI*2), img:null };
-}
-document.getElementById('genBatch').onclick=()=>{
-  const n=+document.getElementById('batchCount').value;
-  const w=hCanvas.width,h=hCanvas.height, tw=Math.min(300,w);
-  const box=document.getElementById('thumbs'); box.innerHTML='';
-  for(let i=0;i<n;i++){
-    const opts=randomVariant();
-    const c=document.createElement('canvas'); c.width=w; c.height=h;
-    renderToCanvas(c,opts);
-    const wrap=document.createElement('div'); wrap.className='thumb';
-    const prev=document.createElement('canvas'); prev.width=tw; prev.height=Math.round(tw*h/w);
-    prev.getContext('2d').drawImage(c,0,0,prev.width,prev.height);
-    prev.title='Click to load into the editor';
-    prev.onclick=()=>{
-      shapeSel.value=opts.pattern; cellSize.value=opts.cell; document.getElementById('cellVal').textContent=opts.cell+'px';
-      gamma.value=Math.round(opts.gamma*10); document.getElementById('gammaVal').textContent=opts.gamma.toFixed(1);
-      angleSlider.value=opts.angle; document.getElementById('angleVal').textContent=opts.angle+'°';
-      invert.checked=opts.invert; dotShapeSel.value=opts.dotShape; dotColor.value=opts.dot; bgColor.value=opts.bg;
-      cmykBox.checked=opts.cmyk; phase=opts.phase; renderMain(); toast('Loaded into editor');
-    };
-    const bar=document.createElement('div'); bar.className='tbar';
-    bar.innerHTML=`<span>${opts.pattern}</span>`;
-    const dl=document.createElement('button'); dl.textContent='Download';
-    dl.onclick=(e)=>{ e.stopPropagation(); c.toBlob(b=>download(b,`halftone-${opts.pattern}-${i+1}.png`)); };
-    bar.appendChild(dl);
-    wrap.appendChild(prev); wrap.appendChild(bar); box.appendChild(wrap);
-  }
-};
-renderMain();
+// ---------- BATCH GENERATION ----------
+// DNA first (fast, similarity-checked), thumbnails rendered afterwards in small async chunks.
+let BATCH=null;
+async function genBatch(){
+  if(BATCH)return;
+  if(!$('slk').checked)setSeed(newSeed());
+  const n=+$('batchCount').value,src=$('batchSrc').value,thr=UNIQ[$('uniq').value],amt=+$('vAmount').value/100,mode=$('vMode').value,base=masterDNA(),L=lockedKeys(),M=matrixGroups();
+  const acc=[],S={generated:0,accepted:0,rejected:0};const job=BATCH={};let tb=performance.now();
+  for(let i=0;i<n;i++){let best=null,bs=2;if(performance.now()-tb>12){$('stats').innerHTML=`<span class="stat">Generating ${i}/${n}…</span>`;await new Promise(r=>setTimeout(r));tb=performance.now()}
+    for(let at=0;at<40;at++){S.generated++;const r=rngOf(MSEED,src,n,$('uniq').value,amt,mode,i,at);
+      const d=src==='random'?randomDNA(r):makeVariation(base,r,Math.min(1.3,amt+at*.035),mode,{locks:L,matrix:M});
+      const others=src==='random'?acc:[base,...acc];let mx=0;for(const o of others){const v=simDNA(d,o.dna||o);if(v>mx)mx=v;if(mx>=thr)break}
+      if(mx<thr){acc.push({dna:d,sim:src==='random'?null:simDNA(d,base)});S.accepted++;best=null;break}
+      S.rejected++;if(mx<bs){bs=mx;best=d}}
+    if(best)S.failed=(S.failed||0)+1}
+  // collection statistics
+  let pair=0,pc=0;const nn=acc.map(()=>0);
+  for(let i=0;i<acc.length;i++)for(let j=i+1;j<acc.length;j++){const v=simDNA(acc[i].dna,acc[j].dna);pair+=v;pc++;if(v>nn[i])nn[i]=v;if(v>nn[j])nn[j]=v}
+  const uq=acc.length>1?nn.reduce((a,b)=>a+(1-b),0)/acc.length:1,ms=acc.filter(a=>a.sim!=null).map(a=>1-a.sim);
+  const pct=v=>Math.round(v*100)+'%';
+  $('stats').innerHTML=[[S.generated,'Generated'],[S.accepted,'Accepted'],[S.rejected,'Rejected'],[pc?pct(pair/pc):'—','Average similarity'],[pct(uq),'Collection uniqueness (avg difference to nearest)'],
+    [ms.length?`${pct(Math.min(...ms))}–${pct(Math.max(...ms))}`:'—','Variation range (from master)']].map(([v,k])=>`<span class="stat"><b>${v}</b>${k}</span>`).join('')+
+    (S.failed?`<span class="stat">${S.failed} slot(s) could not reach this uniqueness · try a higher variation amount or a lower uniqueness level</span>`:'');
+  // thumbnails
+  const w=hCanvas.width,h=hCanvas.height,tw=Math.min(300,w),box=$('thumbs');box.innerHTML='';
+  for(let i=0;i<acc.length;i++){const{dna,sim}=acc[i],wrap=document.createElement('div');wrap.className='thumb';
+    const prev=document.createElement('canvas');prev.width=tw;prev.height=Math.round(tw*h/w);prev.title='Click to load into the editor';
+    prev.onclick=()=>{CUR={...dna};syncUI();renderMain();toast('Loaded into editor')};
+    const bar=document.createElement('div');bar.className='tbar';bar.innerHTML=`<span>#${String(i+1).padStart(2,'0')} ${dna.pattern}${sim!=null?' · '+Math.round(sim*100)+'% sim':''}</span>`;
+    const dl=document.createElement('button');dl.textContent='Download';
+    dl.onclick=e=>{e.stopPropagation();const c=document.createElement('canvas');c.width=w;c.height=h;renderDNA(c,dna,srcCanvas);c.toBlob(b=>download(b,`halftone-${dna.pattern}-${i+1}.png`))};
+    bar.appendChild(dl);wrap.appendChild(prev);wrap.appendChild(bar);box.appendChild(wrap);
+    renderDNA(prev,dna,srcCanvas,w,h);
+    if(i%2===1)await new Promise(r=>setTimeout(r))}
+  BATCH=null;toast(`${acc.length} designs · seed ${MSEED}`);return acc}
+$('genBatch').onclick=()=>genBatch();
+
+syncUI();updMasterInfo();renderMain();
 </script>
 </body>
 </html>
