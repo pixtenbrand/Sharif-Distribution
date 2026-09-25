@@ -27,7 +27,7 @@ input[type=text]{font:inherit;color:var(--tx);background:transparent;border:1px 
 details.sec{border-top:1px solid var(--bd);padding:6px 0 2px}details.sec>summary{cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);margin-bottom:6px}
 #stbar{position:sticky;top:-10px;background:var(--pn);z-index:2;margin:-10px -12px 4px;padding:6px 12px;min-height:18px;border-bottom:1px solid var(--bd)}#st{color:var(--mu);font-size:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 14px;margin-bottom:6px}.grid label{display:flex;flex-direction:column;color:var(--mu);font-size:12px}
-input.wide{width:14em}input.num{font:inherit;color:var(--tx);background:transparent;border:1px solid var(--bd);border-radius:6px;padding:3px 4px;width:4.2em}.mu,.grp{color:var(--mu);font-size:12px}.grp{margin-left:6px;text-transform:uppercase;letter-spacing:.08em;font-size:10px}
+input.wide{width:14em}input.num5{font:inherit;color:var(--tx);background:transparent;border:1px solid var(--bd);border-radius:6px;padding:3px 4px;width:5.6em}#abadv summary{cursor:pointer;color:var(--mu);margin:2px 0 4px}input.num{font:inherit;color:var(--tx);background:transparent;border:1px solid var(--bd);border-radius:6px;padding:3px 4px;width:4.2em}.mu,.grp{color:var(--mu);font-size:12px}.grp{margin-left:6px;text-transform:uppercase;letter-spacing:.08em;font-size:10px}
 button.pri{border-color:var(--ac);font-weight:600}#cpr summary{cursor:pointer;color:var(--mu);margin:4px 0}
 #cst{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:4px;margin:4px 0 6px}.sti{border:1px solid var(--bd);border-radius:6px;padding:3px 7px}.sti b{display:block;font-size:14px}.sti span{font-size:10px;color:var(--mu)}
 #fcov{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:2px 16px;margin-bottom:6px}.fr{display:grid;grid-template-columns:104px 1fr 22px;gap:6px;align-items:center;font-size:11px;color:var(--mu)}.fr i{display:block;height:6px;border-radius:3px;background:var(--ac)}.fr b{color:var(--tx);text-align:right}
@@ -61,6 +61,19 @@ button.pri{border-color:var(--ac);font-weight:600}#cpr summary{cursor:pointer;co
  <div class="row"><span class="mu">Hierarchy %</span><label class="chk">Hero<input type="number" id="t_hero" min="0" max="100" class="num"></label><label class="chk">Primary<input type="number" id="t_primary" min="0" max="100" class="num"></label><label class="chk">Supporting<input type="number" id="t_supporting" min="0" max="100" class="num"></label><label class="chk">Micro<input type="number" id="t_micro" min="0" max="100" class="num"></label></div>
  <div class="row"><button id="cdsave">Save Collection DNA</button><button id="cdload">Load Collection DNA</button><button id="cdcopy">Copy Collection DNA</button><button id="cdrand">Randomize</button><button id="cdreset">Reset</button></div>
  </details>
+ <details class="sec" open><summary>Artboard</summary>
+ <div class="row"><select id="abp" title="Named artboard presets (convenience only)"></select><select id="abr" title="Aspect ratio"></select><select id="abpx" title="Pixel presets"></select>
+  <label class="chk">W<input type="number" id="abw" min="256" max="16384" class="num5"></label><label class="chk">H<input type="number" id="abh" min="256" max="16384" class="num5"></label>
+  <label class="chk"><input type="checkbox" id="ablk" checked>Lock ratio</label><select id="abo" title="Orientation"><option value="auto">Orientation: Auto</option><option value="square">Square</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+ <div class="row"><span id="abinfo" class="mu"></span></div>
+ <div class="row"><select id="res" title="Export resolution (follows the artboard ratio)"><option value="1920">Export: Full HD</option><option value="3840" selected>Export: 4K</option><option value="7680">Export: 8K</option><option value="ab">Export: artboard size (exact)</option></select><select id="dpi" title="DPI / PPI metadata (pixels are not changed)"><option value="72">72 ppi</option><option value="150">150 ppi</option><option value="300" selected>300 ppi</option></select>
+  <select id="abbg" title="Artboard background"><option value="transparent">Background: Transparent</option><option value="black">Black</option><option value="white">White</option><option value="custom">Custom color</option><option value="preview">Preview background</option></select><input type="color" id="abbgc" value="#000000" title="Custom background color (also used by JPG when transparent)">
+  <select id="abpad" title="Padding"><option value="0">Padding 0%</option><option value="2">2%</option><option value="5">5%</option><option value="10" selected>10%</option><option value="15">15%</option><option value="20">20%</option><option value="custom">Custom</option></select><input type="number" id="abpadc" min="0" max="30" class="num" hidden>
+  <select id="abpl" title="Artwork placement"><option value="contain" selected>Place: Contain</option><option value="centered">Centered</option><option value="fit">Fit width</option><option value="fill">Fill (may crop)</option><option value="manual">Manual</option></select>
+  <label class="chk"><input type="checkbox" id="abauto" checked>Auto arrange</label><button id="abarr">Arrange for artboard</button></div>
+ <details id="abadv"><summary>Guides &amp; safe area</summary><div class="row"><label class="chk"><input type="checkbox" id="absafe">Show safe area</label><select id="absp"><option value="5">Safe 5%</option><option value="10" selected>Safe 10%</option><option value="15">Safe 15%</option></select>
+  <label class="chk"><input type="checkbox" id="g_c">Center</label><label class="chk"><input type="checkbox" id="g_t">Thirds</label><label class="chk"><input type="checkbox" id="g_g">Golden ratio</label><label class="chk"><input type="checkbox" id="g_s">Safe margin</label><span class="mu">Guides are editor-only and never exported.</span></div></details>
+ </details>
  <details class="sec" open><summary>Generate</summary>
  <div class="row"><label class="chk">Target<select id="pkn" title="Final collection size"><option>12</option><option selected>18</option><option>24</option><option>50</option><option>100</option><option>250</option><option>500</option></select></label><label class="chk">Candidates<select id="cmul" title="Candidate multiplier"><option value="1">1×</option><option value="2">2×</option><option value="3" selected>3×</option><option value="5">5×</option><option value="10">10×</option></select></label><select id="pks" title="Pack type: Reference = clean commercial sparkles"><option value="Reference" selected>Pack: Reference (clean sparkles)</option><option value="Stars">Pack: Stars</option><option value="Lens">Pack: Lens</option><option value="All">Pack: All classic</option></select><select id="gm" title="Generation mode: Quick = fast, Balanced = normal, Diverse = strong family/structure balancing, Extreme = maximum structural diversity"><option value="Quick">Mode: Quick</option><option value="Balanced" selected>Mode: Balanced</option><option value="Diverse">Mode: Diverse</option><option value="Extreme">Mode: Extreme</option></select><select id="uq" title="Uniqueness: how different each pack element must be"><option value="70">Uniqueness: Conservative</option><option value="55" selected>Uniqueness: Balanced</option><option value="45">Uniqueness: Strict</option><option value="35">Uniqueness: Extreme</option></select></div>
  <div class="row" id="vrow"><label class="chk">Seed<input type="text" id="mseed" spellcheck="false" autocomplete="off" title="Master seed: same seed + same settings = same pack"></label><button id="sgen">Generate seed</button><button id="scp">Copy seed</button><label class="chk"><input type="checkbox" id="slk">Lock seed</label></div>
@@ -82,19 +95,27 @@ button.pri{border-color:var(--ac);font-weight:600}#cpr summary{cursor:pointer;co
  <div class="row"><button id="play">Play draw-on</button><label class="chk"><input type="checkbox" id="lp">Loop</label><select id="asc" title="Animation scope"><option value="all">Animate: All</option><option value="selected">Animate: Selected</option><option value="final">Animate: Final collection</option></select><select id="ln" title="Video length (Adobe: 5 to 60 s)"><option value="5">5 s</option><option value="10" selected>10 s</option><option value="15">15 s</option><option value="30">30 s</option><option value="60">60 s</option></select><select id="fps" title="Frame rate"><option value="30" selected>30 fps</option><option value="60">60 fps</option></select><button id="vid">Render MP4 video</button></div>
  </details>
  <details class="sec"><summary>Export</summary>
- <div class="row"><select id="xsc" title="What to export"><option value="final" selected>Export: Final collection</option><option value="selected">Export: Selected</option><option value="candidates">Export: All candidates</option></select><label class="chk">Prefix<input type="text" id="xpre" placeholder="from collection name" spellcheck="false"></label><label class="chk">Start<input type="number" id="xst" value="1" min="0" class="num"></label><label class="chk">Padding<input type="number" id="xpad" value="3" min="1" max="8" class="num"></label><select id="xsz" title="Asset size"><option value="1024">Assets 1024 px</option><option value="2048" selected>Assets 2048 px</option><option value="2560">Assets 2560 px</option><option value="4096">Assets 4096 px</option></select><label class="chk" title="Transparent, centred on the core, full glow bounds, even padding"><input type="checkbox" id="iso" checked>Isolated assets</label><button id="xcan" hidden>Cancel export</button></div>
- <div class="row"><span class="grp">Preview</span><button id="xjpg">JPG preview</button><button id="xpng">PNG preview</button><span class="grp">Assets</span><button id="xzip">PNG ZIP</button><button id="xsvg2">SVG</button><button id="xpsd">PSD</button><span class="grp">Motion</span><button id="xmp4">MP4</button></div>
- <div class="row"><span class="grp">Project</span><button id="xcol">Collection JSON</button><button id="xcdna">Collection DNA JSON</button><button id="psave">Save project</button><button id="pload">Load project / JSON</button><input type="file" id="jfile" accept=".json,application/json" hidden></div>
- <div class="row"><span class="grp">Classic</span><select id="res" title="Export size"><option value="3840" selected>4K (3840)</option><option value="7680">8K (7680)</option><option value="1920">Full HD</option></select><label class="chk"><input type="checkbox" id="tr" checked>Transparent</label><button id="png">PNG</button><button id="jpg">JPG</button><button id="xsvg">SVG</button><button id="psd">PSD layers (zip)</button><button id="zpk">Each element to PNG zip</button></div>
+ <div class="row"><span class="grp">Artboard export</span><button id="apng">PNG</button><button id="ajpg">JPG</button><button id="xsvg2">SVG</button><button id="xpsd">PSD</button><button id="xmp4">MP4</button><span class="mu">JPG uses background color · transparent PNG has real alpha</span></div>
+ <div class="row"><span class="grp">Isolated element</span><select id="iratio" title="Isolated element frame"></select><label class="chk">Padding %<input type="number" id="ipad" value="10" min="0" max="40" class="num"></label><button id="ipng">Selected PNG</button><button id="ijpg">Selected JPG</button><button id="isvg">Selected SVG</button></div>
+ <div class="row"><span class="grp">Batch</span><select id="xsc" title="What to export"><option value="final" selected>Export: Final collection</option><option value="selected">Export: Selected</option><option value="candidates">Export: All candidates</option></select><label class="chk">Prefix<input type="text" id="xpre" placeholder="from collection name" spellcheck="false"></label><label class="chk">Start<input type="number" id="xst" value="1" min="0" class="num"></label><label class="chk">Padding<input type="number" id="xpad" value="3" min="1" max="8" class="num"></label><select id="xsz" title="Asset size (long side)"><option value="1024">Assets 1024 px</option><option value="2048" selected>Assets 2048 px</option><option value="2560">Assets 2560 px</option><option value="4096">Assets 4096 px</option></select><label class="chk" title="Transparent, centred on the core, full glow bounds, isolated-element ratio and padding"><input type="checkbox" id="iso" checked>Isolated assets</label><button id="xzip">PNG ZIP</button><button id="xcan" hidden>Cancel export</button></div>
+ <div class="row"><span class="grp">Multiple ratios</span><label class="chk"><input type="checkbox" id="mr_1x1" checked>1:1</label><label class="chk"><input type="checkbox" id="mr_4x5" checked>4:5</label><label class="chk"><input type="checkbox" id="mr_2x3" checked>2:3</label><label class="chk"><input type="checkbox" id="mr_3x2" checked>3:2</label><label class="chk"><input type="checkbox" id="mr_16x9" checked>16:9</label><label class="chk"><input type="checkbox" id="mr_9x16" checked>9:16</label><button id="xmr" title="Same collection, re-laid-out per ratio: one zip per ratio">Export multiple ratios</button></div>
+ <div class="row"><span class="grp">Preview</span><button id="xjpg">JPG preview</button><button id="xpng">PNG preview</button></div>
+ <div class="row"><span class="grp">Project</span><button id="psave">Save project</button><button id="pload">Load project / JSON</button><button id="xcol">Collection JSON</button><button id="xcdna">Save Collection DNA</button><input type="file" id="jfile" accept=".json,application/json" hidden></div>
+ <div class="row"><span class="grp">Classic</span><label class="chk"><input type="checkbox" id="tr" checked>Transparent</label><button id="png">PNG</button><button id="jpg">JPG</button><button id="xsvg">SVG</button><button id="psd">PSD layers (zip)</button><button id="zpk">Each element to PNG zip</button></div>
  </details>
 </div>
 <script>
 const $=s=>document.querySelector(s),C=$('#c'),STEP=3;let X=C.getContext('2d');const MX=X;
 const P={amount:55,spread:26,size:1.6,glow:55,core:60,taper:1.2,twinkle:1,fill:0,drift:0,stars:1.2,bokeh:0,mode:0,halo:25,bsize:1,ssize:1,bright:1,mix:0};
+// view / artboard state (Phase 5): W,H = artboard in world units; STW,STH = stage (CSS px); VS/VX/VY = artboard->stage fit; PL = placement
+let STW=0,STH=0,VS=1,VX=0,VY=0,ES=1,PFZ=0,EDL=null,EDX=null,RECC=null,PL={s:1,tx:0,ty:0};
+const AB={ratio:'1:1',w:4000,h:4000,orient:'auto',lock:true,dpi:300,bg:'transparent',bgColor:'#000000',pad:10,place:'contain',safe:false,safePct:10,guides:{c:0,t:0,g:0,s:0},auto:true,
+ multi:['1:1','4:5','2:3','3:2','16:9','9:16'],isoRatio:'1:1',isoPad:10,preset:'Stock Square',ww:0,wh:0};
 const PG=P,SI={};let W,H,strokes=[],cur=null,tool='brush',pen=[],hov=null,raw=[],down=0,seed=1,dirty=1,col={h:'#ffc84a',rb:0};
 const rgb=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
 const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-function fit(){const r=$('#stage').getBoundingClientRect(),d=devicePixelRatio||1;W=r.width;H=r.height;C.width=W*d;C.height=H*d;C.style.width=W+'px';C.style.height=H+'px';X.setTransform(d,0,0,d,0,0);dirty=1}
+function fit(){const r=$('#stage').getBoundingClientRect(),d=devicePixelRatio||1;STW=r.width;STH=r.height;C.width=STW*d;C.height=STH*d;C.style.width=STW+'px';C.style.height=STH+'px';
+ if(!(W>0&&H>0)){const[w,h]=worldDims(AB.w/AB.h);W=w;H=h;AB.ww=W;AB.wh=H}applyView();dirty=1}
 new ResizeObserver(fit).observe($('#stage'));
 function chaikin(p,n){for(let k=0;k<n;k++){const q=[p[0]];for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];q.push([a[0]*.75+b[0]*.25,a[1]*.75+b[1]*.25],[a[0]*.25+b[0]*.75,a[1]*.25+b[1]*.75])}q.push(p[p.length-1]);p=q}return p}
 function resample(p,s){const o=[[p[0][0],p[0][1]]];let d=s;for(let i=1;i<p.length;i++){const[x0,y0]=p[i-1],[x1,y1]=p[i],L=Math.hypot(x1-x0,y1-y0);let t=0;while(L-t>=d){t+=d;o.push([x0+(x1-x0)*t/L,y0+(y1-y0)*t/L]);d=s}d-=L-t}return o}
@@ -122,7 +143,7 @@ function gen(s){
  s.parts=a}
 function one(s,t,fr=1){
  if(s.kind=='slot')return;
- if(s.kind=='field'&&fr>=1&&X===MX&&!busy&&!NORMAL&&!(s.P||PG).drift)return fieldCached(s,t);
+ if(s.kind=='field'&&fr>=1&&(X===MX||X===EDX)&&!busy&&!NORMAL&&!(s.P||PG).drift)return fieldCached(s,t);
  return oneRaw(s,t,fr)}
 function oneRaw(s,t,fr=1){
  if(s.kind=='flare')return flareDraw(s,t,fr);
@@ -154,14 +175,15 @@ const frac=(i,s)=>{if(!anim)return 1;const p=aplan();let k=i;if(p.ord){k=p.ord.g
 function paint(t,bg=1,list){
  const cw=X.canvas.width,ch=X.canvas.height,T=X.getTransform();
  X.globalCompositeOperation='source-over';X.setTransform(1,0,0,1,0,0);
- if(bg){const g=X.createRadialGradient(cw*.7,0,0,cw*.7,0,Math.max(cw,ch));g.addColorStop(0,'#2b2210');g.addColorStop(.5,'#0a0805');g.addColorStop(1,'#030302');X.fillStyle=BGC||g;X.fillRect(0,0,cw,ch)}else X.clearRect(0,0,cw,ch);
+ if(bg==1){const g=X.createRadialGradient(cw*.7,0,0,cw*.7,0,Math.max(cw,ch));g.addColorStop(0,'#2b2210');g.addColorStop(.5,'#0a0805');g.addColorStop(1,'#030302');X.fillStyle=BGC||g;X.fillRect(0,0,cw,ch)}else if(!bg)X.clearRect(0,0,cw,ch);
  X.setTransform(T);X.globalCompositeOperation=NORMAL?'source-over':'lighter';
  (list||(cur?strokes.concat(cur):strokes)).forEach((s,i)=>one(s,t,frac(i,s)))}
 function loop(t){requestAnimationFrame(loop);if(!(W>0&&H>0)||busy)return;
  if(anim){E=(t-anim.t0)/1000;if(E>total()+anim.hold){const f=anim.done;anim=null;f&&f()}}
- if(anim||P.twinkle||dirty){SPB=12;SPN=0;const t0=performance.now();try{paint(t);overlay()}catch(e){console.error(e)}PT=performance.now()-t0;dirty=SPN}}
+ if(anim||P.twinkle||dirty||RECC){SPB=12;SPN=0;const t0=performance.now();try{edPaint(t);abOverlay();overlay()}catch(e){console.error(e)}PT=performance.now()-t0;dirty=SPN}}
 fit();requestAnimationFrame(loop);
-const pos=e=>{const r=C.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+// pointer -> world (artboard) coordinates through the view fit and the placement transform
+const pos=e=>{const r=C.getBoundingClientRect();return[((e.clientX-r.left-VX)/VS-PL.tx)/PL.s,((e.clientY-r.top-VY)/VS-PL.ty)/PL.s]};
 const prev=()=>{cur=pen.length?build([...pen,hov],{seed}):null};
 C.onpointerdown=e=>{if(e.button)return;const p=pos(e);
  if(tool=='brush'){down=1;raw=[p];seed=Math.random()*1e9|0;C.setPointerCapture(e.pointerId);hist();cur=build(raw,{seed})}
@@ -226,9 +248,9 @@ $('#jpg').onclick=()=>{if(!strokes.length)return st('Draw something first');cons
 $('#xsvg').onclick=()=>{
  if(!strokes.length)return st('Draw something first');
  const f=n=>n.toFixed(1),co=P.core/100,gl=P.glow/100;
- let o=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W|0} ${H|0}" width="${W|0}" height="${H|0}"><defs><filter id="g" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${2+P.glow/12}"/></filter></defs>`;
- if(!$('#tr').checked)o+='<rect width="100%" height="100%" fill="'+(BGC||'#070604')+'"/>';
- o+=$('#tr').checked?'<g>':'<g style="mix-blend-mode:screen">';
+ const[sw,shh]=abDims();let o=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(2)} ${H.toFixed(2)}" width="${sw}" height="${shh}"><defs><filter id="g" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${2+P.glow/12}"/></filter></defs>`;
+ const sb=abBg();if(sb)o+='<rect width="100%" height="100%" fill="'+(sb=='preview'?'#070604':sb)+'"/>';
+ o+=`<g transform="matrix(${PL.s} 0 0 ${PL.s} ${PL.tx} ${PL.ty})"${sb&&!isLightC(sb)?' style="mix-blend-mode:screen"':''}>`;
  for(const s of strokes){const[R,G,B]=rgb(s.col.h),n=s.pts.length,rb=s.col.rb;
   const c=m=>rb?hs(40,.5+m*.4):`rgb(${R+(255-R)*m|0},${G+(255-G)*m|0},${B+(255-B)*m|0})`;
   const rib=w=>{const A=[],D=[];s.pts.forEach(([x,y],i)=>{const h=w*taper(s,i/(n-1||1))/2,[nx,ny]=s.nr[i];A.push(f(x+nx*h)+','+f(y+ny*h));D.push(f(x-nx*h)+','+f(y-ny*h))});return`<polygon points="${A.concat(D.reverse()).join(' ')}"`};
@@ -240,9 +262,10 @@ const quickVid=()=>{
  if(!strokes.length)return st('Draw something first');
  if(!window.MediaRecorder||!C.captureStream)return st('Video recording is not supported in this browser');
  const mt=['video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
- const r=new MediaRecorder(C.captureStream(60),{mimeType:mt,videoBitsPerSecond:12e6}),ch=[];
+ {const[w,h]=abDims();const k=Math.min(1,1920/Math.max(w,h));RECC=newCanvas(Math.round(w*k/2)*2,Math.round(h*k/2)*2)}
+ const r=new MediaRecorder(RECC.captureStream(60),{mimeType:mt,videoBitsPerSecond:12e6}),ch=[];
  r.ondataavailable=e=>e.data.size&&ch.push(e.data);
- r.onstop=()=>{REC=0;st('');save(mt.includes('mp4')?'glitter.mp4':'glitter.webm',new Blob(ch))};
+ r.onstop=()=>{REC=0;RECC=null;st('');save(mt.includes('mp4')?'glitter.mp4':'glitter.webm',new Blob(ch))};
  r.start();REC=1;st('Recording…');
  anim={t0:performance.now(),hold:2,done:()=>setTimeout(()=>r.stop(),200)}};
 function crc(b){let c,t=crc.t;if(!t){t=crc.t=[];for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^c>>>1:c>>>1;t[n]=c>>>0}}c=-1;for(let i=0;i<b.length;i++)c=t[(c^b[i])&255]^c>>>8;return(c^-1)>>>0}
@@ -251,21 +274,24 @@ function zip(name,d){const nb=new TextEncoder().encode(name),c=crc(d),n=d.length
  const p=30+m+n;v.setUint32(p,0x02014b50,true);v.setUint16(p+4,20,true);v.setUint16(p+6,20,true);v.setUint32(p+16,c,true);v.setUint32(p+20,n,true);v.setUint32(p+24,n,true);v.setUint16(p+28,m,true);o.set(nb,p+46);
  const q=p+46+m;v.setUint32(q,0x06054b50,true);v.setUint16(q+8,1,true);v.setUint16(q+10,1,true);v.setUint32(q+12,46+m,true);v.setUint32(q+16,p,true);return o}
 async function hqVideo(){
- const w=$('#res').value==1920?1920:3840,h=w*9/16,fps=+$('#fps').value,L=+$('#ln').value,n=L*fps,tot=total(),sp=tot/Math.min(L*.6,Math.max(tot,4));
- const cfg={codec:w>1920?(fps>30?'avc1.640034':'avc1.640033'):'avc1.64002A',width:w,height:h,bitrate:w>1920?(fps>30?65e6:45e6):16e6,framerate:fps};
- if(!(await VideoEncoder.isConfigSupported(cfg)).supported)return false;
+ // video follows the artboard ratio (quality preset; 8K is tried then stepped down to what the H.264 encoder accepts)
+ const fps=+$('#fps').value,L=+$('#ln').value,n=L*fps,tot=total(),sp=tot/Math.min(L*.6,Math.max(tot,4)),ev=v=>Math.max(2,Math.round(v/2)*2);
+ let[w,h]=abDims();w=ev(w);h=ev(h);let cfg=null;
+ for(let tr=0;tr<10&&!cfg;tr++){for(const codec of['avc1.640033','avc1.640034','avc1.64003C','avc1.64003D']){const c={codec,width:w,height:h,bitrate:Math.round(Math.min(90e6,Math.max(8e6,w*h*fps*.09))),framerate:fps};
+   try{if((await VideoEncoder.isConfigSupported(c)).supported){cfg=c;break}}catch(e){}}if(!cfg){w=ev(w*.85);h=ev(h*.85)}}
+ if(!cfg)return false;
  if(!window.Mp4Muxer)await new Promise((ok,no)=>{const e=document.createElement('script');e.src='https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js';e.onload=ok;e.onerror=no;document.head.append(e)}).catch(()=>{});
  if(!window.Mp4Muxer)return false;
  const mux=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:'avc',width:w,height:h},fastStart:'in-memory'}),enc=new VideoEncoder({output:(c,m)=>mux.addVideoChunk(c,m),error:()=>st('Encoder error')});
  enc.configure(cfg);
- const c=document.createElement('canvas');c.width=w;c.height=h;busy=1;X=c.getContext('2d');const[k,ox,oy]=view(w,h,.08);
- try{for(let i=0;i<n&&busy;i++){E=i/fps*sp;anim={t0:0,hold:0};X.setTransform(k,0,0,k,ox,oy);paint(i/fps*1000,1);
+ const c=newCanvas(w,h),xf=abXf(w),bg=videoBg();busy=1;
+ try{for(let i=0;i<n&&busy;i++){E=i/fps*sp;anim={t0:0,hold:0};renderTo(c,xf,undefined,bg,{anim:1,t:i/fps*1000});
    const f=new VideoFrame(c,{timestamp:Math.round(i*1e6/fps)});enc.encode(f,{keyFrame:i%60==0});f.close();
    while(enc.encodeQueueSize>4)await new Promise(r=>setTimeout(r,10));
-   if(i%4==0){st('Rendering video '+Math.round(i/n*100)+'% (click Render again to cancel)');await new Promise(r=>setTimeout(r))}}
+   if(i%4==0){st(`Rendering video ${w} × ${h} · `+Math.round(i/n*100)+'% (click Render again to cancel)');await new Promise(r=>setTimeout(r))}}
   if(!busy){enc.close();st('Render cancelled');return true}
   await enc.flush();mux.finalize();
-  await save('glitter-'+w+'x'+h+'.mp4',new Blob([mux.target.buffer],{type:'video/mp4'}))}
+  await save(`${xBase()}-${w}x${h}.mp4`,new Blob([mux.target.buffer],{type:'video/mp4'}))}
  finally{anim=null;E=0;X=MX;busy=0;dirty=1}
  return true}
 $('#vid').onclick=async()=>{if(busy){busy=0;return}if(!strokes.length)return st('Draw something first');if(!window.VideoEncoder||!(await hqVideo().catch(e=>(console.error(e),false))))quickVid()};
@@ -281,8 +307,8 @@ $('#psd').onclick=async()=>{
 
 const sh=(h,m)=>'#'+rgb(h).map(v=>Math.round(m>0?v+(255-v)*m:v*(1+m)).toString(16).padStart(2,'0')).join('');
 function genField(s){const P=s.P,r=rng(s.seed),{w,h,tex}=s.geo,cnt=Math.min(26000,w*h*P.amount*(tex?.0005:.0003)),a=[];
- for(let i=0;i<cnt;i++){const x=r()*w,y=r()*h;
-  if(!tex){const nz=.5+.5*Math.sin(x*.007+s.seed%7)*Math.cos(y*.01+s.seed%5);if(r()>nz*nz+.05)continue}
+ const ox=s.geo.ox||0,oy=s.geo.oy||0;for(let i=0;i<cnt;i++){const x=r()*w+ox,y=r()*h+oy;
+  if(!tex){const nz=.5+.5*Math.sin((x-ox)*.007+s.seed%7)*Math.cos((y-oy)*.01+s.seed%5);if(r()>nz*nz+.05)continue}
   const q=r(),b=r(),st=q<P.stars/100?1:!tex&&q>1-P.bokeh/100?2:0;
   a.push([x,y,st==2?P.size*P.bsize*(4+r()*9):st==1?P.size*P.ssize*(1.2+r()*2.2):P.size*(.3+b*b*b*2.6)*(tex?.9:1),st==2?.2+.5*r():.25+.75*r(),r()*6.28,r(),st])}
  s.parts=a}
@@ -740,7 +766,7 @@ const SPR=new WeakMap();let SPB=0,SPN=0;
 function sprite(s,h,dp,key){const cv=document.createElement('canvas');cv.width=cv.height=Math.ceil(2*h*dp);const g=cv.getContext('2d'),X0=X;X=g;g.globalCompositeOperation='lighter';g.setTransform(dp,0,0,dp,h*dp,h*dp);
  try{renderDNA(s,1,1,0,0)}finally{X=X0}return{c:cv,key}}
 function drawDNA(s,t,fr){const k=P.twinkle?.85+.15*Math.sin(t*.003+s.seed%9):1;
- if(X===MX&&!busy){const T=dnaT(s.dna),dp=devicePixelRatio||1,h=Math.ceil(s.geo.r*T.ext*1.02),key=s.col.h+'|'+(s.pc?s.pc.glow+s.pc.hi:'')+'|'+s.geo.r+'|'+s.geo.rot+'|'+dp;
+ if((X===MX||X===EDX)&&!busy){const T=dnaT(s.dna),dp=ESq(),h=Math.ceil(s.geo.r*T.ext*1.02),key=s.col.h+'|'+(s.pc?s.pc.glow+s.pc.hi:'')+'|'+s.geo.r+'|'+s.geo.rot+'|'+dp;
   if(h*dp<=256){let sp=SPR.get(s.dna);
    if(!sp||sp.key!==key){if(SPB<=0){SPN=1;return}const t0=performance.now();sp=sprite(s,h,dp,key);SPR.set(s.dna,sp);SPB-=performance.now()-t0}
    const a=X.globalAlpha;X.globalAlpha=fr*k;X.drawImage(sp.c,s.geo.x-h,s.geo.y-h,2*h,2*h);X.globalAlpha=a;return}}
@@ -911,20 +937,21 @@ function pickAt([x,y]){let f=null;
   else{const tol=Math.max(10,(s.P||P).spread);for(const p of s.pts)if(Math.abs(p[0]-x)<tol&&Math.abs(p[1]-y)<tol)return s}}
  return f}
 // COLLECTION PREVIEW: index · family · tier · uniqueness · quality + lock/accept marks (screen only, never exported)
-function overlay(){if(anim||REC||busy||X!==MX)return;const lab=$('#elb').checked,TL={hero:'H',primary:'P',supporting:'S',micro:'M'};let idx=0,any=0;
+function overlay(){if(anim||REC||busy||X!==MX)return;const lab=$('#elb').checked,TL={hero:'H',primary:'P',supporting:'S',micro:'M'},u=1/(VS*PL.s);let idx=0,any=0;
  for(const s of strokes)if(s.lock||s.id==SEL||s.famLock||s.ok||s.kind=='slot'||(lab&&s.pk)){any=1;break}if(!any)return;
  X.save();X.globalCompositeOperation='source-over';X.globalAlpha=1;X.textAlign='center';
  for(const s of strokes){if(s.pk)idx++;if(!(s.lock||s.id==SEL||s.famLock||s.ok||s.kind=='slot'||(lab&&s.pk)))continue;const[a,b,c,d]=elBox(s);
-  if(s.kind=='slot'){X.setLineDash([4,4]);X.strokeStyle='rgba(242,193,78,.55)';X.lineWidth=1;X.beginPath();X.arc(s.geo.x,s.geo.y,s.geo.r*.9,0,6.283);X.stroke();X.setLineDash([]);
-   X.font='10px system-ui';X.fillStyle='rgba(243,234,210,.7)';X.fillText(`empty · ${s.tier||''}`,s.geo.x,s.geo.y+3)}
-  if(s.id==SEL){X.setLineDash([5,4]);X.strokeStyle='rgba(242,193,78,.9)';X.lineWidth=1.2;X.strokeRect(a,b,c-a,d-b);X.setLineDash([])}
-  let bx=a+2;const badge=(t,draw)=>{X.fillStyle='rgba(10,8,5,.75)';X.fillRect(bx,b+2,14,15);X.fillStyle=X.strokeStyle='#f2c14e';draw(bx);bx+=16};
-  if(s.lock)badge('L',x=>{X.lineWidth=1.6;X.beginPath();X.arc(x+7,b+8,3.2,Math.PI,0);X.stroke();X.fillRect(x+3,b+8,8,6.5)});
-  if(s.famLock)badge('F',x=>{X.font='bold 10px system-ui';X.fillText('F',x+7,b+13)});
-  if(s.ok)badge('A',x=>{X.lineWidth=1.8;X.beginPath();X.moveTo(x+3,b+10);X.lineTo(x+6,b+13);X.lineTo(x+11,b+5);X.stroke()});
-  if(lab&&s.pk&&s.kind=='flare'&&(s.base||s.geo.r)>=18){const R=s.base||s.geo.r,t=TL[s.tier]||'',u=s.uq!=null?Math.round(s.uq*100):null,q=s.q?Math.round(s.q.o*100):null;
-   X.font=`${R>=40?11:9}px system-ui`;X.fillStyle='rgba(243,234,210,.8)';
-   const lg=`${String(idx).padStart(2,'0')} · ${s.dna.shapeFamily} · ${t}${u!=null?' · U'+u:''}${q!=null?' · Q'+q:''}`,cw=s.cell?s.cell.hw*2:R*3;X.fillText(R>=30&&X.measureText(lg).width<cw*.95?lg:`${idx}${t?' '+t:''}${q!=null?' Q'+q:''}`,s.geo.x,s.geo.y+R*1.3)}}
+  if(s.kind=='slot'){X.setLineDash([4*u,4*u]);X.strokeStyle='rgba(242,193,78,.55)';X.lineWidth=u;X.beginPath();X.arc(s.geo.x,s.geo.y,s.geo.r*.9,0,6.283);X.stroke();X.setLineDash([]);
+   X.font=`${10*u}px system-ui`;X.fillStyle='rgba(243,234,210,.7)';X.fillText(`empty · ${s.tier||''}`,s.geo.x,s.geo.y+3*u)}
+  if(s.id==SEL){X.setLineDash([5*u,4*u]);X.strokeStyle='rgba(242,193,78,.9)';X.lineWidth=1.2*u;X.strokeRect(a,b,c-a,d-b);X.setLineDash([])}
+  let bx=a+2*u;const badge=(t,draw)=>{X.fillStyle='rgba(10,8,5,.75)';X.fillRect(bx,b+2*u,14*u,15*u);X.fillStyle=X.strokeStyle='#f2c14e';draw(bx);bx+=16*u};
+  if(s.lock)badge('L',x=>{X.lineWidth=1.6*u;X.beginPath();X.arc(x+7*u,b+8*u,3.2*u,Math.PI,0);X.stroke();X.fillRect(x+3*u,b+8*u,8*u,6.5*u)});
+  if(s.famLock)badge('F',x=>{X.font=`bold ${10*u}px system-ui`;X.fillText('F',x+7*u,b+13*u)});
+  if(s.ok)badge('A',x=>{X.lineWidth=1.8*u;X.beginPath();X.moveTo(x+3*u,b+10*u);X.lineTo(x+6*u,b+13*u);X.lineTo(x+11*u,b+5*u);X.stroke()});
+  const R=s.base||s.geo&&s.geo.r||0,Rs=R/u;
+  if(lab&&s.pk&&s.kind=='flare'&&Rs>=18){const t=TL[s.tier]||'',uq=s.uq!=null?Math.round(s.uq*100):null,q=s.q?Math.round(s.q.o*100):null;
+   X.font=`${(Rs>=40?11:9)*u}px system-ui`;X.fillStyle=isLightC(abBg())?'rgba(40,30,10,.8)':'rgba(243,234,210,.8)';
+   const lg=`${String(idx).padStart(2,'0')} · ${s.dna.shapeFamily} · ${t}${uq!=null?' · U'+uq:''}${q!=null?' · Q'+q:''}`,cw=s.cell?s.cell.hw*2:R*3;X.fillText(Rs>=30&&X.measureText(lg).width<cw*.95?lg:`${idx}${t?' '+t:''}${q!=null?' Q'+q:''}`,s.geo.x,s.geo.y+R*1.3)}}
  X.restore()}
 const EB=['#elck','#eflk','#erg','#erd','#ers','#erst','#erap','#edup','#edl','#eacc','#erej','#erpl','#eswp'];
 function updEl(){const s=selEl(),on=!!s,fl=on&&s.kind=='flare';
@@ -1177,7 +1204,7 @@ function fitCell(s){const c=s.cell;if(!c)return setBox(s);const f=fpf(s),k=(c.kf
  s.geo.x=c.x;s.geo.y=c.y;s.geo.r=Math.max(1.5,Math.min(c.hw/f.fx,c.hh/f.fy)*k);s.base=s.geo.r;setBox(s)}
 const cellOf=s=>{const b=s.box||[s.geo.x-s.geo.r,s.geo.y-s.geo.r,s.geo.x+s.geo.r,s.geo.y+s.geo.r];return{x:s.geo.x,y:s.geo.y,hw:(b[2]-b[0])/2,hh:(b[3]-b[1])/2,kf:1,ma:0}};
 function arrange(L,mode='Grid',fixed=[],opt={}){const n=L.length;if(!n)return;
- const m=Math.min(W,H)*(mode=='Minimal'?.08:.035),AX=m,AY=m,AW=W-2*m,AH=H-2*m,R=rng(hsh(MSEED,'layout',mode,n)),cx0=AX+AW/2,cy0=AY+AH/2;
+ const m=Math.min(W,H)*Math.max(mode=='Minimal'?.08:.012,abMargin()),AX=m,AY=m,AW=W-2*m,AH=H-2*m,R=rng(hsh(MSEED,'layout',mode,n)),cx0=AX+AW/2,cy0=AY+AH/2;
  const ord=[...L].sort((a,b)=>TN.indexOf(a.tier||'primary')-TN.indexOf(b.tier||'primary')),ma=Math.max(...L.map(tArea));
  const put=(s,x,y,hw,hh,kf,mA)=>{s.cell={x,y,hw,hh,kf,ma:mA};fitCell(s)};
  const cols=(k,w=AW,h=AH)=>Math.max(1,Math.ceil(Math.sqrt(k*w/h)));
@@ -1274,7 +1301,7 @@ function updStats(){const Q=packQuality(),L=strokes.filter(s=>s.pk&&s.kind=='fla
 // ~26k particles per frame. Exports, video and draw-on use the exact renderer.
 // ============================================================
 const FCACHE=new WeakMap(),FDT=450;
-function fieldCached(s,t){const cw=MX.canvas.width,ch=MX.canvas.height,K=PG.twinkle?4:1,key=[cw,ch,s.col.h,K,s.pal?s.pal.join():''].join('|');
+function fieldCached(s,t){const cw=MX.canvas.width,ch=MX.canvas.height,K=PG.twinkle?4:1,TM=MX.getTransform(),key=[cw,ch,s.col.h,K,s.pal?s.pal.join():'',TM.a.toFixed(4),TM.e|0,TM.f|0].join('|');
  let c=FCACHE.get(s.parts);if(!c||c.key!==key){c={key,f:[],t0:t};FCACHE.set(s.parts,c)}
  if(c.f.length<K&&(SPB>0||!c.f.length)){const t1=performance.now(),cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const g=cv.getContext('2d'),X0=X;
   g.setTransform(MX.getTransform());g.globalCompositeOperation='lighter';X=g;try{oneRaw(s,c.t0+c.f.length*FDT,1)}finally{X=X0}c.f.push(cv);SPB-=performance.now()-t1}
@@ -1304,7 +1331,7 @@ function xPreview(type){const L=scopeList();if(!L.length)return st('Nothing to e
  setTimeout(()=>snapList(L,w,h,!tr,tr).toBlob(b=>save(`${xBase()}-preview.${type=='png'?'png':'jpg'}`,b),type=='png'?'image/png':'image/jpeg',.95),30)}
 async function xZip(){if(EXP)return;const L=scopeList();if(!L.length)return st('Nothing to export in this scope');const S=+$('#xsz').value,F=[],job=EXP={cancel:0};$('#xcan').hidden=false;
  try{for(let i=0;i<L.length;i++){if(job.cancel)break;st(`Exporting ${i+1} / ${L.length}`);await new Promise(r=>setTimeout(r));
-   const b=await new Promise(r=>($('#iso').checked?snapAsset(L[i],S):snapOne(L[i],S)).toBlob(r));F.push({name:`${xName(i)}.png`,data:new Uint8Array(await b.arrayBuffer())})}
+   F.push({name:`${xName(i)}.png`,data:await canvasBytes($('#iso').checked?isoCanvasFor(L[i],S):snapOne(L[i],S),'png')})}
   if(job.cancel&&!F.length)return st('Export cancelled');await save(`${xBase()}-png.zip`,zipN(F));if(job.cancel)st(`Export cancelled · ${F.length} files saved`)}
  finally{EXP=null;$('#xcan').hidden=true}}
 async function xPsd(){const L=scopeList();if(!L.length)return st('Nothing to export in this scope');st('Building PSD…');
@@ -1327,11 +1354,11 @@ const serial=s=>{const o={...s};delete o.parts;return o};
 function restoreStroke(s){s.parts=[];if(s.kind=='field')genField(s);else if(s.kind!='flare'&&s.kind!='slot')gen(s);return ensureEl(s)}
 const jsave=(n,o)=>save(n,new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));
 const cdnaOut=()=>({...CDNA,name:$('#cname').value});
-function collectionData(){return{type:'glitter-collection',v:1,app:'Glitter Studio',name:$('#cname').value,seed:MSEED,variant:COLL.variant,base:COLL.base,cdna:cdnaOut(),settings:getSettings(),rejected:[...REJ],
+function collectionData(){return{type:'glitter-collection',v:1,artboard:abState(),app:'Glitter Studio',name:$('#cname').value,seed:MSEED,variant:COLL.variant,base:COLL.base,cdna:cdnaOut(),settings:getSettings(),rejected:[...REJ],
  elements:strokes.filter(s=>s.pk&&s.kind=='flare'||s.kind=='slot').map(serial)}}
-function projectData(){return{type:'glitter-studio-project',v:3,app:'Glitter Studio',saved:new Date().toISOString(),name:$('#cname').value,seed:MSEED,coll:{base:COLL.base,variant:COLL.variant,final:COLL.final},
+function projectData(){return{type:'glitter-studio-project',v:4,artboard:abState(),app:'Glitter Studio',saved:new Date().toISOString(),name:$('#cname').value,seed:MSEED,coll:{base:COLL.base,variant:COLL.variant,final:COLL.final},
  cdna:cdnaOut(),settings:getSettings(),P:{...P},col:{...col},bg:BGC,rejected:[...REJ],pool:POOL.map(c=>({dna:c.dna,tier:c.tier})),strokes:strokes.map(serial)}}
-function applyCommon(o){if(o.cdna)setCDNA(o.cdna);setSettings(o.settings);if(o.name)$('#cname').value=o.name;if(o.seed){setSeed(o.seed);$('#slk').checked=true}if(o.rejected)REJ=new Set(o.rejected)}
+function applyCommon(o){if(o.artboard)applyAB(o.artboard);if(o.cdna)setCDNA(o.cdna);setSettings(o.settings);if(o.name)$('#cname').value=o.name;if(o.seed){setSeed(o.seed);$('#slk').checked=true}if(o.rejected)REJ=new Set(o.rejected)}
 function loadJSON(o){if(!o||typeof o!='object')return st('Not a Glitter Studio JSON file');
  if(o.type=='glitter-collection-dna'){setCDNA(o);return st('Collection DNA loaded: '+(o.name||o.style))}
  if(o.type=='glitter-collection'){hist();applyCommon(o);COLL.base=o.base||o.seed;COLL.variant=o.variant||0;
@@ -1433,11 +1460,11 @@ function dnaTClean(d){let T=TC.get(d);if(T)return T;const CT=CLEAN[d.shapeFamily
  // extents in the element's own frame: full (sprites / isolated export) and visual (layout)
  let ex=0,ey=0;const addR=(a,l)=>{ex=Math.max(ex,Math.abs(Math.cos(a))*l);ey=Math.max(ey,Math.abs(Math.sin(a))*l)};
  for(let i=0;i<n;i++)addR(i*6.2832/n,T.pl*T.lens[i]);for(let j=0;j<T.sec;j++)addR((j+.5)*6.2832/T.sec,T.pl*T.sl*T.lens2[j]);
- const rad=(h,g)=>Math.max(T.cgR*g,T.haloS>.03?T.haloR*h:0,T.ring?T.ringR*(1+.24*(T.ring-1))*1.05:0,T.band?T.ringR*1.35:0,T.np||T.bok||T.spk?1.2:0);
- const ext=(k,h,g)=>{let x=Math.max(ex*k,rad(h,g)),y=Math.max(ey*k,rad(h,g));
+ const rad=(h,g,dec)=>Math.max(T.cgR*g,T.haloS>.03?T.haloR*h:0,T.ring?T.ringR*(1+.24*(T.ring-1))*1.05:0,T.band?T.ringR*1.35:0,T.bok||dec&&(T.np||T.spk)?1.2:0);   // accent particles never drive the layout footprint
+ const ext=(k,h,g,dec)=>{let x=Math.max(ex*k,rad(h,g,dec)),y=Math.max(ey*k,rad(h,g,dec));
   if(T.glint)x=Math.max(x,T.pl*1.05);if(T.comet)x=Math.max(x,T.tl);if(T.isLens){x=Math.max(x,(.75+T.gh.length*.36+.2)*.83);y=Math.max(y,(.75+T.gh.length*.36+.2)*.56)}
   if(CT.double){x+=T.off*.5;y+=T.off*.25}if(CT.offset){x=Math.max(x,T.off*1.4*.7+.45*T.pl);y=Math.max(y,T.off*1.4*.7+.45*T.pl)}if(T.echo){x=Math.max(x,.75+.3*T.pl);y=Math.max(y,.55+.3*T.pl)}return[x,y]};
- [T.ex,T.ey]=ext(1.04,1,1);[T.ax,T.ay]=ext(.85,.6,1);T.ext=Math.max(T.ex,T.ey)*1.04;
+ [T.ex,T.ey]=ext(1.04,1,1,1);[T.ax,T.ay]=ext(.85,.6,1,0);T.ext=Math.max(T.ex,T.ey)*1.04;
  TC.set(d,T);return T}
 // RENDERER: halo glow -> core glow -> tapered rays (soft glow pass + sharp needle + white-hot spine) -> core -> structure accents -> decoration
 function renderClean(s,fr,k,x,y){
@@ -1516,4 +1543,174 @@ function applyRefDefaults(){$('#pks').value='Reference';$('#uq').value='55';$('#
  const v={u:60,d:30,s:30,f:40,c:30,z:30,cl:80,rs:100};for(const k in v){const e=$('#cw_'+k);if(e){e.value=v[k];e.oninput()}}}
 {const o=$('#cstyle').onchange;$('#cstyle').onchange=e=>{o(e);if(e.target.value=='Reference')applyRefDefaults()}}
 setCDNA({...styleDNA('Reference'),name:$('#cname').value});applyRefDefaults();updStats();
+
+// ============================================================
+// ARTBOARD (Phase 5)
+// Three separate things:
+//  1. ARTWORK / element DNA   - never touched by anything in this section
+//  2. ARTBOARD                - ratio, pixel size, orientation, background, padding, placement, guides
+//  3. EXPORT RESOLUTION       - quality preset (Full HD / 4K / 8K / exact) derived from the artboard ratio
+// World space IS the artboard: 0..W x 0..H world units (W/H = artboard ratio). The editor only
+// fits it into the stage (VS/VX/VY) and the placement transform PL maps the artwork into the
+// padded artboard - identically for preview and every artboard export.
+// ============================================================
+const AB_RATIOS=['1:1','2:3','3:2','3:4','4:3','4:5','5:4','5:7','7:5','9:16','16:9','1:2','2:1','2:4','4:2','A4 Portrait','A4 Landscape','Custom'];
+const ratioNum=s=>s=='A4 Portrait'?210/297:s=='A4 Landscape'?297/210:s&&s.includes(':')?(([a,b])=>a/b)(s.split(':').map(Number)):1;
+const AB_PX=[['Square',[[2000,2000],[3000,3000],[4000,4000],[6000,6000],[8000,8000]]],['Portrait 2:3',[[2000,3000],[4000,6000],[6000,9000]]],['Landscape 3:2',[[3000,2000],[6000,4000],[9000,6000]]],
+ ['Portrait 4:5',[[2000,2500],[4000,5000],[6000,7500]]],['Landscape 5:4',[[2500,2000],[5000,4000]]],['16:9',[[1920,1080],[3840,2160],[7680,4320]]],['9:16',[[1080,1920],[2160,3840],[4320,7680]]],
+ ['1:2 / 2:4 (tall)',[[2000,4000],[4000,8000]]],['2:1 / 4:2 (wide)',[[4000,2000],[8000,4000]]],['A4 at 300 ppi',[[2480,3508],[3508,2480]]]];
+// convenience presets only (not platform requirements)
+const AB_PRESETS={'Stock Square':[4000,4000],'Stock Portrait':[4000,6000],'Stock Landscape':[6000,4000],'Wide Landscape':[8000,4000],'Vertical Portrait':[2160,3840],'Cinematic':[7680,3214],
+ 'Presentation':[3840,2160],'Social Portrait':[2160,2700],'Social Landscape':[2400,1256]};
+const MR_LIST=['1:1','4:5','2:3','3:2','16:9','9:16'],ISO_R=['1:1','4:5','2:3','3:2','16:9','9:16','bounds'];
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+function ratioLabel(w,h){if(AB.ratio!='Custom'&&Math.abs(ratioNum(AB.ratio)-w/h)<.003)return AB.ratio;for(const r of AB_RATIOS.slice(0,-1))if(Math.abs(ratioNum(r)-w/h)<.003)return r;
+ const g=gcd(w,h),a=w/g,b=h/g;return a<=50&&b<=50?`${a}:${b}`:`${(w/h).toFixed(3)}:1`}
+// export resolution from the artboard ratio: landscape/square = width-based, 9:16 and taller = height-based, other portraits = width-based
+function qualityDims(r,B){let w,h;if(r>=1){w=B;h=B/r}else if(r<=9/16+1e-6){h=B;w=B*r}else{w=B;h=B/r}const k=Math.min(1,16384/Math.max(w,h));return[Math.max(1,Math.round(w*k)),Math.max(1,Math.round(h*k))]}
+// the exact preset ratio is used when the artboard matches one (avoids 2667x4000 rounding -> 3840x5759)
+const abRatio=()=>AB.ratio!='Custom'&&Math.abs(ratioNum(AB.ratio)-AB.w/AB.h)<.003?ratioNum(AB.ratio):AB.w/AB.h;
+function abDims(r){const v=$('#res').value;if(v=='ab')return r?qualityDims(r,Math.max(AB.w,AB.h)):[AB.w,AB.h];return qualityDims(r||abRatio(),+v)}
+const abBg=()=>({transparent:null,black:'#000000',white:'#ffffff',custom:AB.bgColor||'#000000',preview:'preview'})[AB.bg]??null;
+const abSolid=()=>abBg()??(AB.bgColor||'#000000');
+const abMargin=()=>Math.max(AB.pad,AB.safe?AB.safePct:0)/100;
+const isLightC=h=>{if(!h||h[0]!='#')return false;const[r,g,b]=rgb(h);return(.2126*r+.7152*g+.0722*b)/255>.55};
+function worldDims(r){if(W>0&&H>0){const L=Math.max(W,H);return r>=1?[L,L/r]:[L*r,L]}const aw=Math.max(200,(STW||1000)-40),ah=Math.max(150,(STH||700)-40);return r>=aw/ah?[aw,aw/r]:[ah*r,ah]}
+// PLACEMENT: how the artwork sits in the (padded) artboard. Never distorts; only Fill may crop.
+function bboxN(L){let a=1e9,b=1e9,c=-1e9,d=-1e9;for(const s of L){if(s.kind=='slot')continue;if(s.box){a=Math.min(a,s.box[0]);b=Math.min(b,s.box[1]);c=Math.max(c,s.box[2]);d=Math.max(d,s.box[3])}
+ for(const p of s.pts){if(p[0]<a)a=p[0];if(p[0]>c)c=p[0];if(p[1]<b)b=p[1];if(p[1]>d)d=p[1]}for(const p of s.parts){if(p[0]<a)a=p[0];if(p[0]>c)c=p[0];if(p[1]<b)b=p[1];if(p[1]>d)d=p[1]}}return c>a?[a,b,c,d]:null}
+function computePL(L=strokes,Wd=W,Hd=H,mode=AB.place){const B=mode=='manual'?null:bboxN(L);if(!B)return{s:1,tx:0,ty:0};const m=Math.min(Wd,Hd)*AB.pad/100,aw=Wd-2*m,ah=Hd-2*m,bw=Math.max(1,B[2]-B[0]),bh=Math.max(1,B[3]-B[1]);
+ let s=mode=='centered'?Math.min(1,aw/bw,ah/bh):mode=='fit'?Math.min(aw/bw,Hd/bh):mode=='fill'?Math.max(aw/bw,ah/bh):Math.min(aw/bw,ah/bh);
+ return{s,tx:Wd/2-s*(B[0]+B[2])/2,ty:Hd/2-s*(B[1]+B[3])/2}}
+function applyView(){if(!(W>0&&H>0))return;VS=Math.max(.01,Math.min((STW-40)/W,(STH-40)/H));VX=(STW-W*VS)/2;VY=(STH-H*VS)/2;if(!PFZ)PL=computePL();const d=devicePixelRatio||1;ES=d*VS*PL.s;
+ MX.setTransform(ES,0,0,ES,d*(VX+VS*PL.tx),d*(VY+VS*PL.ty))}
+const ESq=()=>Math.pow(2,Math.round(Math.log2(Math.max(.05,ES))*3)/3);   // quantised sprite resolution (avoids re-rendering on tiny zoom changes)
+let CHK=null;
+function fillBg(g,x,y,w,h,bg){if(bg=='preview'){const q=g.createRadialGradient(x+w*.7,y,0,x+w*.7,y,Math.max(w,h));q.addColorStop(0,'#2b2210');q.addColorStop(.5,'#0a0805');q.addColorStop(1,'#030302');g.fillStyle=q}else g.fillStyle=bg;g.fillRect(x,y,w,h)}
+// editor: pasteboard + artboard background (checkerboard = UI only) + artwork
+function edPaint(t){applyView();const d=devicePixelRatio||1,cw=C.width,ch=C.height,bg=abBg(),T=MX.getTransform(),rx=VX*d,ry=VY*d,rw=W*VS*d,rh=H*VS*d;
+ X.save();X.setTransform(1,0,0,1,0,0);X.globalCompositeOperation='source-over';X.globalAlpha=1;X.fillStyle='#0b0a08';X.fillRect(0,0,cw,ch);
+ if(bg==null){const q=Math.round(10*d);if(!CHK||CHK.q!=q){const p=document.createElement('canvas');p.width=p.height=2*q;const g=p.getContext('2d');g.fillStyle='#2a2926';g.fillRect(0,0,2*q,2*q);g.fillStyle='#1d1c1a';g.fillRect(0,0,q,q);g.fillRect(q,q,q,q);CHK={q,p:X.createPattern(p,'repeat')}}
+  X.fillStyle=CHK.p;X.translate(rx,ry);X.fillRect(0,0,rw,rh)}else fillBg(X,rx,ry,rw,rh,bg);X.restore();
+ if(bg&&bg!='preview'&&isLightC(bg)){if(!EDL||EDL.width!=cw||EDL.height!=ch){EDL=document.createElement('canvas');EDL.width=cw;EDL.height=ch;EDX=EDL.getContext('2d')}
+  EDX.setTransform(T);X=EDX;try{paint(t,0)}finally{X=MX}X.save();X.setTransform(1,0,0,1,0,0);X.globalCompositeOperation='source-over';X.drawImage(EDL,0,0);X.restore()}
+ else paint(t,2);
+ if(RECC)renderTo(RECC,abXf(RECC.width),undefined,videoBg(),{anim:1,t})}
+// editor-only overlay: pasteboard mask, artboard frame, guides, safe area (never exported)
+function abOverlay(){const d=devicePixelRatio||1,x=VX,y=VY,w=W*VS,h=H*VS;X.save();X.setTransform(d,0,0,d,0,0);X.globalCompositeOperation='source-over';X.globalAlpha=1;
+ X.fillStyle='rgba(6,5,4,.78)';X.beginPath();X.rect(0,0,STW,STH);X.rect(x,y,w,h);X.fill('evenodd');X.strokeStyle='rgba(242,193,78,.6)';X.lineWidth=1;X.strokeRect(x+.5,y+.5,w-1,h-1);
+ const G=AB.guides||{},ln=(x0,y0,x1,y1)=>{X.beginPath();X.moveTo(x0,y0);X.lineTo(x1,y1);X.stroke()};X.lineWidth=1;
+ if(G.c){X.strokeStyle='rgba(120,200,255,.55)';ln(x+w/2,y,x+w/2,y+h);ln(x,y+h/2,x+w,y+h/2)}
+ if(G.t){X.strokeStyle='rgba(255,255,255,.28)';for(const f of[1/3,2/3]){ln(x+w*f,y,x+w*f,y+h);ln(x,y+h*f,x+w,y+h*f)}}
+ if(G.g){X.strokeStyle='rgba(255,196,80,.4)';for(const f of[.382,.618]){ln(x+w*f,y,x+w*f,y+h);ln(x,y+h*f,x+w,y+h*f)}}
+ const sm=Math.min(w,h)*AB.safePct/100;
+ if(AB.safe){X.fillStyle='rgba(255,80,80,.07)';X.beginPath();X.rect(x,y,w,h);X.rect(x+sm,y+sm,w-2*sm,h-2*sm);X.fill('evenodd')}
+ if(G.s||AB.safe){X.setLineDash([6,4]);X.strokeStyle='rgba(255,120,120,.6)';X.strokeRect(x+sm,y+sm,w-2*sm,h-2*sm);X.setLineDash([])}
+ X.font='11px system-ui';X.fillStyle='rgba(243,234,210,.55)';X.fillText(`${AB.w} × ${AB.h} px · ${ratioLabel(AB.w,AB.h)}`,x+4,y-5>10?y-5:y+13);X.restore()}
+// RENDER TO ANY TARGET: transparent (real alpha), dark backgrounds (additive light) or light backgrounds
+// (light rendered on its own transparent layer, then composited), with an explicit world->pixel transform
+function renderTo(c,xf,list,bg,o={}){const g=c.getContext('2d'),w=c.width,h=c.height,X0=X,a=anim,t=o.t??performance.now();if(!o.anim)anim=null;
+ const setT=q=>q.setTransform(xf[0],0,0,xf[0],xf[1],xf[2]);g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='source-over';g.globalAlpha=1;g.clearRect(0,0,w,h);
+ try{if(bg==null){X=g;setT(g);NORMAL=1;paint(t,0,list)}
+  else if(bg=='preview'||!isLightC(bg)){fillBg(g,0,0,w,h,bg);X=g;setT(g);NORMAL=0;paint(t,2,list)}
+  else{const L=document.createElement('canvas');L.width=w;L.height=h;X=L.getContext('2d');setT(X);NORMAL=0;paint(t,0,list);X=g;g.setTransform(1,0,0,1,0,0);fillBg(g,0,0,w,h,bg);g.drawImage(L,0,0)}}
+ finally{X=X0;NORMAL=0;anim=a}return c}
+const newCanvas=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
+const abXf=(w,pl=PL,Wd=W)=>{const k=w/Wd;return[k*pl.s,k*pl.tx,k*pl.ty]};
+const videoBg=()=>abBg()??AB.bgColor??'#000000';
+// DPI / PPI metadata (pixels stay authoritative): PNG pHYs chunk, JPEG JFIF density
+function withDPI(u8,type){const dpi=Math.max(1,+$('#dpi').value||300);try{
+ if(type=='png'){const ppm=Math.round(dpi/.0254),parts=[u8.subarray(0,8)],dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);let p=8;
+  while(p+8<=u8.length){const len=dv.getUint32(p),tp=String.fromCharCode(u8[p+4],u8[p+5],u8[p+6],u8[p+7]),end=p+12+len;if(tp!='pHYs')parts.push(u8.subarray(p,end));
+   if(tp=='IHDR'){const c=new Uint8Array(21),v=new DataView(c.buffer);v.setUint32(0,9);c.set([112,72,89,115],4);v.setUint32(8,ppm);v.setUint32(12,ppm);c[16]=1;v.setUint32(17,crc(c.subarray(4,17)));parts.push(c)}p=end}
+  const out=new Uint8Array(parts.reduce((a,b)=>a+b.length,0));let o=0;for(const q of parts){out.set(q,o);o+=q.length}return out}
+ if(type=='jpg'){if(u8[2]==255&&u8[3]==224&&u8[6]==74&&u8[7]==70&&u8[8]==73&&u8[9]==70){const o=u8.slice();o[13]=1;o[14]=dpi>>8;o[15]=dpi&255;o[16]=dpi>>8;o[17]=dpi&255;return o}
+  const app=new Uint8Array([255,224,0,16,74,70,73,70,0,1,1,1,dpi>>8,dpi&255,dpi>>8,dpi&255,0,0]),o=new Uint8Array(u8.length+18);o.set(u8.subarray(0,2));o.set(app,2);o.set(u8.subarray(2),20);return o}}catch(e){}return u8}
+const canvasBytes=(c,type)=>new Promise(r=>c.toBlob(async b=>r(withDPI(new Uint8Array(await b.arrayBuffer()),type)),type=='jpg'?'image/jpeg':'image/png',.95));
+const tick=()=>new Promise(r=>setTimeout(r,20));
+const w2s=(x,y)=>[VX+VS*(PL.tx+PL.s*x),VY+VS*(PL.ty+PL.s*y)];   // world -> stage CSS px (editor helper)
+// ARTBOARD EXPORT (PNG / JPG): exact artboard composition at the chosen export resolution
+async function abExport(type,list){if(!strokes.length)return st('Draw or generate something first');const[w,h]=abDims(),bg=type=='jpg'?abSolid():abBg();
+ st(`Rendering artboard ${w} × ${h}${type=='jpg'&&!abBg()?' · JPG uses background color':''}…`);await tick();
+ const u8=await canvasBytes(renderTo(newCanvas(w,h),abXf(w),list,bg),type);await save(`${xBase()}-${ratioLabel(AB.w,AB.h).replace(/[: ]/g,'x')}-${w}x${h}.${type}`,new Blob([u8],{type:type=='jpg'?'image/jpeg':'image/png'}))}
+// ISOLATED ELEMENT: centred on the element's visual bounds (incl. glow / rays / tails), undistorted, padded
+function isoFrame(s){if(s.dv&&s.dna&&s.geo){const[hw,hh]=assetBox(s);return{x:s.geo.x,y:s.geo.y,hw,hh}}const B=bboxN([s])||[0,0,1,1];return{x:(B[0]+B[2])/2,y:(B[1]+B[3])/2,hw:Math.max(1,(B[2]-B[0])/2),hh:Math.max(1,(B[3]-B[1])/2)}}
+function isoRatio(s,rs){if(rs=='bounds'){const f=isoFrame(s);return f.hw/f.hh}return ratioNum(rs)}
+function isoRender(s,w,h,bg,pad){const f=isoFrame(s),p=cl(pad??(+$('#ipad').value||0)/100,0,.4),k=Math.min(w*(1-2*p)/(2*f.hw),h*(1-2*p)/(2*f.hh));return renderTo(newCanvas(w,h),[k,w/2-f.x*k,h/2-f.y*k],[s],bg)}
+const isoCanvasFor=(s,longSide)=>{const[w,h]=qualityDims(isoRatio(s,$('#iratio').value),longSide);return isoRender(s,w,h,null)};
+async function isoExport(type){const s=selEl();if(!s||s.kind=='slot')return st('Select an element first (Select tool)');const r=isoRatio(s,$('#iratio').value),[w,h]=abDims(r),bg=type=='jpg'?abSolid():null;
+ st(`Rendering element ${w} × ${h}…`);await tick();const c=isoRender(s,w,h,bg),tag=$('#iratio').value=='bounds'?'bounds':$('#iratio').value.replace(':','x');
+ if(type=='svg'){const u8=await canvasBytes(c,'png');let b64='';for(let i=0;i<u8.length;i+=32768)b64+=String.fromCharCode(...u8.subarray(i,i+32768));
+  await save(`${xBase()}-element-${tag}.svg`,new Blob([`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><image width="${w}" height="${h}" href="data:image/png;base64,${btoa(b64)}" xlink:href="data:image/png;base64,${btoa(b64)}"/></svg>`],{type:'image/svg+xml'}));
+  return st('Saved SVG · the sparkle is an embedded PNG (glow effects are raster, not vector paths)')}
+ const u8=await canvasBytes(c,type);await save(`${xBase()}-element-${tag}-${w}x${h}.${type}`,new Blob([u8]))}
+// ARTBOARD PSD: artboard-sized canvas, one layer per element, background layer, composite
+async function abPsd(list){list=(list||strokes).filter(s=>s.kind!='slot');if(!list.length)return st('Nothing to export');st('Building PSD…');
+ if(!window.agPsd)await new Promise((ok,no)=>{const e=document.createElement('script');e.src='https://cdn.jsdelivr.net/npm/ag-psd@31.0.2/dist/bundle.js';e.onload=ok;e.onerror=no;document.head.append(e)}).catch(()=>{});
+ if(!window.agPsd)return st('Could not load the PSD library (needs internet)');
+ try{const[w,h]=abDims(),xf=abXf(w),bg=abBg(),ch=[{name:'Background',hidden:bg==null,canvas:renderTo(newCanvas(w,h),xf,[],bg??'#000000')}];
+  for(let i=0;i<list.length;i++){st(`PSD layer ${i+1} / ${list.length}`);await new Promise(r=>setTimeout(r));ch.push({name:list[i].pk?xName(i):'Glitter '+(i+1),canvas:renderTo(newCanvas(w,h),xf,[list[i]],null)})}
+  const buf=agPsd.writePsd({width:w,height:h,canvas:renderTo(newCanvas(w,h),xf,list,bg),children:ch});await save(`${xBase()}-psd.zip`,zip(`${xBase()}.psd`,new Uint8Array(buf)))}catch(e){st('PSD export failed (try a smaller export resolution)')}}
+// MULTI-RATIO: the same collection (same DNA) re-laid-out on position-only clones for each ratio
+async function exportMulti(){if(EXP||GEN)return;const rs=MR_LIST.filter(k=>$('#mr_'+k.replace(':','x')).checked),L=scopeList().filter(s=>s.kind!='slot');
+ if(!rs.length)return st('Choose at least one ratio');if(!L.length)return st('Nothing to export in this scope');
+ const job=EXP={cancel:0},W0=W,H0=H,S=+$('#xsz').value;$('#xcan').hidden=false;busy=1;let n=0;
+ try{for(const rstr of rs){if(job.cancel)break;const r=ratioNum(rstr),tag=rstr.replace(':','x'),F=[],Lm=Math.max(W0,H0);
+   const Lc=L.map(s=>s.kind=='flare'||s.kind=='slot'?{...s,geo:{...s.geo},cell:s.cell&&{...s.cell},box:s.box&&[...s.box]}:s);
+   W=r>=1?Lm:Lm*r;H=r>=1?Lm/r:Lm;const fl=Lc.filter(s=>s.kind=='flare'&&s.pk);if(fl.length)arrange(fl,$('#lay').value,[]);
+   const pl=computePL(Lc,W,H),[w,h]=abDims(r);st(`Exporting ${rstr} artboard ${w} × ${h}`);await tick();
+   F.push({name:`${xBase()}-${tag}.png`,data:await canvasBytes(renderTo(newCanvas(w,h),abXf(w,pl,W),Lc,abBg()),'png')});
+   for(let i=0;i<Lc.length&&!job.cancel;i++){st(`Exporting ${rstr} · ${i+1} / ${Lc.length}`);await new Promise(q=>setTimeout(q));const[w2,h2]=qualityDims(r,S);
+    F.push({name:`${xBase()}-${tag}-${String((+$('#xst').value||0)+i).padStart(Math.max(1,+$('#xpad').value||1),'0')}.png`,data:await canvasBytes(isoRender(Lc[i],w2,h2,null),'png')})}
+   W=W0;H=H0;if(!job.cancel){await save(`${xBase()}-${tag}.zip`,zipN(F));n++}}
+  st(job.cancel?`Multi-ratio export cancelled · ${n} ratios saved`:`Exported ${n} ratios · same collection, same DNA`)}
+ finally{W=W0;H=H0;busy=0;EXP=null;$('#xcan').hidden=true;dirty=1}}
+// ARTBOARD CHANGES: never touch DNA / seed / families / colours; only size, layout and positions
+function translateAll(dx,dy){if(!dx&&!dy)return;for(const s of strokes){for(const p of s.pts){p[0]+=dx;p[1]+=dy}for(const p of s.parts){p[0]+=dx;p[1]+=dy}
+ if(s.geo&&s.geo.x!=null){s.geo.x+=dx;s.geo.y+=dy}if(s.kind=='field'&&s.geo){s.geo.ox=(s.geo.ox||0)+dx;s.geo.oy=(s.geo.oy||0)+dy}if(s.box)s.box=[s.box[0]+dx,s.box[1]+dy,s.box[2]+dx,s.box[3]+dy];if(s.cell)s.cell={...s.cell,x:s.cell.x+dx,y:s.cell.y+dy}}}
+function setAB(w,h,o={}){w=Math.round(cl(+w||256,256,16384));h=Math.round(cl(+h||256,256,16384));const r0=AB.w/AB.h;AB.w=w;AB.h=h;
+ if(o.ratio)AB.ratio=o.ratio;else if(AB.ratio=='Custom'||Math.abs(ratioNum(AB.ratio)-w/h)>.003){const m=AB_RATIOS.slice(0,-1).find(r=>Math.abs(ratioNum(r)-w/h)<.003);AB.ratio=m||'Custom'}
+ if(W>0&&Math.abs(w/h-r0)>1e-6){const[nW,nH]=worldDims(w/h);translateAll((nW-W)/2,(nH-H)/2);W=nW;H=nH;cur=null;pen=[];
+  if(AB.auto&&!o.noArrange&&strokes.some(s=>s.pk&&s.kind=='flare'))arrangePack()}
+ AB.ww=W;AB.wh=H;abToUI();dirty=1}
+const orient=(w,h,o)=>o=='portrait'&&w>h||o=='landscape'&&h>w?[h,w]:o=='square'?[Math.max(w,h),Math.max(w,h)]:[w,h];
+function abToUI(){$('#abr').value=AB_RATIOS.includes(AB.ratio)?AB.ratio:'Custom';$('#abw').value=AB.w;$('#abh').value=AB.h;$('#ablk').checked=AB.lock;$('#abo').value=AB.orient;
+ $('#dpi').value=String(AB.dpi);$('#abbg').value=AB.bg;$('#abbgc').value=AB.bgColor;const pp=['0','2','5','10','15','20'].includes(String(AB.pad));$('#abpad').value=pp?String(AB.pad):'custom';$('#abpadc').value=AB.pad;$('#abpadc').hidden=pp;
+ $('#abpl').value=AB.place;$('#abauto').checked=AB.auto;$('#absafe').checked=AB.safe;$('#absp').value=String(AB.safePct);for(const k of['c','t','g','s'])$('#g_'+k).checked=!!(AB.guides||{})[k];
+ $('#iratio').value=AB.isoRatio;$('#ipad').value=AB.isoPad;for(const k of MR_LIST)$('#mr_'+k.replace(':','x')).checked=AB.multi.includes(k);$('#tr').checked=AB.bg=='transparent';
+ const[ew,eh]=abDims();$('#abinfo').textContent=`${AB.w} × ${AB.h} px · ${ratioLabel(AB.w,AB.h)} · export ${ew} × ${eh} px · ${AB.dpi} ppi`}
+const abState=()=>JSON.parse(JSON.stringify({...AB,res:$('#res').value}));
+function applyAB(o){if(!o)return;const{res,...a}=o;Object.assign(AB,a);if(res&&[...$('#res').options].some(p=>p.value==res))$('#res').value=res;
+ if(o.ww>0&&o.wh>0){W=o.ww;H=o.wh}else{const[nW,nH]=worldDims(AB.w/AB.h);W=nW;H=nH}AB.ww=W;AB.wh=H;abToUI();dirty=1}
+// UI wiring
+for(const r of AB_RATIOS)$('#abr').append(new Option(r=='Custom'?'Ratio: Custom':'Ratio '+r,r));
+for(const p of['Custom',...Object.keys(AB_PRESETS)])$('#abp').append(new Option(p=='Custom'?'Preset: Custom':p,p));
+$('#abpx').append(new Option('Pixel presets…',''));for(const[g,L]of AB_PX){const o=document.createElement('optgroup');o.label=g;for(const[w,h]of L)o.append(new Option(`${w} × ${h}`,`${w}x${h}`));$('#abpx').append(o)}
+for(const r of ISO_R)$('#iratio').append(new Option(r=='bounds'?'Element: original bounds':'Element '+r,r));
+$('#abr').onchange=e=>{const v=e.target.value;if(v=='Custom')return;const r=ratioNum(v),L=Math.max(AB.w,AB.h);AB.orient='auto';setAB(r>=1?L:L*r,r>=1?L/r:L,{ratio:v})};
+$('#abw').onchange=e=>{let w=cl(+e.target.value||256,256,16384),h=AB.lock?w/(AB.w/AB.h):AB.h;if(h>16384){h=16384;w=h*(AB.w/AB.h)}if(h<256){h=256;w=h*(AB.w/AB.h)}setAB(w,h)};
+$('#abh').onchange=e=>{let h=cl(+e.target.value||256,256,16384),w=AB.lock?h*(AB.w/AB.h):AB.w;if(w>16384){w=16384;h=w/(AB.w/AB.h)}if(w<256){w=256;h=w/(AB.w/AB.h)}setAB(w,h)};
+$('#ablk').onchange=e=>AB.lock=e.target.checked;
+$('#abo').onchange=e=>{AB.orient=e.target.value;const[w,h]=orient(AB.w,AB.h,AB.orient);setAB(w,h)};
+$('#abpx').onchange=e=>{const v=e.target.value;if(!v)return;const[w,h]=v.split('x').map(Number);AB.orient='auto';setAB(w,h);e.target.value=''};
+$('#abp').onchange=e=>{const p=AB_PRESETS[e.target.value];AB.preset=e.target.value;if(p){AB.orient='auto';setAB(p[0],p[1])}};
+$('#res').addEventListener('change',abToUI);$('#dpi').onchange=e=>{AB.dpi=+e.target.value;abToUI()};
+$('#abbg').onchange=e=>{AB.bg=e.target.value;abToUI();dirty=1};$('#abbgc').oninput=e=>{AB.bgColor=e.target.value;if(AB.bg!='custom')AB.bg='custom';abToUI();dirty=1};
+$('#abpad').onchange=e=>{if(e.target.value!='custom')AB.pad=+e.target.value;abToUI();dirty=1};$('#abpadc').onchange=e=>{AB.pad=cl(+e.target.value||0,0,30);abToUI();dirty=1};
+$('#abpl').onchange=e=>{AB.place=e.target.value;dirty=1};$('#abauto').onchange=e=>AB.auto=e.target.checked;$('#abarr').onclick=()=>arrangePack();
+$('#absafe').onchange=e=>{AB.safe=e.target.checked;dirty=1};$('#absp').onchange=e=>{AB.safePct=+e.target.value;dirty=1};
+for(const k of['c','t','g','s'])$('#g_'+k).onchange=e=>{AB.guides={...AB.guides,[k]:e.target.checked};dirty=1};
+$('#iratio').onchange=e=>AB.isoRatio=e.target.value;$('#ipad').onchange=e=>AB.isoPad=cl(+e.target.value||0,0,40);
+for(const k of MR_LIST)$('#mr_'+k.replace(':','x')).onchange=()=>AB.multi=MR_LIST.filter(q=>$('#mr_'+q.replace(':','x')).checked);
+$('#tr').addEventListener('change',e=>{if(e.target.checked){if(AB.bg!='transparent')AB.lastBg=AB.bg;AB.bg='transparent'}else AB.bg=AB.lastBg&&AB.lastBg!='transparent'?AB.lastBg:'black';abToUI();dirty=1});
+$('#bgc').addEventListener('input',e=>{AB.bg='custom';AB.bgColor=e.target.value;abToUI()});$('#bgr').addEventListener('click',()=>{AB.bg='preview';abToUI()});
+$('#ftex').addEventListener('click',()=>{if(BGC){AB.bg='custom';AB.bgColor=BGC;abToUI()}});
+// exports: artboard / isolated / batch / multi-ratio (classic buttons now follow the artboard too)
+$('#png').onclick=$('#apng').onclick=()=>abExport('png');$('#jpg').onclick=$('#ajpg').onclick=()=>abExport('jpg');
+$('#psd').onclick=()=>abPsd();$('#xpsd').onclick=()=>abPsd(scopeList());
+$('#ipng').onclick=()=>isoExport('png');$('#ijpg').onclick=()=>isoExport('jpg');$('#isvg').onclick=()=>isoExport('svg');$('#xmr').onclick=exportMulti;
+$('#xsvg').addEventListener('click',()=>{if(strokes.some(s=>s.kind=='flare'))setTimeout(()=>st('SVG saved · brush/pen/shape strokes only: flare and pack elements are raster-only and are not in the SVG'),60)});
+// placement is frozen while the pointer is down, so drawing / dragging maps correctly
+C.addEventListener('pointerdown',()=>{PFZ=1},true);addEventListener('pointerup',()=>{if(PFZ){PFZ=0;dirty=1}});
+{const[w,h]=worldDims(1);if(!(W>0)){W=w;H=h}AB.ww=W;AB.wh=H;abToUI();applyView()}
 </script></body></html>
