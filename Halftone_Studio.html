@@ -26,8 +26,6 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,
 header{padding:20px 20px 6px;max-width:1200px;margin:0 auto;}
 h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em;}
 p.sub{color:var(--muted);margin:0;font-size:13.5px;}
-main{max-width:1200px;margin:0 auto;padding:18px 20px 60px;display:grid;grid-template-columns:300px 1fr;gap:18px;}
-@media(max-width:760px){main{grid-template-columns:1fr;}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;}
 .controls{display:flex;flex-direction:column;gap:13px;}
 label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;}
@@ -74,7 +72,7 @@ input[type=text]{padding:7px 8px;border-radius:8px;border:1px solid var(--line);
 .swatch{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid var(--line);vertical-align:-1px;}
 .prog{height:6px;border-radius:4px;background:var(--panel2);overflow:hidden;}
 .prog>div{height:100%;width:0;background:var(--accent);transition:width .2s;}
-.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;max-height:560px;overflow:auto;}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;}
 .qc{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel2);font-size:11px;}
 .qc .pv{aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700;font-size:13px;}
 .qc .pv canvas{max-width:100%;max-height:100%;}
@@ -86,15 +84,64 @@ input[type=text]{padding:7px 8px;border-radius:8px;border:1px solid var(--line);
 .st.processing{background:var(--accent);color:#fff;}
 .st.done{background:#2e7d32;color:#fff;}
 .st.error{background:#c62828;color:#fff;}
+/* ---- app layout: sidebar controls + fixed preview + asset tray (no page scrolling on desktop) ---- */
+body{overflow:hidden;}
+.app{display:grid;grid-template-columns:370px minmax(0,1fr);height:100vh;height:100dvh;}
+.side{overflow-y:auto;background:var(--panel);border-right:1px solid var(--line);padding:14px 14px 60px;}
+.brand h1{font-size:19px;margin:0;}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0 14px;position:sticky;top:-14px;background:var(--panel);padding:8px 0;z-index:2;}
+.tabs button{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:7px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-weight:600;}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pane{display:none;flex-direction:column;gap:13px;}
+.pane.on{display:flex;}
+.g1{display:grid;gap:10px;}
+.g2>div{min-width:0;}
+.g2 input[type=text],.g2 select{width:100%;}
+.step{border:1px solid var(--line);border-radius:10px;padding:10px;}
+.step .sectitle b{display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;text-align:center;line-height:18px;font-size:11px;margin-right:4px;}
+.work{display:flex;flex-direction:column;min-width:0;min-height:0;}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--panel);}
+.toolbar button{padding:7px 11px;}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.seg button{border:none;background:var(--panel2);color:var(--ink);padding:7px 11px;font-size:12.5px;cursor:pointer;}
+.seg button.on{background:var(--ink);color:var(--bg);}
+.edittag{display:flex;align-items:center;gap:6px;font-size:12.5px;border:1.5px solid var(--accent);border-radius:8px;padding:3px 4px 3px 9px;}
+.edittag[hidden],.cmp[hidden]{display:none;}
+.edittag button{padding:4px 9px;}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:18px;background:var(--panel2);overflow:hidden;border-radius:0;}
+.stage canvas{max-width:100%;max-height:100%;box-shadow:0 1px 10px rgba(0,0,0,.15);}
+.cmp{display:flex;gap:18px;width:100%;height:100%;align-items:center;justify-content:center;}
+.cmp figure{margin:0;flex:1;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+.cmp canvas{max-width:100%;max-height:calc(100% - 24px);}
+.cmp figcaption{font-size:12px;color:var(--muted);}
+.checker{background:repeating-conic-gradient(#d9d9d9 0 25%,#ffffff 0 50%) 0 0/18px 18px;}
+.tray{height:32vh;min-height:190px;display:flex;flex-direction:column;border-top:1px solid var(--line);background:var(--panel);}
+.tray .tabs{margin:0;padding:7px 14px;position:static;align-items:center;border-bottom:1px solid var(--line);}
+.tpane{display:none;flex:1;overflow:auto;padding:10px 14px;}
+.tpane.on{display:block;}
+.tray .qgrid{max-height:none;}
+.tray .thumbs{margin-top:8px;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+.qc{cursor:pointer;position:relative;}
+.qc.editing{outline:2.5px solid var(--accent);outline-offset:-1px;}
+.qc.sel{box-shadow:inset 0 0 0 2px #2e7d32;}
+.qc .ck{position:absolute;top:4px;left:4px;width:16px;height:16px;margin:0;z-index:1;}
+.sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.sgrid .sc{border:1px solid var(--line);border-radius:9px;overflow:hidden;cursor:pointer;background:var(--panel2);}
+.sgrid .sc:hover{border-color:var(--accent);}
+.sgrid canvas{width:100%;display:block;}
+.sgrid .sn{font-size:11.5px;font-weight:600;padding:4px 7px 5px;}
+.inkc{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);}
+.inkc input[type=color]{width:30px;height:24px;border:1px solid var(--line);border-radius:5px;padding:0;background:none;}
+@media(max-width:900px){body{overflow:auto;}.app{display:block;height:auto;}.side{border-right:none;overflow:visible;}.stage{height:62vh;}.tray{height:auto;max-height:70vh;}}
 </style>
 </head>
 <body>
-<header>
-  <h1>Halftone Studio</h1>
-  <p class="sub">Print-style halftone dot patterns — presets or your own image, many controls, batch artboards.</p>
-</header>
-<main>
-  <section class="panel controls">
+<div class="app">
+<aside class="side">
+  <div class="brand"><h1>Halftone Studio</h1><p class="sub">Print-style halftones · variations · stock production</p></div>
+  <nav class="tabs" id="tabs"><button data-t="design" class="on">Design</button><button data-t="style">Styles</button><button data-t="art">Artboard</button><button data-t="var">Variation</button><button data-t="coll">Collection</button><button data-t="prod">Production</button></nav>
+  <div class="pane on controls" data-p="design">
+
     <div>
       <label>Pattern</label>
       <select id="shapeSel">
@@ -118,34 +165,6 @@ input[type=text]{padding:7px 8px;border-radius:8px;border:1px solid var(--line);
         <div><label>Image fit</label><select id="imgFit"><option value="contain" selected>Contain (fit)</option><option value="cover">Cover (crop)</option><option value="stretch">Stretch (legacy)</option></select></div>
         <div><label>Padding <span class="val" id="padVal">0%</span></label><input type="range" id="imgPad" min="0" max="30" value="0"></div>
       </div>
-    </div>
-    <hr>
-    <div>
-      <label>Artboard / aspect ratio</label>
-      <select id="sizeSel">
-        <optgroup label="Aspect ratio">
-          <option value="r1:1">1:1 square</option><option value="r2:3">2:3 portrait</option><option value="r3:2">3:2 landscape</option>
-          <option value="r4:5">4:5 portrait</option><option value="r5:4">5:4 landscape</option><option value="r3:4">3:4 portrait</option>
-          <option value="r4:3">4:3 landscape</option><option value="r9:16">9:16 vertical</option><option value="r16:9">16:9 landscape</option>
-          <option value="r2:4">2:4 vertical</option><option value="r4:2">4:2 horizontal</option>
-        </optgroup>
-        <optgroup label="Classic canvases">
-          <option value="900,600" selected>Landscape (900×600)</option>
-          <option value="1080,1080">Square (1080×1080)</option>
-          <option value="1080,1350">Portrait (1080×1350)</option>
-          <option value="1080,1920">Story (1080×1920)</option>
-        </optgroup>
-        <option value="custom">Custom…</option>
-      </select>
-      <div class="row" id="customSize" style="display:none;margin-top:8px">
-        <input type="number" id="cw" placeholder="Width" value="900">
-        <input type="number" id="ch" placeholder="Height" value="600">
-        <button class="ghost" id="applySize">Set</button>
-      </div>
-      <label style="margin-top:8px">Export size (rendered at this size, never upscaled)</label>
-      <select id="expQ"></select>
-      <div class="row" id="qCustomRow" style="display:none;margin-top:6px"><input type="number" id="qW" value="5000" min="200" max="16384"><span class="note">px wide</span></div>
-      <p class="note" id="outInfo"></p>
     </div>
     <div>
       <label>Dot shape</label>
@@ -229,86 +248,151 @@ input[type=text]{padding:7px 8px;border-radius:8px;border:1px solid var(--line);
       <label class="checklabel" style="margin-left:auto"><input type="checkbox" id="transparentBg"> Transparent</label>
     </div>
     <button class="ghost" id="shuffle">🔀 Shuffle variation</button>
-    <div class="exports">
-      <button class="primary" id="expPNG">Export PNG</button>
-      <button class="ghost" id="expJPG">Export JPG</button>
-      <button class="ghost" id="expSVG">Export SVG</button>
+  </div>
+  <div class="pane" data-p="style">
+    <p class="note">Vintage, retro and print styles, built only from vector dots, so the SVG stays true vector. A style keeps your pattern / image and replaces the look. Click to apply.</p>
+    <div class="sgrid" id="styleGrid"></div>
+    <div class="step"><p class="sectitle">Print character</p>
+      <div><label>Worn / distressed <span class="val" id="distVal">0</span></label><input type="range" id="distress" min="0" max="80" value="0"></div>
+      <div><label>Grain (dot size jitter) <span class="val" id="grainVal">0</span></label><input type="range" id="grain" min="0" max="80" value="0"></div>
+      <div><label>Misregistration (multi-ink) <span class="val" id="misVal">0</span></label><input type="range" id="misreg" min="0" max="40" value="0"></div>
+    </div>
+    <div class="step"><p class="sectitle">Inks</p><div id="inkBox" class="row" style="flex-wrap:wrap"></div>
+      <div class="btns" style="margin-top:6px"><button class="ghost" id="inkAdd">+ Ink</button><button class="ghost" id="inkClear">Single ink</button></div></div>
+  </div>
+  <div class="pane" data-p="art">
+    <div>
+      <label>Artboard / aspect ratio</label>
+      <select id="sizeSel">
+        <optgroup label="Aspect ratio">
+          <option value="r1:1">1:1 square</option><option value="r2:3">2:3 portrait</option><option value="r3:2">3:2 landscape</option>
+          <option value="r4:5">4:5 portrait</option><option value="r5:4">5:4 landscape</option><option value="r3:4">3:4 portrait</option>
+          <option value="r4:3">4:3 landscape</option><option value="r9:16">9:16 vertical</option><option value="r16:9">16:9 landscape</option>
+          <option value="r2:4">2:4 vertical</option><option value="r4:2">4:2 horizontal</option>
+        </optgroup>
+        <optgroup label="Classic canvases">
+          <option value="900,600" selected>Landscape (900×600)</option>
+          <option value="1080,1080">Square (1080×1080)</option>
+          <option value="1080,1350">Portrait (1080×1350)</option>
+          <option value="1080,1920">Story (1080×1920)</option>
+        </optgroup>
+        <option value="custom">Custom…</option>
+      </select>
+      <div class="row" id="customSize" style="display:none;margin-top:8px">
+        <input type="number" id="cw" placeholder="Width" value="900">
+        <input type="number" id="ch" placeholder="Height" value="600">
+        <button class="ghost" id="applySize">Set</button>
+      </div>
+      <label style="margin-top:8px">Export size (rendered at this size, never upscaled)</label>
+      <select id="expQ"></select>
+      <div class="row" id="qCustomRow" style="display:none;margin-top:6px"><input type="number" id="qW" value="5000" min="200" max="16384"><span class="note">px wide</span></div>
+      <p class="note" id="outInfo"></p>
     </div>
     <p class="note">PSD isn't reliable to write from a browser. Export SVG, then open it in the free browser editor Photopea and save as .psd if a stock site needs one. CMYK look is a stylized print effect, not true colour-channel separation.</p>
-  </section>
+  </div>
+  <div class="pane vpanel" data-p="var" id="vpanel">
 
-  <section class="panel stage" id="stage">
-    <canvas id="hCanvas" width="900" height="600"></canvas>
-  </section>
-
-  <section class="panel vpanel" id="vpanel">
     <div><p class="sectitle">Seed &amp; master design</p>
       <div class="row" style="flex-wrap:wrap">
         <input type="text" id="mseed" style="width:130px" spellcheck="false" title="Master seed: same seed + same settings = same results">
         <button class="ghost" id="sgen">Generate seed</button><button class="ghost" id="scp">Copy seed</button>
         <label class="checklabel"><input type="checkbox" id="slk"> Lock seed</label>
-        <span style="flex:1"></span>
-        <button class="primary" id="saveMaster">Save master</button><button class="ghost" id="makeVar">Create variation</button><button class="ghost" id="resetMaster">Reset master</button>
+        </div>
+      <div class="btns" style="margin-top:6px"><button class="primary" id="saveMaster">Save master</button><button class="ghost" id="makeVar">Create variation</button><button class="ghost" id="resetMaster">Reset master</button>
       </div>
       <p class="note" id="masterInfo">No master saved yet: the current editor design is used as the master.</p>
     </div>
-    <div class="row" style="flex-wrap:wrap;align-items:flex-end">
-      <div style="width:170px"><label>Variation amount</label><select id="vAmount"><option value="0">0 · almost identical</option><option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="75">75</option><option value="100">100 · strong</option></select></div>
-      <div style="width:190px"><label>Variation mode (batch)</label><select id="vMode"><option value="similar">Make similar</option><option value="different">Make different</option><option value="denser">Make denser</option><option value="sparser">Make sparser</option><option value="softer">Make softer</option><option value="sharper">Make sharper</option><option value="larger">Make larger dots</option><option value="smaller">Make smaller dots</option><option value="organic">Make more organic</option><option value="geometric">Make more geometric</option><option value="minimal">Make more minimal</option><option value="complex">Make more complex</option></select></div>
+    <div class="g2">
+      <div><label>Variation amount</label><select id="vAmount"><option value="0">0 · almost identical</option><option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="75">75</option><option value="100">100 · strong</option></select></div>
+      <div><label>Variation mode (batch)</label><select id="vMode"><option value="similar">Make similar</option><option value="different">Make different</option><option value="denser">Make denser</option><option value="sparser">Make sparser</option><option value="softer">Make softer</option><option value="sharper">Make sharper</option><option value="larger">Make larger dots</option><option value="smaller">Make smaller dots</option><option value="organic">Make more organic</option><option value="geometric">Make more geometric</option><option value="minimal">Make more minimal</option><option value="complex">Make more complex</option></select></div>
     </div>
     <div><label>Apply to the editor</label>
       <div class="btns" id="modeBtns"></div></div>
-    <div class="g2" style="grid-template-columns:1fr 1fr">
+    <div class="g1">
       <div><label>Locks (never changed by variations)</label><div class="checks" id="lockBox"></div></div>
       <div><label>Variation matrix (allowed to vary)</label><div class="checks" id="matrixBox"></div></div>
     </div>
     <div class="btns"><button class="ghost" id="saveDNA">Save DNA</button><button class="ghost" id="loadDNA">Load DNA</button><button class="ghost" id="copyDNA">Copy DNA</button><input type="file" id="dnaFile" accept=".json,application/json" style="display:none"></div>
-  </section>
+  </div>
+  <div class="pane batch" data-p="coll">
 
-  <section class="panel batch">
-    <div class="row" style="flex-wrap:wrap;align-items:flex-end">
-      <div style="width:110px"><label>Batch size</label>
+    <div class="g2">
+      <div><label>Batch size</label>
         <select id="batchCount"><option>4</option><option>6</option><option>9</option><option selected>12</option><option>24</option><option>50</option><option>100</option></select>
       </div>
-      <div style="width:170px"><label>Source</label><select id="batchSrc"><option value="master" selected>From master</option><option value="random">Random collection</option></select></div>
-      <div style="width:170px"><label>Uniqueness</label><select id="uniq"><option value="conservative">Conservative</option><option value="balanced" selected>Balanced</option><option value="strict">Strict</option><option value="extreme">Extreme</option></select></div>
+      <div><label>Source</label><select id="batchSrc"><option value="master" selected>From master</option><option value="random">Random collection</option></select></div>
+      <div><label>Uniqueness</label><select id="uniq"><option value="conservative">Conservative</option><option value="balanced" selected>Balanced</option><option value="strict">Strict</option><option value="extreme">Extreme</option></select></div>
+    </div>
+    <div class="btns">
       <button class="primary" id="genBatch">Auto-generate artboards</button>
       <button class="ghost" id="queueColl">Send collection to production queue</button>
     </div>
     <p class="note">From master: related variations of the saved master (same pattern, dot and colour language). Random collection: seeded random patterns. Near-duplicates are rejected by DNA similarity. Click a thumbnail to load it into the editor, or download it directly.</p>
-    <div class="stats" id="stats"></div>
-    <div class="thumbs" id="thumbs"></div>
-  </section>
-
-  <section class="panel prod" id="prod">
-    <p class="sectitle">Production · import → halftone → colour → export → ZIP</p>
-    <div class="drop" id="pDrop">Import many files at once (PNG, JPG, WEBP, SVG) — drag &amp; drop or click. Each file becomes one queued asset.<input type="file" id="pFiles" multiple accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml" style="display:none"></div>
-    <div class="pgrid">
-      <div><label>Workflow / export mode</label><select id="wf"><option value="single">Individual asset (current design)</option><option value="bundle">Bundle (related variations of master)</option><option value="batch" selected>Batch input (imported files)</option><option value="both">Batch + bundle</option></select></div>
-      <div><label>Bundle size</label><select id="bSize"><option>12</option><option selected>24</option><option>50</option><option>100</option></select></div>
-      <div><label>Batch variation</label><select id="bVar"><option value="same">Same settings</option><option value="master" selected>Master variation</option><option value="random">Random controlled</option></select></div>
-      <div><label>Colour treatment</label><select id="cMode"><option value="single" selected>Single colour</option><option value="duotone">Duotone</option><option value="tritone">Tri-tone</option><option value="cmyk">CMYK</option><option value="palette">Custom palette</option></select></div>
-      <div><label>Collection name</label><input type="text" id="pColl" value="Halftone_Collection" spellcheck="false"></div>
-      <div><label>Asset prefix</label><input type="text" id="pPrefix" value="halftone" spellcheck="false"></div>
+  </div>
+  <div class="pane prod" data-p="prod" id="prod">
+    <div class="step"><p class="sectitle"><b>1</b> Add assets</p>
+      <div class="drop" id="pDrop">Import many images at once (PNG, JPG, WEBP, SVG) — drop or click. Each file becomes one asset in the queue below the preview.<input type="file" id="pFiles" multiple accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml" style="display:none"></div>
+      <div class="g2" style="margin-top:8px">
+        <div><label>Or generate</label><select id="wf"><option value="single">Current design (1 asset)</option><option value="bundle">Bundle from master</option><option value="batch" selected>Imported files only</option><option value="both">Imported files + bundle</option></select></div>
+        <div><label>Bundle size</label><select id="bSize"><option>12</option><option selected>24</option><option>50</option><option>100</option></select></div>
+      </div>
+      <div class="btns" style="margin-top:6px"><button class="primary" id="qAdd">Add to queue</button><button class="ghost" id="qEmpty">Clear queue</button></div>
     </div>
-    <div><label>Batch colour — tick several to create colour versions of every asset</label><div class="checks" id="colorBox"></div>
-      <div class="row" style="margin-top:6px;flex-wrap:wrap"><span class="note">Custom</span><input type="color" id="cCustom" value="#e4572e" style="width:38px;height:28px;border:1px solid var(--line);border-radius:6px;padding:0">
-        <span class="note">Palette (first = broad light ink, last = shadows)</span><input type="text" id="cPalette" value="#f2c14e,#e4572e,#1d3557" style="width:210px" spellcheck="false"></div></div>
-    <div class="row" style="flex-wrap:wrap;gap:14px"><span class="note">Formats</span>
-      <label class="checklabel"><input type="checkbox" id="fPNG" checked> PNG</label><label class="checklabel"><input type="checkbox" id="fJPG"> JPG</label><label class="checklabel"><input type="checkbox" id="fSVG"> SVG</label>
-      <label class="checklabel"><input type="checkbox" id="pRatio"> Ratio in file names</label></div>
-    <div class="btns">
-      <button class="primary" id="qAdd">Add to queue</button><button class="primary" id="qStart">Start</button><button class="ghost" id="qPause">Pause</button><button class="ghost" id="qCancel">Cancel</button>
-      <button class="ghost" id="qClear">Clear completed</button><button class="ghost" id="qRetry">Retry failed</button><button class="ghost" id="qEmpty">Clear queue</button></div>
-    <div class="prog"><div id="qBar"></div></div>
-    <p class="note" id="qInfo">Queue empty. Import files, or pick a workflow and press “Add to queue”.</p>
-    <div class="btns"><span class="note" style="align-self:center">Download</span>
-      <button class="ghost" id="zPNG">PNG ZIP</button><button class="ghost" id="zJPG">JPG ZIP</button><button class="ghost" id="zSVG">SVG ZIP</button><button class="ghost" id="zAll">All formats ZIP</button>
-      <button class="primary" id="zReady">Ready-to-upload package</button></div>
-    <p class="note">Settings (artboard, export size, colours, formats, variation) are captured when a run starts. Cancel keeps every finished file. “Ready package” queues the chosen workflow if the queue is empty, processes it, then downloads Collection/PNG · JPG · SVG · Preview · metadata.</p>
-    <div class="qgrid" id="qGrid"></div>
-  </section>
-</main>
+    <div class="step"><p class="sectitle"><b>2</b> Look</p>
+      <div class="g2">
+        <div><label>Batch variation</label><select id="bVar"><option value="same">Same settings</option><option value="master" selected>Master variation</option><option value="random">Random controlled</option></select></div>
+        <div><label>Colour treatment</label><select id="cMode"><option value="single" selected>Single colour</option><option value="duotone">Duotone</option><option value="tritone">Tri-tone</option><option value="cmyk">CMYK</option><option value="palette">Custom palette</option></select></div>
+      </div>
+      <label style="margin-top:8px">Batch colour (tick several = colour versions)</label><div class="checks" id="colorBox"></div>
+      <div class="row" style="margin-top:6px;flex-wrap:wrap"><span class="note">Custom</span><input type="color" id="cCustom" value="#e4572e" style="width:34px;height:26px;border:1px solid var(--line);border-radius:6px;padding:0">
+        <input type="text" id="cPalette" value="#f2c14e,#e4572e,#1d3557" style="flex:1;min-width:150px" spellcheck="false" title="Custom palette: first = broad light ink, last = shadows"></div>
+      <label style="margin-top:8px">Background in files</label><select id="bgOut"><option value="design" selected>As designed</option><option value="transparent">Transparent (PNG / SVG)</option><option value="background">With background</option><option value="both">Both: transparent + background</option></select>
+    </div>
+    <div class="step"><p class="sectitle"><b>3</b> Output</p>
+      <div class="row" style="flex-wrap:wrap;gap:12px">
+        <label class="checklabel"><input type="checkbox" id="fPNG" checked> PNG</label><label class="checklabel"><input type="checkbox" id="fJPG"> JPG</label><label class="checklabel"><input type="checkbox" id="fSVG"> SVG</label>
+        <label class="checklabel"><input type="checkbox" id="pRatio"> Ratio in names</label></div>
+      <div class="g2" style="margin-top:6px">
+        <div><label>Collection name</label><input type="text" id="pColl" value="Halftone_Collection" spellcheck="false"></div>
+        <div><label>Asset prefix</label><input type="text" id="pPrefix" value="halftone" spellcheck="false"></div>
+      </div>
+      <p class="note" id="prodOut"></p>
+    </div>
+    <div class="step"><p class="sectitle"><b>4</b> Run</p>
+      <div class="btns"><button class="primary" id="qStart">Start</button><button class="ghost" id="qPause">Pause</button><button class="ghost" id="qCancel">Cancel</button><button class="ghost" id="qRetry">Retry failed</button><button class="ghost" id="qClear">Clear completed</button></div>
+      <div class="prog" style="margin-top:8px"><div id="qBar"></div></div>
+      <p class="note" id="qInfo">Queue empty.</p>
+    </div>
+    <div class="step"><p class="sectitle"><b>5</b> Download</p>
+      <div class="btns"><button class="ghost" id="zPNG">PNG ZIP</button><button class="ghost" id="zJPG">JPG ZIP</button><button class="ghost" id="zSVG">SVG ZIP</button><button class="ghost" id="zAll">All formats ZIP</button></div>
+      <div class="g2" style="margin-top:8px">
+        <div><label>Split into bundles of</label><select id="zSplit"><option value="0" selected>No split</option><option>5</option><option>10</option><option>12</option><option>24</option><option>50</option></select></div>
+        <div><label>Selected assets</label><div class="btns"><button class="ghost" id="selAll">All</button><button class="ghost" id="selNone">None</button></div></div>
+      </div>
+      <div class="btns" style="margin-top:6px"><button class="ghost" id="zSel">Selected → one bundle ZIP</button><button class="primary" id="zReady">Ready-to-upload package</button></div>
+      <p class="note">Click any asset in the queue to open it in the preview and edit it; “Save to asset” re-queues it with your changes. Tick the box on assets (e.g. 10 images) to download them as one bundle. Cancel keeps finished files.</p>
+    </div>
+  </div>
+</aside>
+<section class="work">
+  <div class="toolbar">
+    <div class="seg"><button id="pvDesign" class="on">Preview</button><button id="pvCompare">Transparent | Background</button></div>
+    <span class="edittag" id="editTag" hidden>Editing <b id="editName"></b><button class="primary" id="editSave">Save to asset</button><button class="ghost" id="editClose">Close</button></span>
+    <span style="flex:1"></span>
+    <span class="note" id="outMini"></span>
+    <button class="primary" id="expPNG">Export PNG</button><button class="ghost" id="expJPG">Export JPG</button><button class="ghost" id="expSVG">Export SVG</button>
+  </div>
+  <div class="stage" id="stage">
+    <canvas id="hCanvas" width="900" height="600"></canvas>
+    <div class="cmp" id="cmp" hidden><figure><canvas id="cmpA" class="checker"></canvas><figcaption>Transparent (PNG / SVG)</figcaption></figure><figure><canvas id="cmpB"></canvas><figcaption>With background</figcaption></figure></div>
+  </div>
+  <div class="tray">
+    <nav class="tabs tt" id="trayTabs"><button data-t="queue" class="on">Queue <span id="qCount"></span></button><button data-t="colls">Collection</button><span style="flex:1"></span><span class="note" id="qMini"></span></nav>
+    <div class="tpane on" data-p="queue"><div class="qgrid" id="qGrid"></div><p class="note" id="qEmptyNote">Nothing queued yet. Production tab → import images, or add a bundle.</p></div>
+    <div class="tpane" data-p="colls"><div class="stats" id="stats"></div><div class="thumbs" id="thumbs"></div></div>
+  </div>
+</section>
+</div>
 <div class="toast" id="toast"></div>
 <script>
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -351,7 +435,7 @@ const DNA0={v:1,pattern:'wave',dotShape:'circle',cellSize:10,dotWidth:1,dotHeigh
   phase:0,offsetX:0,offsetY:0,invert:false,color:'#1c1b1a',background:'#f2efe9',transparent:false,cmyk:false,
   scale:1,rotation:0,frequency:1,amplitude:.5,warp:0,warpScale:.5,warpDirection:'both',noise:0,noiseScale:.5,fade:0,edgeSoftness:1,
   direction:'uniform',directionAmount:.8,symmetry:0,radiality:0,spacingVariation:0,spacingMode:'uniform',sizeVariation:0,sizeMode:'uniform',positionVariation:0,seed:1,
-  imgFit:'contain',imgPad:0,colorSource:false,inks:null};
+  imgFit:'contain',imgPad:0,colorSource:false,inks:null,distress:0,grain:0,misreg:0};
 const SIZE_MODES={uniform:0,subtle:.12,medium:.24,strong:.4,organic:.32},SPACE_MODES={uniform:0,subtle:.08,medium:.16,organic:.26};
 const SHAPES=['circle','square','diamond','line','ellipse','roundsquare','triangle','hexagon','cross','dash','capsule'];
 const normDNA=d=>{const o={...DNA0,...(d||{})};if(!SHAPES.includes(o.dotShape))o.dotShape='circle';return o};
@@ -486,10 +570,17 @@ const CMYK=[{c:'#00AEEF',a:15},{c:'#EC008C',a:75},{c:'#FFF200',a:0},{c:'#1c1b1a'
 // one dot iterator shared by canvas and SVG output
 function eachRenderedDot(d,w,h,img,cb){
   const field=makeFieldDNA(d,w,h,img),sa=Math.sqrt(d.aspectRatio||1),sx=(d.dotWidth||1)*sa,sy=(d.dotHeight||1)/sa;
-  const pass=(angle,color,g=1)=>forEachDotDNA(w,h,d,angle,(x,y,z)=>{let t=field(x,y);if(g!==1)t=Math.pow(t,g);cb(x,y,(d.cellSize/2)*t*z,angle,color,sx,sy)});
-  if(d.cmyk)CMYK.forEach(ch=>pass(ch.a,ch.c));
-  else if(d.inks&&d.inks.length)d.inks.forEach(k=>pass(d.angle+k.a,k.c,k.g));    // duotone / tri-tone / palette screens
-  else if(d.colorSource&&field.rgb)forEachDotDNA(w,h,d,d.angle,(x,y,z)=>cb(x,y,(d.cellSize/2)*field(x,y)*z,d.angle,field.rgb(x,y),sx,sy)); // keep original colours
+  // print character (all vector-safe: dots are only resized, removed or shifted)
+  const gr=d.grain||0,ds=d.distress||0,mr=d.misreg||0,sd=(d.seed|0)+77,m=Math.min(w,h),df=5/m,dh=d.cellSize*.9;
+  const out=(ds>0||gr>0)?(x,y,r,a,c)=>{
+      if(ds>0){const v=.72*fbm(x*df,y*df,sd)+.28*hash01(Math.round(x/dh),Math.round(y/dh),sd+3),t=ds*.8;if(v<t)return;r*=smooth(t,t+.1,v)}
+      if(gr>0)r*=1+(hash01(Math.round(x*3),Math.round(y*3),sd+9)-.5)*gr;
+      cb(x,y,r,a,c,sx,sy)}:(x,y,r,a,c)=>cb(x,y,r,a,c,sx,sy);
+  const pass=(angle,color,g=1,k=-1)=>{const ox=k>=0&&mr?mr*Math.cos(k*2.4+1):0,oy=k>=0&&mr?mr*Math.sin(k*2.4+1):0;
+    forEachDotDNA(w,h,d,angle,(x,y,z)=>{let t=field(x,y);if(g!==1)t=Math.pow(t,g);out(x+ox,y+oy,(d.cellSize/2)*t*z,angle,color)})};
+  if(d.cmyk)CMYK.forEach((ch,i)=>pass(ch.a,ch.c,1,i));
+  else if(d.inks&&d.inks.length)d.inks.forEach((k,i)=>pass(d.angle+k.a,k.c,k.g,i));    // duotone / tri-tone / palette screens
+  else if(d.colorSource&&field.rgb)forEachDotDNA(w,h,d,d.angle,(x,y,z)=>out(x,y,(d.cellSize/2)*field(x,y)*z,d.angle,field.rgb(x,y))); // keep original colours
   else pass(d.angle,d.color)}
 // render a DNA into any canvas; the design is laid out in artboard units (w, h) and scaled to the canvas
 function renderDNA(canvas,d,img,w=canvas.width,h=canvas.height){
@@ -535,7 +626,9 @@ const BIND=[
   ['symSel','symmetry',v=>+v,v=>String(v)],['radial','radiality',v=>v/100,v=>Math.round(v*100),'radVal',v=>Math.round(v*100)],
   ['contrast2','contrast',v=>v/100,v=>Math.round(v*100),'conVal',f2],['soft','edgeSoftness',v=>v/100,v=>Math.round(v*100),'softVal',v=>Math.round(v*100)],
   ['noise','noise',v=>v/100,v=>Math.round(v*100),'noiseVal',v=>Math.round(v*100)],['noiseScale','noiseScale',v=>v/100,v=>Math.round(v*100),'noiseSVal',v=>Math.round(v*100)],
-  ['fade','fade',v=>v/100,v=>Math.round(v*100),'fadeVal',v=>Math.round(v*100)]];
+  ['fade','fade',v=>v/100,v=>Math.round(v*100),'fadeVal',v=>Math.round(v*100)],
+  ['distress','distress',v=>v/100,v=>Math.round(v*100),'distVal',v=>Math.round(v*100)],['grain','grain',v=>v/100,v=>Math.round(v*100),'grainVal',v=>Math.round(v*100)],
+  ['misreg','misreg',v=>v/10,v=>Math.round(v*10),'misVal',v=>(+v).toFixed(1)]];
 const ROT_PRESETS=[0,15,22.5,30,45,60,90];
 function syncUI(){
   for(const[id,k,,toUI,lid,fmt]of BIND){const el=$(id);if(!el)continue;if(el.type==='checkbox')el.checked=!!CUR[k];else el.value=toUI(CUR[k]);if(lid)$(lid).textContent=fmt(CUR[k])}
@@ -547,7 +640,10 @@ function currentOpts(){
   return { pattern:CUR.pattern, cell:CUR.cellSize, gamma:CUR.gamma, angle:CUR.angle, invert:CUR.invert, dotShape:CUR.dotShape, dot:CUR.color, bg:CUR.background,
     transparent:CUR.transparent, cmyk:CUR.cmyk, phase:CUR.phase, img:srcCanvas, dna:CUR };
 }
-function renderMain(){ renderDNA(hCanvas,CUR,srcCanvas); }
+let CMP=false;
+function renderMain(){ renderDNA(hCanvas,CUR,srcCanvas); hCanvas.classList.toggle('checker',!!CUR.transparent);
+  if(CMP){const w=hCanvas.width,h=hCanvas.height,k=Math.min(1,760/Math.max(w,h));for(const[id,t]of[['cmpA',true],['cmpB',false]]){const c=$(id);c.width=Math.round(w*k);c.height=Math.round(h*k);renderDNA(c,{...CUR,transparent:t},srcCanvas,w,h)}}
+  if(typeof drawInks==='function')drawInks(); }
 for(const[id,k,toD,,lid,fmt]of BIND){const el=$(id);if(!el)continue;el.addEventListener('input',()=>{CUR[k]=el.type==='checkbox'?el.checked:toD(el.value);if(lid)$(lid).textContent=fmt(CUR[k]);
   if(k==='sizeMode')CUR.sizeVariation=SIZE_MODES[CUR.sizeMode];if(k==='spacingMode')CUR.spacingVariation=SPACE_MODES[CUR.spacingMode];if(k==='density')syncUI();renderMain()})}
 $('densPreset').onchange=e=>{CUR.density=+e.target.value;syncUI();renderMain()};
@@ -609,7 +705,8 @@ function outDims(){const w=hCanvas.width,h=hCanvas.height,v=$('expQ').value,e=ra
   return[W,H,k<1]}
 const ratioTok=()=>{const e=ratioOf();if(e)return e[0].replace(':','x');const[W,H]=outDims();return W+'x'+H};
 function updOut(){const[W,H,cap]=outDims(),e=ratioOf();$('qCustomRow').style.display=$('expQ').value==='custom'?'flex':'none';
-  $('outInfo').textContent=`Design canvas ${hCanvas.width}×${hCanvas.height} · output ${W}×${H} px${e?' ('+e[0]+')':''}${cap?' · reduced to the browser canvas limit':''}`}
+  $('outInfo').textContent=`Design canvas ${hCanvas.width}×${hCanvas.height} · output ${W}×${H} px${e?' ('+e[0]+')':''}${cap?' · reduced to the browser canvas limit':''}`;
+  $('outMini').textContent=`${W}×${H}${e?' · '+e[0]:''}`;$('prodOut').textContent=`Every file: ${W}×${H} px${e?' ('+e[0]+')':''} · change it in the Artboard tab.`}
 function setCanvas(w,h){hCanvas.width=w;hCanvas.height=h;fillQual();renderMain()}
 sizeSel.onchange=()=>{
   if(sizeSel.value==='custom'){ customSize.style.display='flex'; return; }
@@ -779,18 +876,38 @@ function dotSvgMarkup(x,y,r,shape,angleDeg,color,sx=1,sy=1){
   if(shape==='line'){const hh=Math.max(1,r*sy*0.28);return `<rect x="${(-r*sx).toFixed(2)}" y="${(-hh).toFixed(2)}" width="${(r*sx*2).toFixed(2)}" height="${(hh*2).toFixed(2)}" fill="${color}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})${rot}"/>`}
   return `<use href="#u-${shape}" fill="${color}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})${rot} scale(${(r*sx).toFixed(3)} ${(r*sy).toFixed(3)})"/>`;
 }
-// SVG: vector dots in design units (viewBox) sized to the output pixels (width/height), so it follows the artboard exactly.
+// TRUE-VECTOR SVG: every dot is written as explicit path geometry (no <use>/<defs>/symbols, which many design apps and
+// stock validators ignore), one filled <path> per ink with an explicit fill. Same outlines as the canvas renderer.
+const UNIT_GEO=(()=>{const P=pts=>[['M',...pts[0]],...pts.slice(1).map(p=>['L',...p]),['Z']];
+  const RR=(x,y,w,h,q)=>[['M',x+q,y],['L',x+w-q,y],['A',q,q,x+w,y+q],['L',x+w,y+h-q],['A',q,q,x+w-q,y+h],['L',x+q,y+h],['A',q,q,x,y+h-q],['L',x,y+q],['A',q,q,x+q,y],['Z']],t=.34;
+  return{circle:[['M',1,0],['A',1,1,-1,0],['A',1,1,1,0],['Z']],ellipse:[['M',1,0],['A',1,.62,-1,0],['A',1,.62,1,0],['Z']],
+    square:P([[-1,-1],[1,-1],[1,1],[-1,1]]),roundsquare:RR(-1,-1,2,2,.42),diamond:P([[0,-1],[1,0],[0,1],[-1,0]]),triangle:P([[0,-1.15],[1,.62],[-1,.62]]),
+    hexagon:P([0,1,2,3,4,5].map(k=>[Math.cos(k*Math.PI/3),Math.sin(k*Math.PI/3)])),
+    cross:P([[-t,-1],[t,-1],[t,-t],[1,-t],[1,t],[t,t],[t,1],[-t,1],[-t,t],[-1,t],[-1,-t],[-t,-t]]),
+    dash:RR(-.85,-.27,1.7,.54,.27),capsule:RR(-1,-.5,2,1,.5)}})();
+const n2=v=>{const r=Math.round(v*100)/100;return r===0?'0':String(r)};
+// outline of one dot in design units (all outlines clockwise, so overlapping dots of one ink merge cleanly)
+function dotPath(x,y,r,shape,angleDeg,sx=1,sy=1){
+  if(r<=0.6)return'';
+  const th=(shape!=='circle'||sx!==sy)?angleDeg*Math.PI/180:0,c=Math.cos(th),s=Math.sin(th);let geo,a=r*sx,b=r*sy;
+  if(shape==='line'){const hh=Math.max(1,r*sy*.28),ww=r*sx;geo=[['M',-ww,-hh],['L',ww,-hh],['L',ww,hh],['L',-ww,hh],['Z']];a=b=1}
+  else if(shape==='square'&&sx===1&&sy===1)geo=UNIT_GEO.square;else geo=UNIT_GEO[shape]||UNIT_GEO.circle;
+  const X=(u,v)=>n2(x+c*u*a-s*v*b)+' '+n2(y+s*u*a+c*v*b),rot=n2(th*180/Math.PI);let o='';
+  for(const g of geo){if(g[0]==='Z')o+='Z';else if(g[0]==='A')o+=`A${n2(g[1]*a)} ${n2(g[2]*b)} ${rot} 0 1 ${X(g[3],g[4])}`;else o+=g[0]+X(g[1],g[2])}
+  return o}
+// legacy per-element markup (kept for compatibility; exports use dotPath)
+function dotSvgMarkup(x,y,r,shape,angleDeg,color,sx=1,sy=1){const p=dotPath(x,y,r,shape,angleDeg,sx,sy);return p?`<path fill="${color}" d="${p}"/>`:''}
 function svgString(d,img,w,h,OW=w,OH=h){
-  const parts={},flat=d.colorSource&&!d.cmyk&&!(d.inks&&d.inks.length),list=[];
-  eachRenderedDot(d,w,h,img,(x,y,r,angle,color,sx,sy)=>{const m=dotSvgMarkup(x,y,r,d.dotShape,angle,color,sx,sy);if(flat){if(m)list.push(m)}else(parts[color+'|'+angle]=parts[color+'|'+angle]||[]).push(m)});
+  const parts=new Map();
+  eachRenderedDot(d,w,h,img,(x,y,r,angle,color,sx,sy)=>{const p=dotPath(x,y,r,d.dotShape,angle,sx,sy);if(!p)return;const k=color+'|'+angle;let a=parts.get(k);if(!a)parts.set(k,a=[]);a.push(p)});
+  const path=(k,fill)=>{const a=parts.get(k);return a&&a.length?`<path fill="${fill}" d="${a.join('')}"/>`:''};
   let body='';
-  if(d.cmyk) CMYK.forEach(ch=>{ body+=`<g style="mix-blend-mode:multiply" opacity="0.82">${(parts[ch.c+'|'+ch.a]||[]).join('')}</g>`; });
-  else if(d.inks&&d.inks.length) d.inks.forEach(k=>{ body+=`<g fill="${k.c}">${(parts[k.c+'|'+(d.angle+k.a)]||[]).join('')}</g>`; });
-  else if(flat) body=list.join('');
-  else body=`<g fill="${d.color}">${(parts[d.color+'|'+d.angle]||[]).join('')}</g>`;
-  const defs=UNIT_SVG[d.dotShape]&&!(d.dotShape==='line')?`<defs><g id="u-${d.dotShape}">${UNIT_SVG[d.dotShape]}</g></defs>`:'';
-  const bg=d.transparent?'':`<rect width="100%" height="100%" fill="${d.background}"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${OW}" height="${OH}">${defs}${bg}${body}</svg>`}
+  if(d.cmyk) CMYK.forEach(ch=>{ body+=`<g opacity="0.82" style="mix-blend-mode:multiply">${path(ch.c+'|'+ch.a,ch.c)}</g>`; });
+  else if(d.inks&&d.inks.length) d.inks.forEach(k=>{ body+=path(k.c+'|'+(d.angle+k.a),k.c); });
+  else if(d.colorSource) for(const k of parts.keys())body+=path(k,k.split('|')[0]);
+  else body=path(d.color+'|'+d.angle,d.color);
+  const bg=d.transparent?'':`<rect x="0" y="0" width="${w}" height="${h}" fill="${d.background}"/>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 ${w} ${h}" width="${OW}" height="${OH}"><title>Halftone</title>${bg}${body}</svg>`}
 $('expSVG').onclick=()=>exportMain('svg');
 
 // ---------- BATCH GENERATION ----------
@@ -853,7 +970,8 @@ function shiftHue(hex,deg,L){let[r,g,b]=hex2rgb(hex).map(v=>v/255);const mx=Math
 const palette=()=>($('cPalette').value.match(/#?[0-9a-f]{6}\b/gi)||[]).slice(0,4).map(c=>c[0]==='#'?c:'#'+c);
 function colorVersions(){const m=$('cMode').value;if(m==='cmyk')return['cmyk'];if(m==='palette')return['palette'];
   const v=[...document.querySelectorAll('#colorBox input:checked')].map(i=>i.dataset.c);return v.length?v:['master']}
-function applyColor(base,key,S,hasImg){const d={...base,colorSource:false,inks:null};
+function applyColor(base,key,S,hasImg){const keep=key==='master'&&S.cMode==='single',d={...base,colorSource:keep&&base.colorSource&&hasImg,inks:keep&&base.inks?base.inks.map(k=>({...k})):null};
+  if(keep)return d;
   if(key==='cmyk'){d.cmyk=true;return d}
   if(key==='original'&&hasImg){d.cmyk=false;d.colorSource=true;return d}
   if(key==='palette'){const p=S.palette.length?S.palette:['#1c1b1a'];d.cmyk=false;d.color=p[p.length-1];
@@ -870,7 +988,7 @@ const Q=[];let QID=0,RUN=null;const CANCEL={};
 const fmtsSel=()=>['png','jpg','svg'].filter(f=>$('f'+f.toUpperCase()).checked);
 function snapshot(){const[OW,OH]=outDims();return{master:masterDNA(),bVar:$('bVar').value,amt:+$('vAmount').value/100,mode:$('vMode').value,L:lockedKeys(),M:matrixGroups(),
   versions:colorVersions(),cMode:$('cMode').value,custom:$('cCustom').value,palette:palette(),fmts:fmtsSel(),DW:hCanvas.width,DH:hCanvas.height,OW,OH,
-  ratio:ratioTok(),prefix:slug($('pPrefix').value)||'halftone',ratioNames:$('pRatio').checked,fit:CUR.imgFit,pad:CUR.imgPad,seed:MSEED}}
+  ratio:ratioTok(),prefix:slug($('pPrefix').value)||'halftone',ratioNames:$('pRatio').checked,fit:CUR.imgFit,pad:CUR.imgPad,seed:MSEED,bgOut:$('bgOut').value}}
 const IMG_OK=/\.(png|jpe?g|webp|svg)$/i;
 function addFiles(list){let n=0,skip=0;for(const f of list){if(!IMG_OK.test(f.name)&&!/^image\/(png|jpeg|webp|svg\+xml)$/.test(f.type)){skip++;continue}
     const base=slug(f.name.replace(/\.[^.]+$/,''))||'image';Q.push({id:++QID,kind:'file',file:f,base,status:'queued',out:[]});n++}
@@ -897,7 +1015,7 @@ $('queueColl').onclick=()=>{if(!LASTACC.length)return toast('Generate a collecti
 function stemFor(it,key,S){const multi=S.versions.length>1,tok=key==='master'?'master':key;
   if(it.kind==='file'){const p=[it.base,multi?tok:'halftone'];if(S.ratioNames)p.push(S.ratio);return p.join('-')}
   const p=[S.prefix];if(multi)p.push(tok);if(S.ratioNames)p.push(S.ratio);p.push(String(it.no).padStart(3,'0'));return p.join('-')}
-function itemDNA(it,S){if(it.kind==='design')return{...it.dna};
+function itemDNA(it,S){if(it.over)return{...it.over};if(it.kind==='design')return{...it.dna};
   const base={...S.master,imgFit:S.fit,imgPad:S.pad};
   if(S.bVar==='same')return base;
   const r=rngOf(S.seed,'file',S.bVar,it.base,it.file.size);   // deterministic per file (name + size) for a given seed
@@ -908,12 +1026,14 @@ async function processItem(it,S){it.status='processing';it.err='';it.out=[];pain
   try{
     if(it.kind==='file'){img=await loadSource(it.file,1600);own=true}else img=it.img||null;
     const base=itemDNA(it,S);it.dnaUsed=base;
-    for(const key of S.versions){
-      const d=applyColor(base,key,S,!!img),stem=stemFor(it,key,S);
-      for(const fmt of S.fmts){
+    for(const key of it.over?['master']:S.versions){   // an edited asset renders exactly as edited (its own colours)
+      const d=it.over?{...base}:applyColor(base,key,S,!!img),stem=stemFor(it,key,S);
+      // background variants: as designed / transparent / with background / both (JPG always has a background)
+      const bgv=S.bgOut==='both'?[['Transparent',true],['Background',false]]:S.bgOut==='transparent'?[['',true]]:S.bgOut==='background'?[['',false]]:[['',!!d.transparent]];
+      for(const fmt of S.fmts)for(const[sub,tr]of fmt==='jpg'?[['',false]]:bgv){
         if(RUN.cancel)throw CANCEL;while(RUN.pause&&!RUN.cancel)await sleep(150);if(RUN.cancel)throw CANCEL;
-        const blob=fmt==='svg'?new Blob([svgString(d,img,S.DW,S.DH,S.OW,S.OH)],{type:'image/svg+xml'}):await rasterBlob(d,img,S.DW,S.DH,S.OW,S.OH,fmt);
-        it.out.push({fmt,stem,blob,w:S.OW,h:S.OH,color:key,src:it.kind==='file'?it.file.name:it.src});await sleep(0)}
+        const dv={...d,transparent:tr},blob=fmt==='svg'?new Blob([svgString(dv,img,S.DW,S.DH,S.OW,S.OH)],{type:'image/svg+xml'}):await rasterBlob(dv,img,S.DW,S.DH,S.OW,S.OH,fmt);
+        it.out.push({fmt,sub,stem,blob,w:S.OW,h:S.OH,color:key,bg:fmt==='jpg'||!tr?d.background:'transparent',src:it.kind==='file'?it.file.name:it.src});await sleep(0)}
       if(!it.thumb){const t=document.createElement('canvas'),k=Math.min(1,150/Math.max(S.DW,S.DH));t.width=Math.round(S.DW*k*1.6);t.height=Math.round(S.DH*k*1.6);renderDNA(t,d,img,S.DW,S.DH);it.thumb=t}}
     it.status='done'}
   catch(e){if(e===CANCEL){it.status='queued';it.out=[];it.thumb=null}else{it.status='error';it.err=(e&&e.message)||String(e);it.out=[]}}
@@ -928,7 +1048,8 @@ async function runQueue(){
     RUN=null;updCtl();updProg(true)})();
   return run.p}
 function counts(){const c={queued:0,processing:0,done:0,error:0};for(const i of Q)c[i.status]++;return c}
-function updProg(end){const c=counts(),t=Q.length,fin=c.done+c.error;$('qBar').style.width=t?(fin/t*100)+'%':'0';
+function updProg(end){const c=counts(),t=Q.length,fin=c.done+c.error;$('qEmptyNote').style.display=t?'none':'';$('qCount').textContent=t?`(${t})`:'';
+  const sel=Q.filter(i=>i.sel).length;$('qMini').textContent=t?`${fin} / ${t} done${c.error?` · ${c.error} failed`:''}${sel?` · ${sel} selected`:''}${RUN?(RUN.pause?' · paused':' · processing…'):''}`:'';$('qBar').style.width=t?(fin/t*100)+'%':'0';
   const failed=Q.filter(i=>i.status==='error').map(i=>i.kind==='file'?i.file.name:'#'+String(i.no).padStart(3,'0'));
   const files=Q.reduce((a,i)=>a+i.out.length,0);
   $('qInfo').textContent=!t?'Queue empty.':`${fin} / ${t}${RUN?(RUN.pause?' · paused':' · processing…'):''} · ${c.done} successful · ${c.error} failed · ${files} files ready${failed.length?' · Failed: '+failed.slice(0,8).join(', ')+(failed.length>8?'…':''):''}`;
@@ -937,24 +1058,41 @@ function updCtl(){$('qPause').textContent=RUN&&RUN.pause?'Resume':'Pause';$('qSt
 $('qStart').onclick=()=>runQueue();
 $('qPause').onclick=()=>{if(!RUN)return;RUN.pause=!RUN.pause;updCtl();updProg()};
 $('qCancel').onclick=()=>{if(!RUN)return;RUN.cancel=true;RUN.pause=false;toast('Cancelling · finished files are kept')};
-$('qClear').onclick=()=>{for(let i=Q.length-1;i>=0;i--)if(Q[i].status==='done')Q.splice(i,1);drawQueue()};
+$('qClear').onclick=()=>{if(EDIT&&EDIT.it.status==='done')closeEdit(true);for(let i=Q.length-1;i>=0;i--)if(Q[i].status==='done')Q.splice(i,1);drawQueue()};
 $('qRetry').onclick=()=>{let n=0;for(const i of Q)if(i.status==='error'){i.status='queued';n++}drawQueue();if(n)runQueue()};
-$('qEmpty').onclick=()=>{if(RUN)return toast('Cancel the run first');Q.length=0;drawQueue()};
+$('qEmpty').onclick=()=>{if(RUN)return toast('Cancel the run first');if(EDIT)closeEdit(true);Q.length=0;drawQueue()};
 
 // ---------- queue grid ----------
-function drawQueue(){const g=$('qGrid');g.innerHTML='';for(const it of Q){it.el=null;paintCard(it)}updProg()}
+function drawQueue(){const g=$('qGrid');g.innerHTML='';for(const it of Q){it.el=null;paintCard(it)}updProg();if(Q.length)showTray('queue')}
+let EDIT=null;   // queue item currently opened in the editor
 function paintCard(it){const g=$('qGrid');let el=it.el;
   if(!el){el=it.el=document.createElement('div');el.className='qc';g.appendChild(el)}
+  el.classList.toggle('editing',EDIT&&EDIT.it===it);el.classList.toggle('sel',!!it.sel);
   const name=it.kind==='file'?it.file.name:`${it.src} #${String(it.no).padStart(3,'0')}`,lbl={queued:'Queued',processing:'Processing',done:'Done',error:'Error'}[it.status];
-  el.innerHTML=`<div class="pv">${it.thumb?'':it.kind==='file'?(it.file.name.split('.').pop()||'').toUpperCase():'DNA'}</div><div class="nm" title="${name.replace(/"/g,'')}${it.err?' · '+it.err.replace(/"/g,''):''}"></div>
-    <div class="qb"><span class="st ${it.status}">${lbl}</span><button data-a="edit" title="Open in the editor">Edit</button>${it.status==='error'||it.status==='done'?'<button data-a="retry">Retry</button>':''}<button data-a="rm" title="Remove">✕</button></div>`;
+  el.title=`${name}${it.err?' · '+it.err:''} · click to open in the preview`;
+  el.innerHTML=`${it.status==='done'?`<input type="checkbox" class="ck" data-a="sel" title="Select for a bundle"${it.sel?' checked':''}>`:''}<div class="pv">${it.thumb?'':it.kind==='file'?(it.file.name.split('.').pop()||'').toUpperCase():'DNA'}</div><div class="nm"></div>
+    <div class="qb"><span class="st ${it.status}">${lbl}${it.over?' · edited':''}</span>${it.status==='error'||it.status==='done'?'<button data-a="retry">Retry</button>':''}<button data-a="rm" title="Remove">✕</button></div>`;
   el.querySelector('.nm').textContent=name;
   if(it.thumb)el.querySelector('.pv').appendChild(it.thumb);
-  el.onclick=async e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
-    if(a==='rm'){if(it.status==='processing')return toast('It is being processed');Q.splice(Q.indexOf(it),1);el.remove();updProg()}
-    if(a==='retry'){it.status='queued';it.out=[];it.thumb=null;paintCard(it);updProg();runQueue()}
-    if(a==='edit'){CUR=normDNA(it.dnaUsed||it.dna||masterDNA());if(it.kind==='file'){try{srcCanvas=await loadSource(it.file,2000);clearImg.style.display='inline-block'}catch(err){toast(err.message)}}else{srcCanvas=it.img||null;clearImg.style.display=srcCanvas?'inline-block':'none'}
-      syncUI();renderMain();window.scrollTo({top:0,behavior:'smooth'});toast('Opened in the editor')}}}
+  el.onclick=async e=>{const a=e.target.dataset&&e.target.dataset.a;
+    if(a==='sel'){it.sel=e.target.checked;el.classList.toggle('sel',it.sel);updProg();return}
+    if(a==='rm'){if(it.status==='processing')return toast('It is being processed');if(EDIT&&EDIT.it===it)closeEdit(true);Q.splice(Q.indexOf(it),1);el.remove();updProg();return}
+    if(a==='retry'){it.status='queued';it.out=[];it.thumb=null;paintCard(it);updProg();runQueue();return}
+    openEdit(it)}}
+// open a queue asset in the preview; "Save to asset" stores the edit on that asset and re-queues it
+async function openEdit(it){
+  if(!EDIT)EDIT={prev:{dna:{...CUR},img:srcCanvas,imgBtn:clearImg.style.display}};
+  const old=EDIT.it;EDIT.it=it;if(old&&old.el)paintCard(old);
+  let img=null;if(it.kind==='file'){try{img=await loadSource(it.file,2000)}catch(err){toast('Cannot open: '+err.message)}}else img=it.img||null;
+  if(EDIT.it!==it)return;
+  const S=snapshot(),base=itemDNA(it,S);
+  CUR=normDNA(it.over||it.kind==='design'&&!it.over?base:applyColor(base,S.versions[0],S,!!img));
+  srcCanvas=img;clearImg.style.display=img?'inline-block':'none';syncUI();renderMain();
+  $('editTag').hidden=false;$('editName').textContent=it.kind==='file'?it.file.name:`${it.src} #${String(it.no).padStart(3,'0')}`;paintCard(it);showTab('design')}
+function closeEdit(silent){if(!EDIT)return;const{prev,it}=EDIT;EDIT=null;CUR=prev.dna;srcCanvas=prev.img;clearImg.style.display=prev.imgBtn;syncUI();renderMain();$('editTag').hidden=true;if(it&&it.el)paintCard(it);if(!silent)toast('Back to your design')}
+$('editClose').onclick=()=>closeEdit();
+$('editSave').onclick=()=>{if(!EDIT)return;const it=EDIT.it;if(it.status==='processing')return toast('Wait until it finishes processing');
+  it.over={...CUR};if(it.kind==='design')it.dna={...CUR};it.status='queued';it.out=[];it.thumb=null;paintCard(it);updProg();toast('Saved to this asset · rendering it now');runQueue()};
 
 // ---------- ZIP (store for PNG/JPG, deflate for SVG / text when the browser supports it) ----------
 const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
@@ -972,11 +1110,11 @@ async function makeZip(files,onProg){const enc=new TextEncoder(),parts=[],cd=[],
   e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
   return new Blob([...parts,...cd,e.buffer],{type:'application/zip'})}
 // collect finished outputs; the same asset keeps the same unique stem across PNG / JPG / SVG
-function zipEntries(scope,root){const used=new Set(),files=[],rows=[];
-  for(const it of Q){if(it.status!=='done')continue;const map=new Map();
+function zipEntries(scope,root,only){const used=new Set(),files=[],rows=[],split=only?0:+$('zSplit').value;let n=0;
+  for(const it of Q){if(it.status!=='done'||(only&&!it.sel))continue;const map=new Map(),grp=split?`Bundle_${String(Math.floor(n/split)+1).padStart(2,'0')}/`:'';n++;
     for(const o of it.out){let st=map.get(o.stem);if(!st){st=o.stem;let k=2;while(used.has(st))st=`${o.stem}-${k++}`;used.add(st);map.set(o.stem,st)}
-      if(scope!=='all'&&o.fmt!==scope)continue;const path=`${root}${o.fmt.toUpperCase()}/${st}.${o.fmt}`;
-      files.push({path,blob:o.blob,deflate:o.fmt==='svg'});rows.push([path.slice(root.length),o.fmt,o.w,o.h,o.color,o.src])}}
+      if(scope!=='all'&&o.fmt!==scope)continue;const path=`${root}${grp}${o.fmt.toUpperCase()}/${o.sub?o.sub+'/':''}${st}.${o.fmt}`;
+      files.push({path,blob:o.blob,deflate:o.fmt==='svg'});rows.push([path.slice(root.length),o.fmt,o.w,o.h,o.color,o.bg||'',o.src])}}
   return{files,rows}}
 async function contactSheets(root){const th=Q.filter(i=>i.status==='done'&&i.thumb),out=[],per=36,cols=6,cw=240,pad=10;
   for(let p=0;p<th.length;p+=per){const set=th.slice(p,p+per),rows=Math.ceil(set.length/cols),ch=Math.round(cw*set[0].thumb.height/set[0].thumb.width),c=document.createElement('canvas');
@@ -985,20 +1123,67 @@ async function contactSheets(root){const th=Q.filter(i=>i.status==='done'&&i.thu
     const b=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));c.width=c.height=0;out.push({path:`${root}Preview/contact-sheet-${String(p/per+1).padStart(2,'0')}.jpg`,blob:b})}
   return out}
 let ZIPPING=false;
-async function exportZip(scope,ready){if(ZIPPING)return;const coll=collName(),root=ready?coll+'/':'';
-  const{files,rows}=zipEntries(scope,root);if(!files.length)return toast(scope==='all'?'No finished files yet':`No ${scope.toUpperCase()} files yet · tick ${scope.toUpperCase()} and run the queue`);
+async function exportZip(scope,ready,only){if(ZIPPING)return;const coll=collName()+(only?'_Bundle':''),root=ready||only?coll+'/':'';
+  const{files,rows}=zipEntries(scope,root,only);if(only&&!files.length)return toast('Tick finished assets in the queue first');if(!files.length)return toast(scope==='all'?'No finished files yet':`No ${scope.toUpperCase()} files yet · tick ${scope.toUpperCase()} and run the queue`);
   ZIPPING=true;try{
     if(ready){files.push(...await contactSheets(root));const csv=v=>/[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v;
-      files.push({path:`${root}metadata/manifest.csv`,blob:new Blob([['file,format,width,height,colour,source',...rows.map(r=>r.map(csv).join(','))].join('\n')],{type:'text/csv'}),deflate:true});
+      files.push({path:`${root}metadata/manifest.csv`,blob:new Blob([['file,format,width,height,colour,background,source',...rows.map(r=>r.map(csv).join(','))].join('\n')],{type:'text/csv'}),deflate:true});
       const done=Q.filter(i=>i.status==='done');
       files.push({path:`${root}metadata/settings.json`,blob:new Blob([JSON.stringify({type:'halftone-production',v:1,collection:coll,seed:MSEED,files:rows.length,assets:done.length,
         output:{width:rows[0][2],height:rows[0][3],ratio:ratioTok()},master:masterDNA(),assetDNA:done.map(i=>({asset:i.out[0]&&i.out[0].stem,source:i.kind==='file'?i.file.name:i.src,dna:i.dnaUsed}))},null,1)],{type:'application/json'}),deflate:true})}
     const z=await makeZip(files,(i,n)=>$('qInfo').textContent=`Zipping ${i} / ${n}…`);
-    download(z,ready?`${coll}.zip`:scope==='all'?`${coll}_All.zip`:`${coll}_${scope.toUpperCase()}.zip`);updProg();toast(`ZIP ready · ${files.length} files`)}
+    download(z,ready||only?`${coll}.zip`:scope==='all'?`${coll}_All.zip`:`${coll}_${scope.toUpperCase()}.zip`);updProg();toast(`ZIP ready · ${files.length} files`)}
   catch(e){toast('ZIP failed: '+e.message)}finally{ZIPPING=false}}
 $('zPNG').onclick=()=>exportZip('png');$('zJPG').onclick=()=>exportZip('jpg');$('zSVG').onclick=()=>exportZip('svg');$('zAll').onclick=()=>exportZip('all');
+$('zSel').onclick=()=>exportZip('all',false,true);
+$('selAll').onclick=()=>{for(const i of Q)if(i.status==='done')i.sel=true;drawQueue()};
+$('selNone').onclick=()=>{for(const i of Q)i.sel=false;drawQueue()};
 $('zReady').onclick=async()=>{if(!Q.length)await addWorkflow();if(Q.some(i=>i.status==='queued'))await runQueue();if(Q.some(i=>i.status==='done'))exportZip('all',true);else toast('Nothing to package yet')};
 fillQual();
+// ================= UI: sidebar tabs, tray tabs, preview modes =================
+function tabs(nav,paneSel,key){const nv=$(nav);const show=t=>{nv.querySelectorAll('button[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+    document.querySelectorAll(paneSel).forEach(p=>p.classList.toggle('on',p.dataset.p===t));try{localStorage.setItem(key,t)}catch(e){}if(t==='style')drawStyles()};
+  nv.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(b)show(b.dataset.t)});
+  let t=null;try{t=localStorage.getItem(key)}catch(e){}if(t&&nv.querySelector(`button[data-t="${t}"]`))show(t);return show}
+function setCmp(on){CMP=on;$('pvDesign').classList.toggle('on',!on);$('pvCompare').classList.toggle('on',on);$('cmp').hidden=!on;hCanvas.style.display=on?'none':'';renderMain()}
+$('pvDesign').onclick=()=>setCmp(false);$('pvCompare').onclick=()=>setCmp(true);
+
+// ================= STYLES: market-ready vintage / retro / print looks (vector-only) =================
+const LOOK0={inks:null,cmyk:false,misreg:0,distress:0,grain:0,noise:0,fade:0,positionVariation:0,spacingMode:'uniform',spacingVariation:0,sizeMode:'uniform',sizeVariation:0,
+  contrast:1,gamma:1,dotWidth:1,dotHeight:1,aspectRatio:1,edgeSoftness:1,colorSource:false,density:.5};
+const STYLES=[
+  ['Vintage newsprint',{dotShape:'circle',cellSize:8,angle:45,color:'#2b2622',background:'#efe6d2',grain:.35,distress:.12,noise:.1,gamma:1.1}],
+  ['Retro pop art',{dotShape:'circle',cellSize:16,angle:45,color:'#e63946',background:'#ffd23f',contrast:1.2}],
+  ['Comic Ben-Day CMYK',{dotShape:'circle',cellSize:12,cmyk:true,misreg:1.5,background:'#fff7e0'}],
+  ['Risograph duotone',{dotShape:'circle',cellSize:9,angle:15,background:'#f7f2e7',color:'#ff48b0',inks:[{c:'#0078bf',a:30,g:.6},{c:'#ff48b0',a:0,g:1.4}],misreg:2.2,grain:.25}],
+  ['70s screen print',{dotShape:'circle',cellSize:11,angle:20,background:'#f4e9d8',color:'#bc4b51',inks:[{c:'#f4a259',a:30,g:.55},{c:'#bc4b51',a:0,g:1.5}],misreg:1,distress:.18}],
+  ['Old engraving',{dotShape:'line',cellSize:7,angle:45,color:'#1b1b1b',background:'#f1e9d2',grain:.2,contrast:1.1}],
+  ['Worn letterpress',{dotShape:'square',cellSize:9,angle:0,color:'#1d3557',background:'#f1faee',distress:.35,grain:.4}],
+  ['Mid-century atomic',{dotShape:'hexagon',cellSize:12,angle:30,color:'#2a9d8f',background:'#f4ecd8'}],
+  ['Sepia photo',{dotShape:'circle',cellSize:7,angle:45,color:'#5b3a1e',background:'#f3e3c3',noise:.15,fade:.25,grain:.3}],
+  ['Grunge distressed',{dotShape:'circle',cellSize:10,angle:30,color:'#111111',background:'#e9e5dc',distress:.5,grain:.5,noise:.2}],
+  ['Victorian mezzotint',{dotShape:'circle',cellSize:6,angle:0,color:'#3b2f2f',background:'#efe4cf',positionVariation:.3,spacingMode:'organic',spacingVariation:.26,grain:.5,density:.6}],
+  ['Retro sunset',{dotShape:'capsule',cellSize:12,angle:45,background:'#fff1dc',color:'#6a2c70',inks:[{c:'#ffb347',a:45,g:.5},{c:'#ff6961',a:15,g:1},{c:'#6a2c70',a:0,g:1.9}],misreg:.8}],
+  ['Faded poster',{dotShape:'roundsquare',cellSize:10,angle:15,color:'#264653',background:'#e9d8a6',fade:.35,distress:.2,contrast:.85}],
+  ['Blueprint',{dotShape:'circle',cellSize:9,angle:0,color:'#e0f0ff',background:'#1b3a6b',grain:.15}]];
+const styleDNA=(base,patch)=>normDNA({...base,...LOOK0,...patch,inks:patch.inks?patch.inks.map(k=>({...k})):null});
+let STYLE_KEY='';
+function drawStyles(force){const key=JSON.stringify([CUR.pattern,CUR.imgFit,CUR.imgPad,!!srcCanvas,hCanvas.width,hCanvas.height,CUR.frequency,CUR.scale,CUR.rotation]);
+  if(!force&&key===STYLE_KEY&&$('styleGrid').children.length)return;STYLE_KEY=key;const g=$('styleGrid');g.innerHTML='';
+  const w=hCanvas.width,h=hCanvas.height,k=150/Math.max(w,h);
+  STYLES.forEach(([name,patch],i)=>{const el=document.createElement('div');el.className='sc';const c=document.createElement('canvas');c.width=Math.round(w*k*1.5);c.height=Math.round(h*k*1.5);
+    el.appendChild(c);el.insertAdjacentHTML('beforeend',`<div class="sn">${name}</div>`);el.onclick=()=>{CUR=styleDNA(CUR,patch);syncUI();renderMain();toast(name+' applied')};g.appendChild(el);
+    setTimeout(()=>renderDNA(c,styleDNA(CUR,patch),srcCanvas,w,h),i*15)})}
+// ink editor (multi-ink styles, duotone / tri-tone)
+function drawInks(){const box=$('inkBox');if(!box)return;const ks=CUR.inks||[];
+  box.innerHTML=ks.length?ks.map((k,i)=>`<label class="inkc"><input type="color" data-i="${i}" value="${k.c}">ink ${i+1}</label>`).join(''):'<span class="note">Single ink: uses the Dots colour (Design tab).</span>'}
+$('inkBox').addEventListener('input',e=>{const i=e.target.dataset.i;if(i==null||!CUR.inks)return;CUR.inks=CUR.inks.map((k,j)=>j==i?{...k,c:e.target.value}:k);if(i==CUR.inks.length-1)CUR.color=e.target.value;renderDNA(hCanvas,CUR,srcCanvas)});
+$('inkBox').addEventListener('change',()=>renderMain());
+$('inkAdd').onclick=()=>{const ks=CUR.inks&&CUR.inks.length?CUR.inks.map(k=>({...k})):[{c:CUR.color,a:0,g:1}];if(ks.length>=4)return toast('Up to 4 inks');
+  ks.unshift({c:shiftHue(ks[0].c,40,.62),a:30*ks.length,g:.5});ks.forEach((k,i)=>k.g=+lerp(.5,1.8,i/(ks.length-1)).toFixed(2));CUR.inks=ks;CUR.cmyk=false;renderMain()};
+$('inkClear').onclick=()=>{CUR.inks=null;renderMain()};
+$('dotColor').addEventListener('input',()=>{if(CUR.inks&&CUR.inks.length){CUR.inks=CUR.inks.map((k,j,a)=>j===a.length-1?{...k,c:CUR.color}:k);renderMain()}});
+const showTab=tabs('tabs','.side .pane','ht_tab'),showTray=tabs('trayTabs','.tray .tpane','ht_tray');
 
 syncUI();updMasterInfo();renderMain();
 </script>
