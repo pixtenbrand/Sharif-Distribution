@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Halftone Studio</title>
+<style>
+:root{
+  --bg:#f2efe9; --panel:#ffffff; --panel2:#ece7de; --ink:#1c1b1a; --muted:#6b6459;
+  --accent:#b5792e; --line:#ddd6c9; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1b1a; --panel:#242220; --panel2:#2c2926; --ink:#f2efe9; --muted:#a89f92;
+    --accent:#d4a64a; --line:#3a3733;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1b1a; --panel:#242220; --panel2:#2c2926; --ink:#f2efe9; --muted:#a89f92;
+  --accent:#d4a64a; --line:#3a3733;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;}
+header{padding:20px 20px 6px;max-width:1200px;margin:0 auto;}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em;}
+p.sub{color:var(--muted);margin:0;font-size:13.5px;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;}
+.controls{display:flex;flex-direction:column;gap:13px;}
+label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;}
+select,input[type=range],input[type=number]{width:100%;}
+select,input[type=number]{padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);}
+.row{display:flex;gap:10px;align-items:center;}
+.row input[type=color]{width:38px;height:30px;border:1px solid var(--line);border-radius:6px;background:none;padding:0;}
+.val{font-size:12px;color:var(--muted);float:right;font-variant-numeric:tabular-nums;}
+.drop{border:1.5px dashed var(--line);border-radius:10px;padding:14px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;}
+.drop.over{border-color:var(--accent);color:var(--accent);}
+button.primary{background:var(--accent);color:#fff;border:none;padding:9px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);padding:9px 14px;border-radius:8px;cursor:pointer;font-size:13px;}
+.exports{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;}
+.stage{display:flex;align-items:center;justify-content:center;min-height:360px;border-radius:12px;overflow:hidden;background:var(--panel2);}
+canvas{max-width:100%;height:auto;display:block;}
+.note{font-size:12px;color:var(--muted);margin-top:2px;}
+.checklabel{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);font-weight:400;}
+hr{border:none;border-top:1px solid var(--line);margin:2px 0;}
+.batch{grid-column:1/-1;}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px;}
+.thumb{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel2);}
+.thumb canvas{width:100%;display:block;cursor:pointer;}
+.thumb .tbar{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-size:11.5px;color:var(--muted);}
+.thumb button{border:none;background:none;color:var(--accent);font-weight:600;cursor:pointer;font-size:11.5px;}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;}
+.toast.show{opacity:.95;}
+details.grp{border:1px solid var(--line);border-radius:10px;padding:8px 10px;}
+details.grp>summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink);}
+details.grp[open]>summary{margin-bottom:8px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;}
+.g2 label{margin-bottom:2px;}
+input[type=text]{padding:7px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:inherit;font-size:13px;}
+.vpanel{grid-column:1/-1;display:flex;flex-direction:column;gap:12px;}
+.btns{display:flex;flex-wrap:wrap;gap:6px;}
+.btns button.ghost{padding:6px 10px;font-size:12.5px;}
+.checks{display:flex;flex-wrap:wrap;gap:4px 14px;}
+.stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.stat{border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--muted);}
+.stat b{color:var(--ink);font-size:14px;margin-right:4px;}
+.sectitle{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 6px;text-transform:uppercase;letter-spacing:.06em;}
+.prod{grid-column:1/-1;display:flex;flex-direction:column;gap:12px;}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px 12px;}
+.pgrid input[type=text]{width:100%;}
+.swatch{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid var(--line);vertical-align:-1px;}
+.prog{height:6px;border-radius:4px;background:var(--panel2);overflow:hidden;}
+.prog>div{height:100%;width:0;background:var(--accent);transition:width .2s;}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;}
+.qc{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel2);font-size:11px;}
+.qc .pv{aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700;font-size:13px;}
+.qc .pv canvas{max-width:100%;max-height:100%;}
+.qc .nm{padding:4px 6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);}
+.qc .qb{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;padding:2px 6px 5px;}
+.qc .qb button{border:none;background:none;color:var(--accent);font-weight:600;cursor:pointer;font-size:11px;padding:0 2px;}
+.st{border-radius:5px;padding:0 5px;font-weight:600;margin-right:auto;}
+.st.queued{color:var(--muted);border:1px solid var(--line);}
+.st.processing{background:var(--accent);color:#fff;}
+.st.done{background:#2e7d32;color:#fff;}
+.st.error{background:#c62828;color:#fff;}
+/* ---- app layout: sidebar controls + fixed preview + asset tray (no page scrolling on desktop) ---- */
+body{overflow:hidden;}
+.app{display:grid;grid-template-columns:370px minmax(0,1fr);height:100vh;height:100dvh;}
+.side{overflow-y:auto;background:var(--panel);border-right:1px solid var(--line);padding:14px 14px 60px;}
+.brand h1{font-size:19px;margin:0;}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0 14px;position:sticky;top:-14px;background:var(--panel);padding:8px 0;z-index:2;}
+.tabs button{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:7px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-weight:600;}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pane{display:none;flex-direction:column;gap:13px;}
+.pane.on{display:flex;}
+.g1{display:grid;gap:10px;}
+.g2>div{min-width:0;}
+.g2 input[type=text],.g2 select{width:100%;}
+.step{border:1px solid var(--line);border-radius:10px;padding:10px;}
+.step .sectitle b{display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;text-align:center;line-height:18px;font-size:11px;margin-right:4px;}
+.work{display:flex;flex-direction:column;min-width:0;min-height:0;}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--panel);}
+.toolbar button{padding:7px 11px;}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.seg button{border:none;background:var(--panel2);color:var(--ink);padding:7px 11px;font-size:12.5px;cursor:pointer;}
+.seg button.on{background:var(--ink);color:var(--bg);}
+.edittag{display:flex;align-items:center;gap:6px;font-size:12.5px;border:1.5px solid var(--accent);border-radius:8px;padding:3px 4px 3px 9px;}
+.edittag[hidden],.cmp[hidden]{display:none;}
+.edittag button{padding:4px 9px;}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:18px;background:var(--panel2);overflow:hidden;border-radius:0;}
+.stage canvas{max-width:100%;max-height:100%;box-shadow:0 1px 10px rgba(0,0,0,.15);}
+.cmp{display:flex;gap:18px;width:100%;height:100%;align-items:center;justify-content:center;}
+.cmp figure{margin:0;flex:1;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+.cmp canvas{max-width:100%;max-height:calc(100% - 24px);}
+.cmp figcaption{font-size:12px;color:var(--muted);}
+.checker{background:repeating-conic-gradient(#d9d9d9 0 25%,#ffffff 0 50%) 0 0/18px 18px;}
+.tray{height:32vh;min-height:190px;display:flex;flex-direction:column;border-top:1px solid var(--line);background:var(--panel);}
+.tray .tabs{margin:0;padding:7px 14px;position:static;align-items:center;border-bottom:1px solid var(--line);}
+.tpane{display:none;flex:1;overflow:auto;padding:10px 14px;}
+.tpane.on{display:block;}
+.tray .qgrid{max-height:none;}
+.tray .thumbs{margin-top:8px;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+.qc{cursor:pointer;position:relative;}
+.qc.editing{outline:2.5px solid var(--accent);outline-offset:-1px;}
+.qc.sel{box-shadow:inset 0 0 0 2px #2e7d32;}
+.qc .ck{position:absolute;top:4px;left:4px;width:16px;height:16px;margin:0;z-index:1;}
+.sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.sgrid .sc{border:1px solid var(--line);border-radius:9px;overflow:hidden;cursor:pointer;background:var(--panel2);}
+.sgrid .sc:hover{border-color:var(--accent);}
+.sgrid canvas{width:100%;display:block;}
+.sgrid .sn{font-size:11.5px;font-weight:600;padding:4px 7px 5px;}
+.inkc{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);}
+.inkc input[type=color]{width:30px;height:24px;border:1px solid var(--line);border-radius:5px;padding:0;background:none;}
+@media(max-width:900px){body{overflow:auto;}.app{display:block;height:auto;}.side{border-right:none;overflow:visible;}.stage{height:62vh;}.tray{height:auto;max-height:70vh;}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand"><h1>Halftone Studio</h1><p class="sub">Print-style halftones · variations · stock production</p></div>
+  <nav class="tabs" id="tabs"><button data-t="design" class="on">Design</button><button data-t="style">Styles</button><button data-t="art">Artboard</button><button data-t="var">Variation</button><button data-t="coll">Collection</button><button data-t="prod">Production</button></nav>
+  <div class="pane on controls" data-p="design">
+
+    <div>
+      <label>Pattern</label>
+      <select id="shapeSel">
+        <option value="circle">Circle</option>
+        <option value="square">Square</option>
+        <option value="triangle">Triangle</option>
+        <option value="wave" selected>Wave</option>
+        <option value="burst">Burst</option>
+        <option value="ring">Ring</option>
+        <option value="grid">Grid</option>
+        <option value="spiral">Spiral</option>
+        <option value="curve">Curve</option>
+        <option value="gradient">Gradient</option>
+      </select>
+    </div>
+    <div>
+      <label>Or drop an image to halftone it</label>
+      <div class="drop" id="dropZone">Drag & drop, or click to choose<input type="file" id="fileInput" accept="image/*,.svg" style="display:none"></div>
+      <button class="ghost" id="clearImg" style="margin-top:8px;display:none">Remove image</button>
+      <div class="g2" style="margin-top:8px">
+        <div><label>Image fit</label><select id="imgFit"><option value="contain" selected>Contain (fit)</option><option value="cover">Cover (crop)</option><option value="stretch">Stretch (legacy)</option></select></div>
+        <div><label>Padding <span class="val" id="padVal">0%</span></label><input type="range" id="imgPad" min="0" max="30" value="0"></div>
+      </div>
+    </div>
+    <div>
+      <label>Dot shape</label>
+      <select id="dotShapeSel">
+        <option value="circle">Circle</option>
+        <option value="square">Square</option>
+        <option value="diamond">Diamond</option>
+        <option value="line">Line</option>
+        <option value="ellipse">Ellipse</option>
+        <option value="roundsquare">Rounded square</option>
+        <option value="triangle">Triangle</option>
+        <option value="hexagon">Hexagon</option>
+        <option value="cross">Cross</option>
+        <option value="dash">Dash</option>
+        <option value="capsule">Capsule</option>
+      </select>
+    </div>
+    <div>
+      <label>Screen angle <span class="val" id="angleVal">15°</span></label>
+      <input type="range" id="angle" min="0" max="90" value="15">
+    </div>
+    <div>
+      <label>Dot spacing <span class="val" id="cellVal">10px</span></label>
+      <input type="range" id="cellSize" min="6" max="28" value="10">
+    </div>
+    <div>
+      <label>Contrast <span class="val" id="gammaVal">1.0</span></label>
+      <input type="range" id="gamma" min="4" max="25" value="10">
+    </div>
+    <div class="g2">
+      <div><label>Density</label><select id="densPreset"><option value="0.1">Very sparse</option><option value="0.3">Sparse</option><option value="0.5" selected>Medium</option><option value="0.7">Dense</option><option value="0.9">Very dense</option></select></div>
+      <div><label>Fine <span class="val" id="densVal">50</span></label><input type="range" id="density" min="0" max="100" value="50"></div>
+    </div>
+    <details class="grp"><summary>Dot geometry</summary>
+      <div class="g2">
+        <div><label>Dot width <span class="val" id="dotWVal">1.00</span></label><input type="range" id="dotW" min="30" max="200" value="100"></div>
+        <div><label>Dot height <span class="val" id="dotHVal">1.00</span></label><input type="range" id="dotH" min="30" max="200" value="100"></div>
+        <div><label>Aspect ratio <span class="val" id="aspVal">1.00</span></label><input type="range" id="aspect" min="-200" max="200" value="0"></div>
+        <div><label>Size variation</label><select id="sizeMode"><option value="uniform">Uniform</option><option value="subtle">Subtle</option><option value="medium">Medium</option><option value="strong">Strong</option><option value="organic">Organic</option></select></div>
+      </div>
+    </details>
+    <details class="grp"><summary>Distribution &amp; offset</summary>
+      <div class="g2">
+        <div><label>Spacing variation</label><select id="spacingMode"><option value="uniform">Uniform</option><option value="subtle">Subtle</option><option value="medium">Medium</option><option value="organic">Organic</option></select></div>
+        <div><label>Position jitter <span class="val" id="posVal">0</span></label><input type="range" id="posVar" min="0" max="30" value="0"></div>
+        <div><label>Phase <span class="val" id="phaseVal">0°</span></label><input type="range" id="phaseR" min="0" max="360" value="0"></div>
+        <div><label>Density direction</label><select id="dirSel"><option value="uniform">Uniform</option><option value="horizontal">Horizontal</option><option value="vertical">Vertical</option><option value="diagonal">Diagonal</option><option value="radial">Radial</option><option value="center">Center</option><option value="edge">Edge</option><option value="top">Top</option><option value="bottom">Bottom</option><option value="left">Left</option><option value="right">Right</option></select></div>
+        <div><label>X offset <span class="val" id="oxVal">0%</span></label><input type="range" id="offX" min="-50" max="50" value="0"></div>
+        <div><label>Y offset <span class="val" id="oyVal">0%</span></label><input type="range" id="offY" min="-50" max="50" value="0"></div>
+        <div><label>Direction strength <span class="val" id="dirAVal">80</span></label><input type="range" id="dirAmt" min="0" max="100" value="80"></div>
+      </div>
+    </details>
+    <details class="grp"><summary>Rotation &amp; warp</summary>
+      <div class="g2">
+        <div><label>Pattern rotation</label><select id="rotSel"><option value="0">0°</option><option value="15">15°</option><option value="22.5">22.5°</option><option value="30">30°</option><option value="45">45°</option><option value="60">60°</option><option value="90">90°</option><option value="custom">Custom</option><option value="random">Random (controlled)</option></select></div>
+        <div><label>Custom °</label><input type="number" id="rotCustom" min="-180" max="180" value="0"></div>
+        <div><label>Warp amount <span class="val" id="warpVal">0</span></label><input type="range" id="warp" min="0" max="100" value="0"></div>
+        <div><label>Warp scale <span class="val" id="warpSVal">50</span></label><input type="range" id="warpScale" min="0" max="100" value="50"></div>
+        <div><label>Warp direction</label><select id="warpDir"><option value="both">Both</option><option value="x">Horizontal</option><option value="y">Vertical</option><option value="radial">Radial</option><option value="swirl">Swirl</option></select></div>
+      </div>
+    </details>
+    <details class="grp"><summary>Pattern &amp; tone (advanced)</summary>
+      <div class="g2">
+        <div><label>Pattern scale <span class="val" id="pscVal">1.00</span></label><input type="range" id="pScale" min="40" max="250" value="100"></div>
+        <div><label>Frequency <span class="val" id="freqVal">1.00</span></label><input type="range" id="freq" min="30" max="400" value="100"></div>
+        <div><label>Amplitude <span class="val" id="ampVal">0.50</span></label><input type="range" id="amp" min="5" max="100" value="50"></div>
+        <div><label>Symmetry</label><select id="symSel"><option value="0">None</option><option value="2">Mirror</option><option value="4">Quad</option><option value="6">6-fold</option><option value="8">8-fold</option></select></div>
+        <div><label>Radiality <span class="val" id="radVal">0</span></label><input type="range" id="radial" min="0" max="100" value="0"></div>
+        <div><label>Midtone contrast <span class="val" id="conVal">1.00</span></label><input type="range" id="contrast2" min="30" max="250" value="100"></div>
+        <div><label>Edge softness <span class="val" id="softVal">100</span></label><input type="range" id="soft" min="0" max="100" value="100"></div>
+        <div><label>Noise <span class="val" id="noiseVal">0</span></label><input type="range" id="noise" min="0" max="100" value="0"></div>
+        <div><label>Noise scale <span class="val" id="noiseSVal">50</span></label><input type="range" id="noiseScale" min="0" max="100" value="50"></div>
+        <div><label>Edge fade <span class="val" id="fadeVal">0</span></label><input type="range" id="fade" min="0" max="100" value="0"></div>
+      </div>
+    </details>
+    <label class="checklabel"><input type="checkbox" id="invert"> Invert tones</label>
+    <label class="checklabel"><input type="checkbox" id="cmyk"> Print-separation style (CMYK look)</label>
+    <div class="row">
+      <div><label>Dots</label><input type="color" id="dotColor" value="#1c1b1a"></div>
+      <div><label>Background</label><input type="color" id="bgColor" value="#f2efe9"></div>
+      <label class="checklabel" style="margin-left:auto"><input type="checkbox" id="transparentBg"> Transparent</label>
+    </div>
+    <button class="ghost" id="shuffle">🔀 Shuffle variation</button>
+  </div>
+  <div class="pane" data-p="style">
+    <p class="note">Vintage, retro and print styles, built only from vector dots, so the SVG stays true vector. A style keeps your pattern / image and replaces the look. Click to apply.</p>
+    <div class="sgrid" id="styleGrid"></div>
+    <div class="step"><p class="sectitle">Print character</p>
+      <div><label>Worn / distressed <span class="val" id="distVal">0</span></label><input type="range" id="distress" min="0" max="80" value="0"></div>
+      <div><label>Grain (dot size jitter) <span class="val" id="grainVal">0</span></label><input type="range" id="grain" min="0" max="80" value="0"></div>
+      <div><label>Misregistration (multi-ink) <span class="val" id="misVal">0</span></label><input type="range" id="misreg" min="0" max="40" value="0"></div>
+    </div>
+    <div class="step"><p class="sectitle">Inks</p><div id="inkBox" class="row" style="flex-wrap:wrap"></div>
+      <div class="btns" style="margin-top:6px"><button class="ghost" id="inkAdd">+ Ink</button><button class="ghost" id="inkClear">Single ink</button></div></div>
+  </div>
+  <div class="pane" data-p="art">
+    <div>
+      <label>Artboard / aspect ratio</label>
+      <select id="sizeSel">
+        <optgroup label="Aspect ratio">
+          <option value="r1:1">1:1 square</option><option value="r2:3">2:3 portrait</option><option value="r3:2">3:2 landscape</option>
+          <option value="r4:5">4:5 portrait</option><option value="r5:4">5:4 landscape</option><option value="r3:4">3:4 portrait</option>
+          <option value="r4:3">4:3 landscape</option><option value="r9:16">9:16 vertical</option><option value="r16:9">16:9 landscape</option>
+          <option value="r2:4">2:4 vertical</option><option value="r4:2">4:2 horizontal</option>
+        </optgroup>
+        <optgroup label="Classic canvases">
+          <option value="900,600" selected>Landscape (900×600)</option>
+          <option value="1080,1080">Square (1080×1080)</option>
+          <option value="1080,1350">Portrait (1080×1350)</option>
+          <option value="1080,1920">Story (1080×1920)</option>
+        </optgroup>
+        <option value="custom">Custom…</option>
+      </select>
+      <div class="row" id="customSize" style="display:none;margin-top:8px">
+        <input type="number" id="cw" placeholder="Width" value="900">
+        <input type="number" id="ch" placeholder="Height" value="600">
+        <button class="ghost" id="applySize">Set</button>
+      </div>
+      <label style="margin-top:8px">Export size (rendered at this size, never upscaled)</label>
+      <select id="expQ"></select>
+      <div class="row" id="qCustomRow" style="display:none;margin-top:6px"><input type="number" id="qW" value="5000" min="200" max="16384"><span class="note">px wide</span></div>
+      <p class="note" id="outInfo"></p>
+    </div>
+    <p class="note">PSD isn't reliable to write from a browser. Export SVG, then open it in the free browser editor Photopea and save as .psd if a stock site needs one. CMYK look is a stylized print effect, not true colour-channel separation.</p>
+  </div>
+  <div class="pane vpanel" data-p="var" id="vpanel">
+
+    <div><p class="sectitle">Seed &amp; master design</p>
+      <div class="row" style="flex-wrap:wrap">
+        <input type="text" id="mseed" style="width:130px" spellcheck="false" title="Master seed: same seed + same settings = same results">
+        <button class="ghost" id="sgen">Generate seed</button><button class="ghost" id="scp">Copy seed</button>
+        <label class="checklabel"><input type="checkbox" id="slk"> Lock seed</label>
+        </div>
+      <div class="btns" style="margin-top:6px"><button class="primary" id="saveMaster">Save master</button><button class="ghost" id="makeVar">Create variation</button><button class="ghost" id="resetMaster">Reset master</button>
+      </div>
+      <p class="note" id="masterInfo">No master saved yet: the current editor design is used as the master.</p>
+    </div>
+    <div class="g2">
+      <div><label>Variation amount</label><select id="vAmount"><option value="0">0 · almost identical</option><option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="75">75</option><option value="100">100 · strong</option></select></div>
+      <div><label>Variation mode (batch)</label><select id="vMode"><option value="similar">Make similar</option><option value="different">Make different</option><option value="denser">Make denser</option><option value="sparser">Make sparser</option><option value="softer">Make softer</option><option value="sharper">Make sharper</option><option value="larger">Make larger dots</option><option value="smaller">Make smaller dots</option><option value="organic">Make more organic</option><option value="geometric">Make more geometric</option><option value="minimal">Make more minimal</option><option value="complex">Make more complex</option></select></div>
+    </div>
+    <div><label>Apply to the editor</label>
+      <div class="btns" id="modeBtns"></div></div>
+    <div class="g1">
+      <div><label>Locks (never changed by variations)</label><div class="checks" id="lockBox"></div></div>
+      <div><label>Variation matrix (allowed to vary)</label><div class="checks" id="matrixBox"></div></div>
+    </div>
+    <div class="btns"><button class="ghost" id="saveDNA">Save DNA</button><button class="ghost" id="loadDNA">Load DNA</button><button class="ghost" id="copyDNA">Copy DNA</button><input type="file" id="dnaFile" accept=".json,application/json" style="display:none"></div>
+  </div>
+  <div class="pane batch" data-p="coll">
+
+    <div class="g2">
+      <div><label>Batch size</label>
+        <select id="batchCount"><option>4</option><option>6</option><option>9</option><option selected>12</option><option>24</option><option>50</option><option>100</option></select>
+      </div>
+      <div><label>Source</label><select id="batchSrc"><option value="master" selected>From master</option><option value="random">Random collection</option></select></div>
+      <div><label>Uniqueness</label><select id="uniq"><option value="conservative">Conservative</option><option value="balanced" selected>Balanced</option><option value="strict">Strict</option><option value="extreme">Extreme</option></select></div>
+    </div>
+    <div class="btns">
+      <button class="primary" id="genBatch">Auto-generate artboards</button>
+      <button class="ghost" id="queueColl">Send collection to production queue</button>
+    </div>
+    <p class="note">From master: related variations of the saved master (same pattern, dot and colour language). Random collection: seeded random patterns. Near-duplicates are rejected by DNA similarity. Click a thumbnail to load it into the editor, or download it directly.</p>
+  </div>
+  <div class="pane prod" data-p="prod" id="prod">
+    <div class="step"><p class="sectitle"><b>1</b> Add assets</p>
+      <div class="drop" id="pDrop">Import many images at once (PNG, JPG, WEBP, SVG) — drop or click. Each file becomes one asset in the queue below the preview.<input type="file" id="pFiles" multiple accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml" style="display:none"></div>
+      <div class="g2" style="margin-top:8px">
+        <div><label>Or generate</label><select id="wf"><option value="single">Current design (1 asset)</option><option value="bundle">Bundle from master</option><option value="batch" selected>Imported files only</option><option value="both">Imported files + bundle</option></select></div>
+        <div><label>Bundle size</label><select id="bSize"><option>12</option><option selected>24</option><option>50</option><option>100</option></select></div>
+      </div>
+      <div class="btns" style="margin-top:6px"><button class="primary" id="qAdd">Add to queue</button><button class="ghost" id="qEmpty">Clear queue</button></div>
+    </div>
+    <div class="step"><p class="sectitle"><b>2</b> Look</p>
+      <div class="g2">
+        <div><label>Batch variation</label><select id="bVar"><option value="same">Same settings</option><option value="master" selected>Master variation</option><option value="random">Random controlled</option></select></div>
+        <div><label>Colour treatment</label><select id="cMode"><option value="single" selected>Single colour</option><option value="duotone">Duotone</option><option value="tritone">Tri-tone</option><option value="cmyk">CMYK</option><option value="palette">Custom palette</option></select></div>
+      </div>
+      <label style="margin-top:8px">Batch colour (tick several = colour versions)</label><div class="checks" id="colorBox"></div>
+      <div class="row" style="margin-top:6px;flex-wrap:wrap"><span class="note">Custom</span><input type="color" id="cCustom" value="#e4572e" style="width:34px;height:26px;border:1px solid var(--line);border-radius:6px;padding:0">
+        <input type="text" id="cPalette" value="#f2c14e,#e4572e,#1d3557" style="flex:1;min-width:150px" spellcheck="false" title="Custom palette: first = broad light ink, last = shadows"></div>
+      <label style="margin-top:8px">Background in files</label><select id="bgOut"><option value="design" selected>As designed</option><option value="transparent">Transparent (PNG / SVG)</option><option value="background">With background</option><option value="both">Both: transparent + background</option></select>
+    </div>
+    <div class="step"><p class="sectitle"><b>3</b> Output</p>
+      <div class="row" style="flex-wrap:wrap;gap:12px">
+        <label class="checklabel"><input type="checkbox" id="fPNG" checked> PNG</label><label class="checklabel"><input type="checkbox" id="fJPG"> JPG</label><label class="checklabel"><input type="checkbox" id="fSVG"> SVG</label>
+        <label class="checklabel"><input type="checkbox" id="pRatio"> Ratio in names</label></div>
+      <div class="g2" style="margin-top:6px">
+        <div><label>Collection name</label><input type="text" id="pColl" value="Halftone_Collection" spellcheck="false"></div>
+        <div><label>Asset prefix</label><input type="text" id="pPrefix" value="halftone" spellcheck="false"></div>
+      </div>
+      <p class="note" id="prodOut"></p>
+    </div>
+    <div class="step"><p class="sectitle"><b>4</b> Run</p>
+      <div class="btns"><button class="primary" id="qStart">Start</button><button class="ghost" id="qPause">Pause</button><button class="ghost" id="qCancel">Cancel</button><button class="ghost" id="qRetry">Retry failed</button><button class="ghost" id="qClear">Clear completed</button></div>
+      <div class="prog" style="margin-top:8px"><div id="qBar"></div></div>
+      <p class="note" id="qInfo">Queue empty.</p>
+    </div>
+    <div class="step"><p class="sectitle"><b>5</b> Download</p>
+      <div class="btns"><button class="ghost" id="zPNG">PNG ZIP</button><button class="ghost" id="zJPG">JPG ZIP</button><button class="ghost" id="zSVG">SVG ZIP</button><button class="ghost" id="zAll">All formats ZIP</button></div>
+      <div class="g2" style="margin-top:8px">
+        <div><label>Split into bundles of</label><select id="zSplit"><option value="0" selected>No split</option><option>5</option><option>10</option><option>12</option><option>24</option><option>50</option></select></div>
+        <div><label>Selected assets</label><div class="btns"><button class="ghost" id="selAll">All</button><button class="ghost" id="selNone">None</button></div></div>
+      </div>
+      <div class="btns" style="margin-top:6px"><button class="ghost" id="zSel">Selected → one bundle ZIP</button><button class="primary" id="zReady">Ready-to-upload package</button></div>
+      <p class="note">Click any asset in the queue to open it in the preview and edit it; “Save to asset” re-queues it with your changes. Tick the box on assets (e.g. 10 images) to download them as one bundle. Cancel keeps finished files.</p>
+    </div>
+  </div>
+</aside>
+<section class="work">
+  <div class="toolbar">
+    <div class="seg"><button id="pvDesign" class="on">Preview</button><button id="pvCompare">Transparent | Background</button></div>
+    <span class="edittag" id="editTag" hidden>Editing <b id="editName"></b><button class="primary" id="editSave">Save to asset</button><button class="ghost" id="editClose">Close</button></span>
+    <span style="flex:1"></span>
+    <span class="note" id="outMini"></span>
+    <button class="primary" id="expPNG">Export PNG</button><button class="ghost" id="expJPG">Export JPG</button><button class="ghost" id="expSVG">Export SVG</button>
+  </div>
+  <div class="stage" id="stage">
+    <canvas id="hCanvas" width="900" height="600"></canvas>
+    <div class="cmp" id="cmp" hidden><figure><canvas id="cmpA" class="checker"></canvas><figcaption>Transparent (PNG / SVG)</figcaption></figure><figure><canvas id="cmpB"></canvas><figcaption>With background</figcaption></figure></div>
+  </div>
+  <div class="tray">
+    <nav class="tabs tt" id="trayTabs"><button data-t="queue" class="on">Queue <span id="qCount"></span></button><button data-t="colls">Collection</button><span style="flex:1"></span><span class="note" id="qMini"></span></nav>
+    <div class="tpane on" data-p="queue"><div class="qgrid" id="qGrid"></div><p class="note" id="qEmptyNote">Nothing queued yet. Production tab → import images, or add a bundle.</p></div>
+    <div class="tpane" data-p="colls"><div class="stats" id="stats"></div><div class="thumbs" id="thumbs"></div></div>
+  </div>
+</section>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
+// UI-only randomness (e.g. creating a brand-new seed string). Procedural generation uses the seeded RNG below.
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+
+// ---------- SEEDED RNG ----------
+// Everything procedural (batch, variations, shuffle, noise) is derived from these, so seed + settings reproduce results.
+function hashStr(s){let h=2166136261>>>0;s=String(s);for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);h^=h>>>16;h=Math.imul(h,2246822507);h^=h>>>13;h=Math.imul(h,3266489909);h^=h>>>16;return h>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rngOf=(...k)=>mulberry(hashStr(k.join('|')));
+const spick=(r,a)=>a[Math.floor(r()*a.length)];
+const gauss=r=>{const u=Math.max(1e-9,r()),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2831853*v)};
+// smooth, deterministic value noise (controlled variation, never chaotic per-dot noise)
+function vnoise(x,y,seed){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+  const h=(i,j)=>{let n=(Math.imul(i,374761393)+Math.imul(j,668265263)+Math.imul(seed|0,1274126177))|0;n=Math.imul(n^(n>>>13),1103515245);return((n^(n>>>16))>>>0)/4294967296};
+  const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);return lerp(lerp(h(xi,yi),h(xi+1,yi),u),lerp(h(xi,yi+1),h(xi+1,yi+1),u),v)}
+const fbm=(x,y,s)=>.65*vnoise(x,y,s)+.35*vnoise(x*2.13+7.3,y*2.13-3.1,s+17);
+const hash01=(i,j,s)=>{let n=(Math.imul(i,73856093)^Math.imul(j,19349663)^Math.imul(s|0,83492791))|0;n=Math.imul(n^(n>>>15),2246822519);return((n^(n>>>13))>>>0)/4294967296};
+
+// ---------- download via artifact capability ----------
+async function download(blob,filename){
+  try{
+    if(window.claude && window.claude.use){
+      const dl=await window.claude.use('downloads');
+      if(dl){ await dl.save({filename,data:blob}); return; }
+    }
+  }catch(e){ if(e && e.code==='declined') return; toast('Could not save: '+(e&&e.message||'try again')); return; }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+// ---------- HALFTONE DNA ----------
+// One DNA per design. The renderer reads every field below; the defaults reproduce the original look exactly.
+const DNA0={v:1,pattern:'wave',dotShape:'circle',cellSize:10,dotWidth:1,dotHeight:1,aspectRatio:1,angle:15,gamma:1,contrast:1,density:.5,
+  phase:0,offsetX:0,offsetY:0,invert:false,color:'#1c1b1a',background:'#f2efe9',transparent:false,cmyk:false,
+  scale:1,rotation:0,frequency:1,amplitude:.5,warp:0,warpScale:.5,warpDirection:'both',noise:0,noiseScale:.5,fade:0,edgeSoftness:1,
+  direction:'uniform',directionAmount:.8,symmetry:0,radiality:0,spacingVariation:0,spacingMode:'uniform',sizeVariation:0,sizeMode:'uniform',positionVariation:0,seed:1,
+  imgFit:'contain',imgPad:0,colorSource:false,inks:null,distress:0,grain:0,misreg:0};
+const SIZE_MODES={uniform:0,subtle:.12,medium:.24,strong:.4,organic:.32},SPACE_MODES={uniform:0,subtle:.08,medium:.16,organic:.26};
+const SHAPES=['circle','square','diamond','line','ellipse','roundsquare','triangle','hexagon','cross','dash','capsule'];
+const normDNA=d=>{const o={...DNA0,...(d||{})};if(!SHAPES.includes(o.dotShape))o.dotShape='circle';return o};
+
+// ---------- pattern field ----------
+// frequency / amplitude generalise the original fields; at frequency 1 and amplitude .5 they are identical to the original.
+function darknessField(mode,u,v,fx,fy,ph,d){
+  const f=d?d.frequency:1,am=d?d.amplitude:.5,dd=Math.hypot(u,v);
+  switch(mode){
+    case 'circle': return clamp(1-dd,0,1);
+    case 'square': return clamp(1-Math.max(Math.abs(u),Math.abs(v)),0,1);
+    case 'triangle': { if(v>1||v<-1) return 0; const allowed=(1-v)/2; return clamp(1-Math.abs(u)/Math.max(allowed,0.001),0,1); }
+    case 'wave': { const path=am*Math.sin(fx*Math.PI*2*f+ph); return clamp(1-Math.abs(v-path)/0.35,0,1); }
+    case 'burst': { const ang=Math.atan2(v,u); return clamp(dd+0.05*Math.sin(ph*3)+(am-.5)*.4*Math.sin(ang*Math.max(2,Math.round(8*f))+ph),0,1); }
+    case 'ring': { const r0=0.55+0.05*Math.sin(ph),dist=Math.abs(f-1)<1e-6?Math.abs(dd-r0):Math.abs((((dd-r0)*f+.5)%1+1)%1-.5)/f; return clamp(1-dist/(0.18*am*2),0,1); }   // frequency > 1 repeats the ring
+    case 'grid': { const p=Math.round(ph*2),n=8*f; return 0.4+0.25*((Math.floor((u+1)*n)+Math.floor((v+1)*n)+p)%2); }   // original expression (incl. its negative-modulo tones)
+    case 'spiral': { const ang=Math.atan2(v,u),arms=Math.max(1,Math.round(3*f)); return clamp(1-Math.abs(Math.sin(ang*arms+dd*10*f*am*2+ph)),0,1); }
+    case 'curve': { const path=am*1.2*Math.sin(fx*Math.PI*1.3*f+ph); return clamp(1-Math.abs(v-path)/0.15,0,1); }
+    case 'gradient': return clamp((fx+1)/2,0,1);
+  }
+  return 0;
+}
+// DNA field: pattern rotation / scale / radiality / symmetry -> field -> noise -> midtone contrast -> edge softness -> invert
+// -> density direction -> edge fade -> gamma. Returns dot "darkness" 0..1 at a design-space point.
+function makeFieldDNA(d,w,h,img){
+  const cx=w/2,cy=h/2,sc0=Math.min(w,h)/2,rot=-(d.rotation||0)*Math.PI/180,cr=Math.cos(rot),sr=Math.sin(rot),S=d.scale||1,R=d.radiality||0,sym=d.symmetry|0;
+  const tf=(a,b)=>{let x=(a*cr-b*sr)/S,y=(a*sr+b*cr)/S;
+    if(R>0){const dd=Math.hypot(x,y),an=Math.atan2(y,x);x=lerp(x,an/Math.PI,R);y=lerp(y,dd*2-1,R)}
+    if(sym==2)x=Math.abs(x);else if(sym==4){x=Math.abs(x);y=Math.abs(y)}
+    else if(sym>=5){const dd=Math.hypot(x,y),seg=2*Math.PI/sym;let an=Math.atan2(y,x);an=((an%seg)+seg)%seg;an=Math.abs(an-seg/2);x=dd*Math.cos(an);y=dd*Math.sin(an)}
+    return[x,y]};
+  // image: contain / cover / stretch inside the padded artboard, never distorted (except the legacy stretch option);
+  // transparent pixels and the area outside the image carry no dots (alpha mask)
+  let imgS=null,imgI=null,mask=1;
+  if(img){const iw=img.width,ih=img.height,data=img._px||(img._px=img.getContext('2d').getImageData(0,0,iw,ih).data);
+    const fit=d.imgFit||'contain',pd=clamp(d.imgPad||0,0,.45),x0=w*pd,y0=h*pd,aw=w-2*x0,ah=h-2*y0;
+    let sx,sy;if(fit==='stretch'){sx=aw/iw;sy=ah/ih}else{sx=sy=fit==='cover'?Math.max(aw/iw,ah/ih):Math.min(aw/iw,ah/ih)}
+    const ox=x0+(aw-iw*sx)/2,oy=y0+(ah-ih*sy)/2;
+    const tl=d.cellSize||10,rx0=Math.max(x0,ox)-tl,ry0=Math.max(y0,oy)-tl,rx1=Math.min(x0+aw,ox+iw*sx)+tl,ry1=Math.min(y0+ah,oy+ih*sy)+tl;   // dots straddling an edge sample the edge pixel
+    imgI=(x,y)=>x<rx0||y<ry0||x>rx1||y>ry1?-1:(clamp(Math.floor((y-oy)/sy),0,ih-1)*iw+clamp(Math.floor((x-ox)/sx),0,iw-1))*4;
+    imgS=(x,y)=>{const i=imgI(x,y);if(i<0){mask=0;return 0}mask=data[i+3]/255;return 1-((data[i]*0.3+data[i+1]*0.59+data[i+2]*0.11)/255)}}
+  const ns=lerp(18,2,d.noiseScale??.5)/Math.min(w,h),sw=.06+.3*(d.edgeSoftness??1),dir=d.direction||'uniform',dA=d.directionAmount??.8;
+  const data=img&&img._px;
+  const F=(x,y)=>{let dk;
+    if(imgS)dk=imgS(x,y);
+    else{const[U,V]=tf((x-cx)/sc0,(y-cy)/sc0),[FX,FY]=tf(x/w*2-1,y/h*2-1);dk=darknessField(d.pattern,U,V,FX,FY,d.phase||0,d)}
+    if(d.noise>0)dk+=(fbm(x*ns,y*ns,d.seed+101)-.5)*d.noise*1.1;
+    if(d.contrast!==1)dk=(dk-.5)*d.contrast+.5;
+    if(d.edgeSoftness<1)dk=lerp(smooth(.5-sw,.5+sw,dk),clamp(dk,0,1),d.edgeSoftness);
+    if(d.invert)dk=1-dk;
+    if(dir!=='uniform'&&dA>0){const fx=x/w,fy=y/h,r=Math.hypot(fx-.5,fy-.5)/.7072;let g=1;
+      switch(dir){case'horizontal':g=1-Math.abs(fy-.5)*2;break;case'vertical':g=1-Math.abs(fx-.5)*2;break;case'diagonal':g=(fx+fy)/2;break;case'radial':g=1-r;break;
+        case'center':g=1-smooth(.1,.85,r);break;case'edge':g=smooth(.15,1,r);break;case'top':g=1-fy;break;case'bottom':g=fy;break;case'left':g=1-fx;break;case'right':g=fx;break}
+      dk*=lerp(1,clamp(g,0,1),dA)}
+    if(d.fade>0){const r=Math.hypot(x/w-.5,y/h-.5)/.7072;dk*=1-d.fade*smooth(.35,1,r)}
+    return Math.pow(clamp(dk,0,1),d.gamma)*(imgS?mask:1)};
+  if(imgI)F.rgb=(x,y)=>{const i=imgI(x,y);if(i<0)return d.color;const q=v=>(Math.min(255,(v>>3<<3)+4)).toString(16).padStart(2,'0');return'#'+q(data[i])+q(data[i+1])+q(data[i+2])};
+  return F}
+// legacy sampler (kept for compatibility with the original API)
+function makeSampler(pattern,ph,imgCanvas){
+  if(imgCanvas){
+    const w=imgCanvas.width,h=imgCanvas.height;
+    const data=imgCanvas.getContext('2d').getImageData(0,0,w,h).data;
+    return (x,y,cw,ch)=>{
+      const ix=clamp(Math.floor(x/cw*w),0,w-1), iy=clamp(Math.floor(y/ch*h),0,h-1);
+      const i=(iy*w+ix)*4;
+      return 1-((data[i]*0.3+data[i+1]*0.59+data[i+2]*0.11)/255);
+    };
+  }
+  return (x,y,cw,ch)=>{
+    const scale=Math.min(cw,ch)/2, cx=cw/2, cy=ch/2;
+    const u=(x-cx)/scale, v=(y-cy)/scale, fx=x/cw*2-1, fy=y/ch*2-1;
+    return darknessField(pattern,u,v,fx,fy,ph);
+  };
+}
+
+// ---------- rotated dot lattice ----------
+function forEachDot(w,h,cell,angleDeg,cb){
+  const rad=angleDeg*Math.PI/180, cosA=Math.cos(rad), sinA=Math.sin(rad);
+  const n=Math.ceil(Math.hypot(w,h)/cell)+2;
+  for(let j=-n;j<=n;j++) for(let i=-n;i<=n;i++){
+    const lx=i*cell, ly=j*cell;
+    const x=w/2+lx*cosA-ly*sinA, y=h/2+lx*sinA+ly*cosA;
+    if(x<-cell||x>w+cell||y<-cell||y>h+cell) continue;
+    cb(x,y);
+  }
+}
+// DNA lattice: density sets the real dot pitch (more / fewer dots at the same dot size), offsets shift it,
+// spacing variation bends it smoothly, position jitter is small and bounded, warp moves actual dot positions,
+// size variation is a smooth field. cb(x, y, sizeFactor).
+function forEachDotDNA(w,h,d,angleDeg,cb){
+  const cell=d.cellSize,pitch=cell*Math.pow(2,(.5-d.density)*1.6),rad=angleDeg*Math.PI/180,cosA=Math.cos(rad),sinA=Math.sin(rad);
+  const n=Math.ceil(Math.hypot(w,h)/pitch)+3,ox=(d.offsetX||0)*pitch,oy=(d.offsetY||0)*pitch,sd=d.seed|0,m=Math.min(w,h);
+  const sv=d.spacingVariation||0,sf=d.spacingMode==='organic'?.12:.35,pv=d.positionVariation||0,zv=d.sizeVariation||0,zf=(d.sizeMode==='organic'?3:9)/m;
+  const wa=(d.warp||0)*m*.06,wf=lerp(9,1.5,d.warpScale??.5)/m,wd=d.warpDirection||'both',cxm=w/2,cym=h/2,pad=cell*1.5+wa;
+  for(let j=-n;j<=n;j++)for(let i=-n;i<=n;i++){
+    let lx=i*pitch+ox,ly=j*pitch+oy;
+    if(sv>0){lx+=(vnoise(i*sf,j*sf+11.3,sd+7)-.5)*2*sv*pitch;ly+=(vnoise(i*sf+5.1,j*sf,sd+13)-.5)*2*sv*pitch}
+    if(pv>0){lx+=(hash01(i,j,sd+3)-.5)*pv*pitch;ly+=(hash01(j,i,sd+5)-.5)*pv*pitch}
+    let x=cxm+lx*cosA-ly*sinA,y=cym+lx*sinA+ly*cosA;
+    if(x<-pad||x>w+pad||y<-pad||y>h+pad)continue;
+    if(wa>0){const n1=fbm(x*wf,y*wf,sd+21)-.5,n2=fbm(x*wf+31.7,y*wf-17.3,sd+29)-.5;
+      if(wd==='x')x+=n1*2*wa;else if(wd==='y')y+=n2*2*wa;
+      else if(wd==='radial'||wd==='swirl'){const dx=x-cxm,dy=y-cym,l=Math.hypot(dx,dy)||1;if(wd==='radial'){x+=dx/l*n1*2*wa;y+=dy/l*n1*2*wa}else{x+=-dy/l*n1*2*wa;y+=dx/l*n1*2*wa}}
+      else{x+=n1*2*wa;y+=n2*2*wa}}
+    if(x<-cell||x>w+cell||y<-cell||y>h+cell)continue;
+    cb(x,y,zv>0?Math.max(0,1+(fbm(x*zf,y*zf,sd+41)-.5)*2*zv):1)}}
+// dot shapes: unit shapes scaled by (rx, ry) so the same dot can morph between circle / ellipse / line / dash / diamond
+function unitPath(ctx,shape){
+  switch(shape){
+    case 'circle': ctx.arc(0,0,1,0,Math.PI*2); break;
+    case 'ellipse': ctx.ellipse(0,0,1,.62,0,0,Math.PI*2); break;
+    case 'square': ctx.rect(-1,-1,2,2); break;
+    case 'roundsquare': ctx.roundRect?ctx.roundRect(-1,-1,2,2,.42):ctx.rect(-1,-1,2,2); break;
+    case 'diamond': ctx.moveTo(0,-1); ctx.lineTo(1,0); ctx.lineTo(0,1); ctx.lineTo(-1,0); ctx.closePath(); break;
+    case 'triangle': ctx.moveTo(0,-1.15); ctx.lineTo(1,.62); ctx.lineTo(-1,.62); ctx.closePath(); break;
+    case 'hexagon': for(let k=0;k<6;k++){const a=k*Math.PI/3; k?ctx.lineTo(Math.cos(a),Math.sin(a)):ctx.moveTo(1,0)} ctx.closePath(); break;
+    case 'cross': { const t=.34; ctx.moveTo(-t,-1);ctx.lineTo(t,-1);ctx.lineTo(t,-t);ctx.lineTo(1,-t);ctx.lineTo(1,t);ctx.lineTo(t,t);ctx.lineTo(t,1);ctx.lineTo(-t,1);ctx.lineTo(-t,t);ctx.lineTo(-1,t);ctx.lineTo(-1,-t);ctx.lineTo(-t,-t);ctx.closePath(); break; }
+    case 'dash': ctx.roundRect?ctx.roundRect(-.85,-.27,1.7,.54,.27):ctx.rect(-.85,-.27,1.7,.54); break;
+    case 'capsule': ctx.roundRect?ctx.roundRect(-1,-.5,2,1,.5):ctx.rect(-1,-.5,2,1); break;
+  }
+}
+function paintDot(ctx,x,y,r,shape,angleRad,sx=1,sy=1){
+  if(r<=0.6) return;
+  ctx.save(); ctx.translate(x,y); if(shape!=='circle'||sx!==sy) ctx.rotate(angleRad);
+  if(shape==='line'){ const hh=Math.max(1,r*sy*0.28); ctx.fillRect(-r*sx,-hh,r*sx*2,hh*2); ctx.restore(); return; }
+  if(shape==='square'&&sx===1&&sy===1){ ctx.fillRect(-r,-r,r*2,r*2); ctx.restore(); return; }
+  ctx.scale(r*sx,r*sy); ctx.beginPath(); unitPath(ctx,shape); ctx.fill();
+  ctx.restore();
+}
+const CMYK=[{c:'#00AEEF',a:15},{c:'#EC008C',a:75},{c:'#FFF200',a:0},{c:'#1c1b1a',a:45}];
+// one dot iterator shared by canvas and SVG output
+function eachRenderedDot(d,w,h,img,cb){
+  const field=makeFieldDNA(d,w,h,img),sa=Math.sqrt(d.aspectRatio||1),sx=(d.dotWidth||1)*sa,sy=(d.dotHeight||1)/sa;
+  // print character (all vector-safe: dots are only resized, removed or shifted)
+  const gr=d.grain||0,ds=d.distress||0,mr=d.misreg||0,sd=(d.seed|0)+77,m=Math.min(w,h),df=5/m,dh=d.cellSize*.9;
+  const out=(ds>0||gr>0)?(x,y,r,a,c)=>{
+      if(ds>0){const v=.72*fbm(x*df,y*df,sd)+.28*hash01(Math.round(x/dh),Math.round(y/dh),sd+3),t=ds*.8;if(v<t)return;r*=smooth(t,t+.1,v)}
+      if(gr>0)r*=1+(hash01(Math.round(x*3),Math.round(y*3),sd+9)-.5)*gr;
+      cb(x,y,r,a,c,sx,sy)}:(x,y,r,a,c)=>cb(x,y,r,a,c,sx,sy);
+  const pass=(angle,color,g=1,k=-1)=>{const ox=k>=0&&mr?mr*Math.cos(k*2.4+1):0,oy=k>=0&&mr?mr*Math.sin(k*2.4+1):0;
+    forEachDotDNA(w,h,d,angle,(x,y,z)=>{let t=field(x,y);if(g!==1)t=Math.pow(t,g);out(x+ox,y+oy,(d.cellSize/2)*t*z,angle,color)})};
+  if(d.cmyk)CMYK.forEach((ch,i)=>pass(ch.a,ch.c,1,i));
+  else if(d.inks&&d.inks.length)d.inks.forEach((k,i)=>pass(d.angle+k.a,k.c,k.g,i));    // duotone / tri-tone / palette screens
+  else if(d.colorSource&&field.rgb)forEachDotDNA(w,h,d,d.angle,(x,y,z)=>out(x,y,(d.cellSize/2)*field(x,y)*z,d.angle,field.rgb(x,y))); // keep original colours
+  else pass(d.angle,d.color)}
+// render a DNA into any canvas; the design is laid out in artboard units (w, h) and scaled to the canvas
+function renderDNA(canvas,d,img,w=canvas.width,h=canvas.height){
+  const ctx=canvas.getContext('2d'),k=canvas.width/w,ky=canvas.height/h;
+  ctx.setTransform(1,0,0,1,0,0);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.setTransform(k,0,0,ky,0,0);
+  if(!d.transparent){ ctx.fillStyle=d.background; ctx.fillRect(0,0,w,h); }
+  if(d.cmyk){ctx.globalCompositeOperation='multiply';ctx.globalAlpha=0.82}
+  let last=null;
+  eachRenderedDot(d,w,h,img,(x,y,r,angle,color,sx,sy)=>{if(color!==last){ctx.fillStyle=color;last=color}paintDot(ctx,x,y,r,d.dotShape,angle*Math.PI/180,sx,sy)});
+  ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.setTransform(1,0,0,1,0,0);
+}
+// original entry point, now DNA-backed
+function optsToDNA(o){return normDNA({...CUR,pattern:o.pattern,cellSize:o.cell,gamma:o.gamma,angle:o.angle,invert:o.invert,dotShape:o.dotShape,color:o.dot,background:o.bg,transparent:o.transparent,cmyk:o.cmyk,phase:o.phase})}
+function renderToCanvas(canvas,opts){ renderDNA(canvas,opts.pattern!==undefined&&opts.cell!==undefined?optsToDNA(opts):opts,opts.img||null); }
+
+// ---------- live editor state (the MASTER-in-progress) ----------
+const $=id=>document.getElementById(id);
+const hCanvas=$('hCanvas');
+const shapeSel=$('shapeSel'), cellSize=$('cellSize'), gamma=$('gamma'), invert=$('invert'), dotColor=$('dotColor'), bgColor=$('bgColor'),
+      transparentBg=$('transparentBg'), angleSlider=$('angle'), dotShapeSel=$('dotShapeSel'), cmykBox=$('cmyk');
+let srcCanvas=null, CUR=normDNA(DNA0), MASTER=null;
+// UI <-> DNA bindings: [id, key, toDNA(value), toUI(dnaValue), label id, label format]
+const f2=v=>(+v).toFixed(2);
+const BIND=[
+  ['shapeSel','pattern',v=>v,v=>v],['dotShapeSel','dotShape',v=>v,v=>v],
+  ['angle','angle',v=>+v,v=>Math.round(v),'angleVal',v=>Math.round(v)+'°'],
+  ['cellSize','cellSize',v=>+v,v=>clamp(Math.round(v),6,28),'cellVal',v=>Math.round(v)+'px'],
+  ['gamma','gamma',v=>v/10,v=>Math.round(v*10),'gammaVal',v=>(+v).toFixed(1)],
+  ['invert','invert',null,null],['cmyk','cmyk',null,null],['transparentBg','transparent',null,null],
+  ['dotColor','color',v=>v,v=>v],['bgColor','background',v=>v,v=>v],
+  ['density','density',v=>v/100,v=>Math.round(v*100),'densVal',v=>Math.round(v*100)],
+  ['dotW','dotWidth',v=>v/100,v=>Math.round(v*100),'dotWVal',f2],['dotH','dotHeight',v=>v/100,v=>Math.round(v*100),'dotHVal',f2],
+  ['aspect','aspectRatio',v=>Math.pow(2,v/100),v=>Math.round(Math.log2(v)*100),'aspVal',f2],
+  ['sizeMode','sizeMode',v=>v,v=>v],['spacingMode','spacingMode',v=>v,v=>v],
+  ['posVar','positionVariation',v=>v/100,v=>Math.round(v*100),'posVal',v=>Math.round(v*100)],
+  ['phaseR','phase',v=>v*Math.PI/180,v=>Math.round((((v*180/Math.PI)%360)+360)%360),'phaseVal',v=>Math.round((((v*180/Math.PI)%360)+360)%360)+'°'],
+  ['offX','offsetX',v=>v/100,v=>Math.round(v*100),'oxVal',v=>Math.round(v*100)+'%'],['offY','offsetY',v=>v/100,v=>Math.round(v*100),'oyVal',v=>Math.round(v*100)+'%'],
+  ['dirSel','direction',v=>v,v=>v],['dirAmt','directionAmount',v=>v/100,v=>Math.round(v*100),'dirAVal',v=>Math.round(v*100)],
+  ['warp','warp',v=>v/100,v=>Math.round(v*100),'warpVal',v=>Math.round(v*100)],['warpScale','warpScale',v=>v/100,v=>Math.round(v*100),'warpSVal',v=>Math.round(v*100)],
+  ['warpDir','warpDirection',v=>v,v=>v],
+  ['pScale','scale',v=>v/100,v=>Math.round(v*100),'pscVal',f2],['freq','frequency',v=>v/100,v=>Math.round(v*100),'freqVal',f2],['amp','amplitude',v=>v/100,v=>Math.round(v*100),'ampVal',f2],
+  ['symSel','symmetry',v=>+v,v=>String(v)],['radial','radiality',v=>v/100,v=>Math.round(v*100),'radVal',v=>Math.round(v*100)],
+  ['contrast2','contrast',v=>v/100,v=>Math.round(v*100),'conVal',f2],['soft','edgeSoftness',v=>v/100,v=>Math.round(v*100),'softVal',v=>Math.round(v*100)],
+  ['noise','noise',v=>v/100,v=>Math.round(v*100),'noiseVal',v=>Math.round(v*100)],['noiseScale','noiseScale',v=>v/100,v=>Math.round(v*100),'noiseSVal',v=>Math.round(v*100)],
+  ['fade','fade',v=>v/100,v=>Math.round(v*100),'fadeVal',v=>Math.round(v*100)],
+  ['distress','distress',v=>v/100,v=>Math.round(v*100),'distVal',v=>Math.round(v*100)],['grain','grain',v=>v/100,v=>Math.round(v*100),'grainVal',v=>Math.round(v*100)],
+  ['misreg','misreg',v=>v/10,v=>Math.round(v*10),'misVal',v=>(+v).toFixed(1)]];
+const ROT_PRESETS=[0,15,22.5,30,45,60,90];
+function syncUI(){
+  for(const[id,k,,toUI,lid,fmt]of BIND){const el=$(id);if(!el)continue;if(el.type==='checkbox')el.checked=!!CUR[k];else el.value=toUI(CUR[k]);if(lid)$(lid).textContent=fmt(CUR[k])}
+  const dp=[.1,.3,.5,.7,.9].reduce((a,b)=>Math.abs(b-CUR.density)<Math.abs(a-CUR.density)?b:a);$('densPreset').value=String(dp);
+  $('imgFit').value=CUR.imgFit||'contain';$('imgPad').value=Math.round((CUR.imgPad||0)*100);$('padVal').textContent=Math.round((CUR.imgPad||0)*100)+'%';
+  const rp=ROT_PRESETS.find(r=>Math.abs(r-CUR.rotation)<1e-6);$('rotSel').value=rp!==undefined?String(rp):'custom';$('rotCustom').value=+(+CUR.rotation).toFixed(2);
+}
+function currentOpts(){
+  return { pattern:CUR.pattern, cell:CUR.cellSize, gamma:CUR.gamma, angle:CUR.angle, invert:CUR.invert, dotShape:CUR.dotShape, dot:CUR.color, bg:CUR.background,
+    transparent:CUR.transparent, cmyk:CUR.cmyk, phase:CUR.phase, img:srcCanvas, dna:CUR };
+}
+let CMP=false;
+function renderMain(){ renderDNA(hCanvas,CUR,srcCanvas); hCanvas.classList.toggle('checker',!!CUR.transparent);
+  if(CMP){const w=hCanvas.width,h=hCanvas.height,k=Math.min(1,760/Math.max(w,h));for(const[id,t]of[['cmpA',true],['cmpB',false]]){const c=$(id);c.width=Math.round(w*k);c.height=Math.round(h*k);renderDNA(c,{...CUR,transparent:t},srcCanvas,w,h)}}
+  if(typeof drawInks==='function')drawInks(); }
+for(const[id,k,toD,,lid,fmt]of BIND){const el=$(id);if(!el)continue;el.addEventListener('input',()=>{CUR[k]=el.type==='checkbox'?el.checked:toD(el.value);if(lid)$(lid).textContent=fmt(CUR[k]);
+  if(k==='sizeMode')CUR.sizeVariation=SIZE_MODES[CUR.sizeMode];if(k==='spacingMode')CUR.spacingVariation=SPACE_MODES[CUR.spacingMode];if(k==='density')syncUI();renderMain()})}
+$('densPreset').onchange=e=>{CUR.density=+e.target.value;syncUI();renderMain()};
+$('rotSel').onchange=e=>{const v=e.target.value;if(v==='custom')CUR.rotation=+$('rotCustom').value||0;
+  else if(v==='random'){const r=rngOf(MSEED,'rotation',++SHUF);CUR.rotation=spick(r,ROT_PRESETS)+(r()-.5)*6}else CUR.rotation=+v;syncUI();renderMain()};
+$('rotCustom').onchange=e=>{CUR.rotation=clamp(+e.target.value||0,-180,180);syncUI();renderMain()};
+
+// image drop (image data is never part of the DNA)
+const dropZone=$('dropZone'), fileInput=$('fileInput'), clearImg=$('clearImg');
+dropZone.onclick=()=>fileInput.click();
+['dragover','dragenter'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove('over');}));
+dropZone.addEventListener('drop',e=>{ if(e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change',e=>{ if(e.target.files[0]) loadImage(e.target.files[0]); });
+clearImg.onclick=()=>{ srcCanvas=null; clearImg.style.display='none'; renderMain(); };
+function loadImage(file){
+  loadSource(file,2000).then(c=>{srcCanvas=c;clearImg.style.display='inline-block';renderMain()}).catch(e=>toast('Could not read image: '+e.message));
+}
+// decode any PNG / JPG / WEBP / SVG into a sampling canvas (long side <= maxS, so 100 large files never sit decoded at full size)
+const loadImg=url=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('cannot decode'));i.src=url});
+async function loadSource(file,maxS=1600){
+  const isSvg=/svg/i.test(file.type)||/\.svg$/i.test(file.name);let src,iw,ih;
+  if(isSvg){const doc=new DOMParser().parseFromString(await file.text(),'image/svg+xml'),svg=doc.documentElement;
+    if(!svg||svg.nodeName.toLowerCase()!=='svg'||doc.getElementsByTagName('parsererror').length)throw new Error('invalid SVG');
+    const num=a=>{const v=svg.getAttribute(a);return v&&!/%$/.test(v)?parseFloat(v):NaN},vb=(svg.getAttribute('viewBox')||'').trim().split(/[\s,]+/).map(Number);
+    let w=num('width'),h=num('height');
+    if(!(w>0&&h>0)){if(vb.length===4&&vb[2]>0&&vb[3]>0){w=vb[2];h=vb[3]}else{w=h=1000}}
+    if(!svg.getAttribute('viewBox'))svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    const k=maxS/Math.max(w,h);svg.setAttribute('width',w*k);svg.setAttribute('height',h*k);
+    const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'}));
+    try{src=await loadImg(url)}finally{URL.revokeObjectURL(url)}iw=w*k;ih=h*k}
+  else{try{src=await createImageBitmap(file)}catch(e){const url=URL.createObjectURL(file);try{src=await loadImg(url)}finally{URL.revokeObjectURL(url)}}
+    iw=src.width||src.naturalWidth;ih=src.height||src.naturalHeight}
+  if(!(iw>0&&ih>0))throw new Error('empty image');
+  const s=Math.min(1,maxS/Math.max(iw,ih)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(iw*s));c.height=Math.max(1,Math.round(ih*s));
+  c.getContext('2d').drawImage(src,0,0,c.width,c.height);if(src.close)src.close();return c}
+$('imgFit').onchange=e=>{CUR.imgFit=e.target.value;renderMain()};
+$('imgPad').oninput=e=>{CUR.imgPad=e.target.value/100;$('padVal').textContent=e.target.value+'%';renderMain()};
+
+// ---------- ARTBOARD: aspect ratio -> design canvas; export size -> real output pixels ----------
+// The design is laid out on the preview canvas (design units). Exports re-render the same design at the output size.
+const RATIOS=[['1:1',1,[[3000,3000],[4000,4000],[6000,6000]]],['2:3',2/3,[[4000,6000]]],['3:2',3/2,[[6000,4000]]],['4:5',4/5,[[4000,5000]]],['5:4',5/4,[[5000,4000]]],
+  ['3:4',3/4,[[3000,4000]]],['4:3',4/3,[[4000,3000]]],['9:16',9/16,[[2160,3840]]],['16:9',16/9,[[3840,2160]]],['2:4',1/2,[[2000,4000]]],['4:2',2,[[4000,2000]]]];
+const QUAL={fhd:1920,'4k':3840,'8k':7680},MAX_SIDE=16384,MAX_AREA=100e6;
+const sizeSel=$('sizeSel'), customSize=$('customSize');
+function ratioOf(w=hCanvas.width,h=hCanvas.height){const r=w/h,sel=sizeSel.value;
+  if(sel[0]==='r'){const e=RATIOS.find(x=>'r'+x[0]===sel);if(e)return e}
+  return RATIOS.find(x=>Math.abs(x[1]-r)/r<.004)||null}
+function designDims(a,b){let s=1080/Math.min(a,b),w=a*s,h=b*s;const m=Math.max(w,h);if(m>1920){w*=1920/m;h*=1920/m}return[Math.round(w),Math.round(h)]}
+function fillQual(){const e=ratioOf(),q=$('expQ'),prev=q.value;let o='';
+  if(e)e[2].forEach(([w,h],i)=>o+=`<option value="p${i}">Stock ${e[0]} · ${w}×${h}</option>`);
+  o+='<option value="fhd">Full HD width (1920)</option><option value="4k">4K width (3840)</option><option value="8k">8K width (7680)</option><option value="canvas">Canvas size (1×)</option><option value="custom">Custom width…</option>';
+  q.innerHTML=o;q.value=[...q.options].some(x=>x.value===prev)?prev:(e?'p0':'4k');updOut()}
+function outDims(){const w=hCanvas.width,h=hCanvas.height,v=$('expQ').value,e=ratioOf();let W,H;
+  if(v[0]==='p'&&e){[W,H]=e[2][+v.slice(1)]||e[2][0]}
+  else if(v==='canvas'){W=w;H=h}
+  else{W=v==='custom'?clamp(Math.round(+$('qW').value||3840),200,MAX_SIDE):QUAL[v]||3840;H=Math.round(W*h/w)}
+  let k=Math.min(1,MAX_SIDE/Math.max(W,H),Math.sqrt(MAX_AREA/(W*H)));if(k<1){W=Math.round(W*k);H=Math.round(H*k)}
+  return[W,H,k<1]}
+const ratioTok=()=>{const e=ratioOf();if(e)return e[0].replace(':','x');const[W,H]=outDims();return W+'x'+H};
+function updOut(){const[W,H,cap]=outDims(),e=ratioOf();$('qCustomRow').style.display=$('expQ').value==='custom'?'flex':'none';
+  $('outInfo').textContent=`Design canvas ${hCanvas.width}×${hCanvas.height} · output ${W}×${H} px${e?' ('+e[0]+')':''}${cap?' · reduced to the browser canvas limit':''}`;
+  $('outMini').textContent=`${W}×${H}${e?' · '+e[0]:''}`;$('prodOut').textContent=`Every file: ${W}×${H} px${e?' ('+e[0]+')':''} · change it in the Artboard tab.`}
+function setCanvas(w,h){hCanvas.width=w;hCanvas.height=h;fillQual();renderMain()}
+sizeSel.onchange=()=>{
+  if(sizeSel.value==='custom'){ customSize.style.display='flex'; return; }
+  customSize.style.display='none';
+  if(sizeSel.value[0]==='r'){const e=ratioOf(),[a,b]=e[0].split(':').map(Number);setCanvas(...designDims(a,b));return}
+  const [w,h]=sizeSel.value.split(',').map(Number);
+  setCanvas(w,h);
+};
+$('applySize').onclick=()=>setCanvas(clamp(+$('cw').value||900,50,4000),clamp(+$('ch').value||600,50,4000));
+$('expQ').onchange=updOut;$('qW').oninput=updOut;
+
+// ---------- SEED ----------
+let MSEED='',SHUF=0,VARN=0;
+const newSeed=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<8;i++)s+=a[Math.floor(Math.random()*a.length)];return s.slice(0,4)+'-'+s.slice(4)};
+function setSeed(v){MSEED=String(v||'').trim()||newSeed();$('mseed').value=MSEED}
+setSeed(newSeed());
+$('sgen').onclick=()=>{setSeed(newSeed());SHUF=0;VARN=0;toast('New seed '+MSEED)};
+$('mseed').onchange=()=>{setSeed($('mseed').value);$('slk').checked=true;SHUF=0;VARN=0;toast('Seed locked: '+MSEED)};
+$('scp').onclick=async()=>{try{await navigator.clipboard.writeText(MSEED);toast('Seed copied')}catch(e){$('mseed').select();toast('Select the seed field to copy')}};
+
+// shuffle (original behaviour, now seeded and lock-aware)
+$('shuffle').onclick=()=>{
+  const r=rngOf(MSEED,'shuffle',++SHUF),L=lockedKeys();
+  if(!L.has('phase'))CUR.phase=r()*Math.PI*2;
+  if(!L.has('angle'))CUR.angle=Math.round(r()*90);
+  if(!L.has('cellSize'))CUR.cellSize=Math.round(6+r()*16);
+  if(!L.has('dotShape'))CUR.dotShape=spick(r,['circle','square','diamond','line']);
+  syncUI();renderMain();
+};
+
+// ---------- LOCKS + VARIATION MATRIX ----------
+const LOCKS=[['pattern','Pattern',['pattern']],['dotShape','Dot shape',['dotShape','aspectRatio']],['color','Color',['color','background','transparent','cmyk','invert']],
+  ['angle','Angle',['angle']],['density','Density',['density','direction','directionAmount']],['spacing','Spacing',['cellSize','spacingVariation','spacingMode','positionVariation']],
+  ['composition','Composition',['frequency','amplitude','symmetry','radiality','rotation','scale','phase','offsetX','offsetY','fade','direction']]];
+const MATRIX=[['size','Dot size',['dotWidth','dotHeight','sizeVariation'],1],['spacing','Spacing',['cellSize','spacingVariation','positionVariation'],1],['angle','Angle',['angle'],1],
+  ['density','Density',['density','directionAmount'],1],['shape','Dot shape',['dotShape','aspectRatio'],0],['contrast','Contrast',['gamma','contrast','edgeSoftness'],1],
+  ['warp','Warp',['warp','warpScale','noise','noiseScale'],1],['scale','Scale',['scale','frequency','amplitude'],1],['phase','Phase',['phase','offsetX','offsetY'],1],
+  ['rotation','Rotation',['rotation'],1],['fade','Fade',['fade'],1]];
+for(const[k,n]of LOCKS)$('lockBox').insertAdjacentHTML('beforeend',`<label class="checklabel"><input type="checkbox" id="lk_${k}"> ${n}</label>`);
+for(const[k,n,,on]of MATRIX)$('matrixBox').insertAdjacentHTML('beforeend',`<label class="checklabel"><input type="checkbox" id="mx_${k}"${on?' checked':''}> ${n}</label>`);
+function lockedKeys(){const s=new Set();for(const[k,,keys]of LOCKS)if($('lk_'+k).checked)keys.forEach(x=>s.add(x));return s}
+const matrixGroups=()=>MATRIX.filter(([k])=>$('mx_'+k).checked);
+
+// ---------- MUTATION ENGINE ----------
+// Parameter behaviour: [key, min, max, kind, spread at amount 1]. mult = multiplicative (log2 spread), add = additive, circ = wraps.
+const PS={cellSize:[4,40,'mult',.45],dotWidth:[.3,2,'mult',.3],dotHeight:[.3,2,'mult',.3],sizeVariation:[0,.6,'add',.15],aspectRatio:[.25,4,'mult',.35],
+  spacingVariation:[0,.4,'add',.1],positionVariation:[0,.3,'add',.08],angle:[0,90,'circ',18],density:[.05,.95,'add',.2],directionAmount:[0,1,'add',.2],
+  gamma:[.4,2.5,'mult',.35],contrast:[.3,2.5,'add',.3],edgeSoftness:[0,1,'add',.25],warp:[0,1,'add',.18],warpScale:[0,1,'add',.2],noise:[0,1,'add',.14],noiseScale:[0,1,'add',.2],
+  scale:[.4,2.5,'mult',.3],frequency:[.3,4,'mult',.25],amplitude:[.05,1,'add',.1],phase:[0,Math.PI*2,'circ',Math.PI],offsetX:[-.5,.5,'add',.35],offsetY:[-.5,.5,'add',.35],
+  fade:[0,1,'add',.22],rotation:[-180,180,'rot',0],radiality:[0,1,'add',.15]};
+const SHAPE_REL={circle:['ellipse','capsule'],ellipse:['circle','capsule'],capsule:['ellipse','dash'],square:['roundsquare','diamond'],roundsquare:['square','hexagon'],
+  diamond:['square','triangle'],hexagon:['roundsquare','circle'],line:['dash','capsule'],dash:['line','capsule'],triangle:['diamond','hexagon'],cross:['diamond','square']};
+function mutKey(d,base,k,r,a){const p=PS[k];if(!p)return;const[mn,mx,kind,sp]=p,g=gauss(r);
+  if(kind==='mult')d[k]=clamp(base[k]*Math.pow(2,g*sp*a),mn,mx);
+  else if(kind==='add')d[k]=clamp(base[k]+g*sp*a,mn,mx);
+  else if(kind==='circ'){const span=mx-mn;d[k]=((base[k]+g*sp*a-mn)%span+span)%span+mn}
+  else if(kind==='rot'){const i=ROT_PRESETS.indexOf(ROT_PRESETS.reduce((q,v)=>Math.abs(v-base.rotation)<Math.abs(q-base.rotation)?v:q));const st=Math.round(g*a*2);d.rotation=ROT_PRESETS[clamp(i+st,0,ROT_PRESETS.length-1)]+(base.rotation-ROT_PRESETS[i])}
+  if(k==='cellSize')d.cellSize=Math.round(d.cellSize)}
+// Directional art-direction moves (Make denser / softer / more organic ...). s = strength 0..1.
+const MODES={
+  similar:()=>{},different:()=>{},
+  denser:(d,s)=>{d.density=d.density+.25*s;d.cellSize=d.cellSize*Math.pow(2,-.25*s)},
+  sparser:(d,s)=>{d.density=d.density-.25*s;d.cellSize=d.cellSize*Math.pow(2,.25*s)},
+  softer:(d,s)=>{d.edgeSoftness=d.edgeSoftness+.4*s;d.contrast=d.contrast-.25*s;d.gamma=d.gamma*Math.pow(2,-.25*s);d.fade=d.fade+.12*s},
+  sharper:(d,s)=>{d.edgeSoftness=d.edgeSoftness-.5*s;d.contrast=d.contrast+.35*s;d.gamma=d.gamma*Math.pow(2,.25*s);d.noise=d.noise*(1-.6*s)},
+  larger:(d,s)=>{d.dotWidth*=Math.pow(2,.35*s);d.dotHeight*=Math.pow(2,.35*s)},
+  smaller:(d,s)=>{d.dotWidth*=Math.pow(2,-.35*s);d.dotHeight*=Math.pow(2,-.35*s)},
+  organic:(d,s)=>{d.noise+=.18*s;d.warp+=.2*s;d.sizeVariation+=.15*s;d.spacingVariation+=.1*s;d.positionVariation+=.06*s;d.edgeSoftness+=.2*s;if(s>.4){d.sizeMode='organic';d.spacingMode='organic'}},
+  geometric:(d,s)=>{const k=1-s;d.noise*=k;d.warp*=k;d.sizeVariation*=k;d.spacingVariation*=k;d.positionVariation*=k;d.edgeSoftness-=.25*s;if(s>.4){d.sizeMode='uniform';d.spacingMode='uniform'}},
+  minimal:(d,s)=>{d.density-=.18*s;d.cellSize*=Math.pow(2,.3*s);d.fade+=.2*s;d.noise*=1-s;d.sizeVariation*=1-s;d.warp*=1-.7*s;d.contrast+=.15*s},
+  complex:(d,s)=>{d.frequency*=Math.pow(2,.4*s);d.noise+=.1*s;d.warp+=.12*s;d.radiality+=.15*s;d.density+=.1*s;d.sizeVariation+=.1*s}};
+function fixDNA(d){for(const k in PS){const[mn,mx]=PS[k];if(typeof d[k]==='number')d[k]=clamp(d[k],mn,mx)}d.cellSize=Math.round(d.cellSize);d.symmetry=d.symmetry|0;return d}
+// One controlled variation of `base`: only a few matrix groups change at once, locks always win,
+// the pattern (visual family) is kept for "from master", and dot shape only moves to related shapes.
+function makeVariation(base,r,amt,mode,o={}){
+  const L=o.locks||lockedKeys(),groups=(o.matrix||matrixGroups()).filter(g=>g[2].some(k=>!L.has(k))),d={...base};
+  const a=mode==='different'?Math.min(1.2,amt*1.6+.15):mode==='similar'?amt*.6:amt;
+  const pool=groups.slice();for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  const nG=pool.length<=3?pool.length:Math.min(pool.length,2+Math.round(a*(mode==='different'?6:4)));
+  for(const[gk,,keys]of pool.slice(0,nG)){
+    if(gk==='size'){const g=gauss(r)*.3*a;d.dotWidth=clamp(base.dotWidth*Math.pow(2,g),.3,2);d.dotHeight=clamp(base.dotHeight*Math.pow(2,g),.3,2);if(!L.has('sizeVariation'))mutKey(d,base,'sizeVariation',r,a);continue}
+    if(gk==='shape'){if(!L.has('aspectRatio'))mutKey(d,base,'aspectRatio',r,a*.7);if(!L.has('dotShape')&&r()<.35*a&&SHAPE_REL[base.dotShape])d.dotShape=spick(r,SHAPE_REL[base.dotShape]);continue}
+    for(const k of keys)if(!L.has(k))mutKey(d,base,k,r,a)}
+  if(MODES[mode]){const s=Math.max(.35,amt);const b={...d};MODES[mode](d,s);for(const k in d)if(L.has(k))d[k]=b[k]}
+  for(const k of L)d[k]=base[k];
+  if(o.keepPattern!==false)d.pattern=base.pattern;
+  d.seed=(r()*1e9)>>>0;if(L.has('frequency'))d.seed=base.seed;   // composition lock keeps the noise / warp field
+  return fixDNA(d)}
+// random, seeded design for "Random collection"
+const PATTERNS=['circle','square','triangle','wave','burst','ring','grid','spiral','curve','gradient'];
+const DOTCOLORS=['#1c1b1a','#3a3733','#8a6d3b','#b5792e'];
+const BGCOLORS=['#f2efe9','#ffffff','#ece7de'];
+function randomDNA(r){const L=lockedKeys(),d=normDNA({...CUR,pattern:spick(r,PATTERNS),cellSize:Math.round(6+r()*14),gamma:.6+r()*1.2,angle:Math.round(r()*90),invert:r()<.25,
+  dotShape:spick(r,['circle','square','diamond','line','ellipse','roundsquare','hexagon','dash','capsule']),color:spick(r,DOTCOLORS),background:spick(r,BGCOLORS),transparent:false,cmyk:r()<.25,phase:r()*Math.PI*2,
+  density:.3+r()*.4,rotation:spick(r,ROT_PRESETS),frequency:Math.pow(2,(r()-.5)*1.2),scale:Math.pow(2,(r()-.5)*.8),seed:(r()*1e9)>>>0});
+  for(const k of L)d[k]=CUR[k];return fixDNA(d)}
+// the old random variant API (kept), now seeded
+function randomVariant(r=rngOf(MSEED,'legacy',++SHUF)){const d=randomDNA(r);return{pattern:d.pattern,cell:d.cellSize,gamma:d.gamma,angle:d.angle,invert:d.invert,dotShape:d.dotShape,dot:d.color,bg:d.background,transparent:false,cmyk:d.cmyk,phase:d.phase,img:null}}
+
+// ---------- SIMILARITY ENGINE (DNA, not pixels) ----------
+// weighted structural comparison; calibrated so an unrelated design scores ~0% and an identical one 100%
+const K=(x,s)=>Math.exp(-(x/s)*(x/s));
+const circD=(a,b,p)=>{const d=Math.abs(a-b)%p;return Math.min(d,p-d)};
+function simRaw(a,b){const t=[
+  [a.pattern===b.pattern?1:0,3],[a.dotShape===b.dotShape?1:(SHAPE_REL[a.dotShape]||[]).includes(b.dotShape)?.5:0,1.6],
+  [K(Math.log2(a.cellSize/b.cellSize),.3),1.5],[K(a.density-b.density,.12),1.4],[K(circD(a.angle,b.angle,90),10),1],
+  [K(Math.log2((a.dotWidth*a.dotHeight)/(b.dotWidth*b.dotHeight))/2,.22),1.2],[K(Math.log2(a.aspectRatio/b.aspectRatio),.3),.8],
+  [K(a.sizeVariation-b.sizeVariation,.1),.5],[K(a.spacingVariation-b.spacingVariation,.08),.5],[K(a.positionVariation-b.positionVariation,.06),.4],
+  [K(a.warp-b.warp,.1),1],[K(a.warpScale-b.warpScale,.2),.3],[K(a.noise-b.noise,.1),.6],
+  [K(Math.log2(a.scale/b.scale),.22),1],[K(Math.log2(a.frequency/b.frequency),.22),.9],[K(a.amplitude-b.amplitude,.1),.5],[K(circD(a.rotation,b.rotation,360),12),.8],
+  [a.symmetry===b.symmetry?1:0,.5],[K(a.radiality-b.radiality,.15),.5],[a.direction===b.direction?K(a.directionAmount-b.directionAmount,.25):0,.6],
+  [K(circD(a.phase,b.phase,Math.PI*2),.7),.6],[K(Math.hypot(a.offsetX-b.offsetX,a.offsetY-b.offsetY),.2),.4],
+  [K(Math.log2(a.gamma/b.gamma),.22),1],[K(a.contrast-b.contrast,.2),.6],[K(a.edgeSoftness-b.edgeSoftness,.2),.5],[K(a.fade-b.fade,.14),.5],
+  [a.invert===b.invert?1:0,.6],[a.cmyk===b.cmyk?1:0,.4]];let s=0,w=0;for(const[v,k]of t){s+=v*k;w+=k}return s/w}
+const SIM_FLOOR=.45;
+const simDNA=(a,b)=>clamp((simRaw(a,b)-SIM_FLOOR)/(1-SIM_FLOOR),0,1);
+// uniqueness levels = the maximum similarity allowed to any existing design
+const UNIQ={conservative:.96,balanced:.91,strict:.84,extreme:.75};
+
+// ---------- MASTER DESIGN ----------
+function masterDNA(){return MASTER?{...MASTER}:{...CUR}}
+function updMasterInfo(){$('masterInfo').textContent=MASTER?`Master: ${MASTER.pattern} · ${MASTER.dotShape} dots · ${MASTER.cellSize}px · ${Math.round(MASTER.angle)}° · density ${Math.round(MASTER.density*100)}`:'No master saved yet: the current editor design is used as the master.'}
+$('saveMaster').onclick=()=>{MASTER={...CUR};updMasterInfo();toast('Master saved')};
+$('resetMaster').onclick=()=>{if(!MASTER)return toast('Save a master first');CUR={...MASTER};syncUI();renderMain();toast('Editor reset to master')};
+$('makeVar').onclick=()=>{const base=masterDNA(),r=rngOf(MSEED,'variation',++VARN);CUR=makeVariation(base,r,+$('vAmount').value/100,$('vMode').value);syncUI();renderMain();
+  toast(`Variation ${VARN} · ${Math.round(simDNA(CUR,base)*100)}% similar to master`)};
+const MODE_BTNS=[['similar','Make similar'],['different','Make different'],['denser','Denser'],['sparser','Sparser'],['softer','Softer'],['sharper','Sharper'],['larger','Larger dots'],['smaller','Smaller dots'],['organic','More organic'],['geometric','More geometric'],['minimal','More minimal'],['complex','More complex']];
+for(const[m,n]of MODE_BTNS){const b=document.createElement('button');b.className='ghost';b.textContent=n;b.onclick=()=>{const r=rngOf(MSEED,'mode',m,++VARN),before={...CUR},amt=Math.max(.25,+$('vAmount').value/100);
+  CUR=m==='similar'||m==='different'?makeVariation(CUR,r,amt,m):(()=>{const d={...CUR},L=lockedKeys();MODES[m](d,Math.max(.35,amt));for(const k of L)d[k]=before[k];return fixDNA(d)})();
+  syncUI();renderMain();toast(`${n} · ${Math.round(simDNA(CUR,before)*100)}% similar to before`)};$('modeBtns').append(b)}
+
+// ---------- SAVE / LOAD / COPY DNA (plain JSON, never image data) ----------
+const dnaFile=()=>({type:'halftone-dna',v:1,seed:MSEED,dna:{...CUR},master:MASTER?{...MASTER}:null});
+$('saveDNA').onclick=()=>download(new Blob([JSON.stringify(dnaFile(),null,1)],{type:'application/json'}),`halftone-dna-${CUR.pattern}.json`);
+$('copyDNA').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(dnaFile(),null,1));toast('DNA copied')}catch(e){toast('Clipboard not available')}};
+$('loadDNA').onclick=()=>$('dnaFile').click();
+$('dnaFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const o=JSON.parse(await f.text()),d=o.dna||o;CUR=normDNA(d);if(o.master)MASTER=normDNA(o.master);if(o.seed){setSeed(o.seed);$('slk').checked=true}
+  syncUI();updMasterInfo();renderMain();toast('DNA loaded')}catch(err){toast('Not a valid DNA file')}};
+
+// ---------- exports ----------
+// Raster output: the design (DW×DH units) is re-rendered at the real output size (OW×OH px), never upscaled from the preview.
+// PNG keeps true alpha when Transparent is on; JPG always gets the selected background colour.
+function rasterBlob(d,img,DW,DH,OW,OH,fmt){return new Promise((res,rej)=>{const c=document.createElement('canvas');c.width=OW;c.height=OH;
+  try{renderDNA(c,fmt==='jpg'?{...d,transparent:false}:d,img,DW,DH)}catch(e){c.width=c.height=0;return rej(e)}
+  c.toBlob(b=>{c.width=c.height=0;b?res(b):rej(new Error('encoding failed (image too large?)'))},fmt==='jpg'?'image/jpeg':'image/png',.92)})}
+const expStem=()=>`${slug($('pPrefix').value)||'halftone'}-${ratioTok()}`;
+async function exportMain(fmt){const[OW,OH]=outDims();toast(`Rendering ${OW}×${OH}…`);await new Promise(r=>setTimeout(r,30));
+  try{const b=fmt==='svg'?new Blob([svgString(CUR,srcCanvas,hCanvas.width,hCanvas.height,OW,OH)],{type:'image/svg+xml'}):await rasterBlob(CUR,srcCanvas,hCanvas.width,hCanvas.height,OW,OH,fmt);
+    download(b,`${expStem()}.${fmt}`)}catch(e){toast('Export failed: '+e.message)}}
+$('expPNG').onclick=()=>exportMain('png');
+$('expJPG').onclick=()=>exportMain('jpg');
+// SVG: same dots as the canvas; morphed / new shapes use one unit symbol per shape, scaled per dot
+const UNIT_SVG={circle:'<circle r="1"/>',ellipse:'<ellipse rx="1" ry="0.62"/>',square:'<rect x="-1" y="-1" width="2" height="2"/>',roundsquare:'<rect x="-1" y="-1" width="2" height="2" rx="0.42"/>',
+  diamond:'<polygon points="0,-1 1,0 0,1 -1,0"/>',triangle:'<polygon points="0,-1.15 1,0.62 -1,0.62"/>',hexagon:'<polygon points="1,0 0.5,0.866 -0.5,0.866 -1,0 -0.5,-0.866 0.5,-0.866"/>',
+  cross:'<polygon points="-0.34,-1 0.34,-1 0.34,-0.34 1,-0.34 1,0.34 0.34,0.34 0.34,1 -0.34,1 -0.34,0.34 -1,0.34 -1,-0.34 -0.34,-0.34"/>',
+  dash:'<rect x="-0.85" y="-0.27" width="1.7" height="0.54" rx="0.27"/>',capsule:'<rect x="-1" y="-0.5" width="2" height="1" rx="0.5"/>'};
+function dotSvgMarkup(x,y,r,shape,angleDeg,color,sx=1,sy=1){
+  if(r<=0.6) return '';
+  if(sx===1&&sy===1&&['circle','square','diamond','line'].includes(shape)){
+    const rot=shape==='circle'?'':` transform="rotate(${angleDeg} ${x.toFixed(1)} ${y.toFixed(1)})"`;
+    if(shape==='circle') return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="${color}"/>`;
+    if(shape==='square') return `<rect x="${(x-r).toFixed(1)}" y="${(y-r).toFixed(1)}" width="${(r*2).toFixed(2)}" height="${(r*2).toFixed(2)}" fill="${color}"${rot}/>`;
+    if(shape==='diamond') return `<polygon points="${x.toFixed(1)},${(y-r).toFixed(1)} ${(x+r).toFixed(1)},${y.toFixed(1)} ${x.toFixed(1)},${(y+r).toFixed(1)} ${(x-r).toFixed(1)},${y.toFixed(1)}" fill="${color}"${rot}/>`;
+    const hh=Math.max(1,r*0.28); return `<rect x="${(x-r).toFixed(1)}" y="${(y-hh).toFixed(1)}" width="${(r*2).toFixed(2)}" height="${(hh*2).toFixed(2)}" fill="${color}"${rot}/>`;
+  }
+  const rot=shape==='circle'&&sx===sy?'':` rotate(${angleDeg})`;
+  if(shape==='line'){const hh=Math.max(1,r*sy*0.28);return `<rect x="${(-r*sx).toFixed(2)}" y="${(-hh).toFixed(2)}" width="${(r*sx*2).toFixed(2)}" height="${(hh*2).toFixed(2)}" fill="${color}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})${rot}"/>`}
+  return `<use href="#u-${shape}" fill="${color}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})${rot} scale(${(r*sx).toFixed(3)} ${(r*sy).toFixed(3)})"/>`;
+}
+// TRUE-VECTOR SVG: every dot is written as explicit path geometry (no <use>/<defs>/symbols, which many design apps and
+// stock validators ignore), one filled <path> per ink with an explicit fill. Same outlines as the canvas renderer.
+const UNIT_GEO=(()=>{const P=pts=>[['M',...pts[0]],...pts.slice(1).map(p=>['L',...p]),['Z']];
+  const RR=(x,y,w,h,q)=>[['M',x+q,y],['L',x+w-q,y],['A',q,q,x+w,y+q],['L',x+w,y+h-q],['A',q,q,x+w-q,y+h],['L',x+q,y+h],['A',q,q,x,y+h-q],['L',x,y+q],['A',q,q,x+q,y],['Z']],t=.34;
+  return{circle:[['M',1,0],['A',1,1,-1,0],['A',1,1,1,0],['Z']],ellipse:[['M',1,0],['A',1,.62,-1,0],['A',1,.62,1,0],['Z']],
+    square:P([[-1,-1],[1,-1],[1,1],[-1,1]]),roundsquare:RR(-1,-1,2,2,.42),diamond:P([[0,-1],[1,0],[0,1],[-1,0]]),triangle:P([[0,-1.15],[1,.62],[-1,.62]]),
+    hexagon:P([0,1,2,3,4,5].map(k=>[Math.cos(k*Math.PI/3),Math.sin(k*Math.PI/3)])),
+    cross:P([[-t,-1],[t,-1],[t,-t],[1,-t],[1,t],[t,t],[t,1],[-t,1],[-t,t],[-1,t],[-1,-t],[-t,-t]]),
+    dash:RR(-.85,-.27,1.7,.54,.27),capsule:RR(-1,-.5,2,1,.5)}})();
+const n2=v=>{const r=Math.round(v*100)/100;return r===0?'0':String(r)};
+// outline of one dot in design units (all outlines clockwise, so overlapping dots of one ink merge cleanly)
+function dotPath(x,y,r,shape,angleDeg,sx=1,sy=1){
+  if(r<=0.6)return'';
+  const th=(shape!=='circle'||sx!==sy)?angleDeg*Math.PI/180:0,c=Math.cos(th),s=Math.sin(th);let geo,a=r*sx,b=r*sy;
+  if(shape==='line'){const hh=Math.max(1,r*sy*.28),ww=r*sx;geo=[['M',-ww,-hh],['L',ww,-hh],['L',ww,hh],['L',-ww,hh],['Z']];a=b=1}
+  else if(shape==='square'&&sx===1&&sy===1)geo=UNIT_GEO.square;else geo=UNIT_GEO[shape]||UNIT_GEO.circle;
+  const X=(u,v)=>n2(x+c*u*a-s*v*b)+' '+n2(y+s*u*a+c*v*b),rot=n2(th*180/Math.PI);let o='';
+  for(const g of geo){if(g[0]==='Z')o+='Z';else if(g[0]==='A')o+=`A${n2(g[1]*a)} ${n2(g[2]*b)} ${rot} 0 1 ${X(g[3],g[4])}`;else o+=g[0]+X(g[1],g[2])}
+  return o}
+// legacy per-element markup (kept for compatibility; exports use dotPath)
+function dotSvgMarkup(x,y,r,shape,angleDeg,color,sx=1,sy=1){const p=dotPath(x,y,r,shape,angleDeg,sx,sy);return p?`<path fill="${color}" d="${p}"/>`:''}
+function svgString(d,img,w,h,OW=w,OH=h){
+  const parts=new Map();
+  eachRenderedDot(d,w,h,img,(x,y,r,angle,color,sx,sy)=>{const p=dotPath(x,y,r,d.dotShape,angle,sx,sy);if(!p)return;const k=color+'|'+angle;let a=parts.get(k);if(!a)parts.set(k,a=[]);a.push(p)});
+  const path=(k,fill)=>{const a=parts.get(k);return a&&a.length?`<path fill="${fill}" d="${a.join('')}"/>`:''};
+  let body='';
+  if(d.cmyk) CMYK.forEach(ch=>{ body+=`<g opacity="0.82" style="mix-blend-mode:multiply">${path(ch.c+'|'+ch.a,ch.c)}</g>`; });
+  else if(d.inks&&d.inks.length) d.inks.forEach(k=>{ body+=path(k.c+'|'+(d.angle+k.a),k.c); });
+  else if(d.colorSource) for(const k of parts.keys())body+=path(k,k.split('|')[0]);
+  else body=path(d.color+'|'+d.angle,d.color);
+  const bg=d.transparent?'':`<rect x="0" y="0" width="${w}" height="${h}" fill="${d.background}"/>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 ${w} ${h}" width="${OW}" height="${OH}"><title>Halftone</title>${bg}${body}</svg>`}
+$('expSVG').onclick=()=>exportMain('svg');
+
+// ---------- BATCH GENERATION ----------
+// DNA first (fast, similarity-checked), thumbnails rendered afterwards in small async chunks.
+let BATCH=null,LASTACC=[];
+// similarity-curated collection: every accepted design stays below the uniqueness threshold vs the master and all others
+async function curate(n,src,base,uq,amt,mode,L,M,onTick){
+  const thr=UNIQ[uq],acc=[],S={generated:0,accepted:0,rejected:0,failed:0};let tb=performance.now();
+  for(let i=0;i<n;i++){let best=null;if(performance.now()-tb>12){onTick&&onTick(i,n);await new Promise(r=>setTimeout(r));tb=performance.now()}
+    for(let at=0;at<40;at++){S.generated++;const r=rngOf(MSEED,src,n,uq,amt,mode,i,at);
+      const d=src==='random'?randomDNA(r):makeVariation(base,r,Math.min(1.3,amt+at*.035),mode,{locks:L,matrix:M});
+      const others=src==='random'?acc:[base,...acc];let mx=0;for(const o of others){const v=simDNA(d,o.dna||o);if(v>mx)mx=v;if(mx>=thr)break}
+      if(mx<thr){acc.push({dna:d,sim:src==='random'?null:simDNA(d,base)});S.accepted++;best=null;break}
+      S.rejected++;best=d}
+    if(best)S.failed++}
+  return{acc,S}}
+async function genBatch(){
+  if(BATCH)return;
+  if(!$('slk').checked)setSeed(newSeed());
+  const n=+$('batchCount').value,src=$('batchSrc').value,amt=+$('vAmount').value/100,mode=$('vMode').value,base=masterDNA();BATCH={};
+  const{acc,S}=await curate(n,src,base,$('uniq').value,amt,mode,lockedKeys(),matrixGroups(),i=>$('stats').innerHTML=`<span class="stat">Generating ${i}/${n}…</span>`);LASTACC=acc;
+  // collection statistics
+  let pair=0,pc=0;const nn=acc.map(()=>0);
+  for(let i=0;i<acc.length;i++)for(let j=i+1;j<acc.length;j++){const v=simDNA(acc[i].dna,acc[j].dna);pair+=v;pc++;if(v>nn[i])nn[i]=v;if(v>nn[j])nn[j]=v}
+  const uq=acc.length>1?nn.reduce((a,b)=>a+(1-b),0)/acc.length:1,ms=acc.filter(a=>a.sim!=null).map(a=>1-a.sim);
+  const pct=v=>Math.round(v*100)+'%';
+  $('stats').innerHTML=[[S.generated,'Generated'],[S.accepted,'Accepted'],[S.rejected,'Rejected'],[pc?pct(pair/pc):'—','Average similarity'],[pct(uq),'Collection uniqueness (avg difference to nearest)'],
+    [ms.length?`${pct(Math.min(...ms))}–${pct(Math.max(...ms))}`:'—','Variation range (from master)']].map(([v,k])=>`<span class="stat"><b>${v}</b>${k}</span>`).join('')+
+    (S.failed?`<span class="stat">${S.failed} slot(s) could not reach this uniqueness · try a higher variation amount or a lower uniqueness level</span>`:'');
+  // thumbnails
+  const w=hCanvas.width,h=hCanvas.height,tw=Math.min(300,w),box=$('thumbs');box.innerHTML='';
+  for(let i=0;i<acc.length;i++){const{dna,sim}=acc[i],wrap=document.createElement('div');wrap.className='thumb';
+    const prev=document.createElement('canvas');prev.width=tw;prev.height=Math.round(tw*h/w);prev.title='Click to load into the editor';
+    prev.onclick=()=>{CUR={...dna};syncUI();renderMain();toast('Loaded into editor')};
+    const bar=document.createElement('div');bar.className='tbar';bar.innerHTML=`<span>#${String(i+1).padStart(2,'0')} ${dna.pattern}${sim!=null?' · '+Math.round(sim*100)+'% sim':''}</span>`;
+    const dl=document.createElement('button');dl.textContent='Download';
+    dl.onclick=async e=>{e.stopPropagation();const[OW,OH]=outDims();try{download(await rasterBlob(dna,srcCanvas,w,h,OW,OH,'png'),`${slug($('pPrefix').value)||'halftone'}-${String(i+1).padStart(3,'0')}.png`)}catch(err){toast('Export failed: '+err.message)}};
+    bar.appendChild(dl);wrap.appendChild(prev);wrap.appendChild(bar);box.appendChild(wrap);
+    renderDNA(prev,dna,srcCanvas,w,h);
+    if(i%2===1)await new Promise(r=>setTimeout(r))}
+  BATCH=null;toast(`${acc.length} designs · seed ${MSEED}`);return acc}
+$('genBatch').onclick=()=>genBatch();
+
+// ================= PRODUCTION: queue → halftone → colour → formats → ZIP =================
+function slug(s){return String(s||'').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)}
+const collName=()=>String($('pColl').value||'').normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9_-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60)||'Halftone_Collection';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// ---------- batch colour ----------
+const BCOL=[['master','Master colour',null],['original','Keep original',null],['mono','Monochrome','#262626'],['black','Black','#000000'],['white','White','#ffffff'],['gold','Gold','#c9a227'],
+  ['silver','Silver','#a8a9ad'],['red','Red','#d62828'],['blue','Blue','#1d4ed8'],['green','Green','#2e7d32'],['purple','Purple','#6d28d9'],['custom','Custom',null]];
+$('colorBox').innerHTML=BCOL.map(([k,n,c])=>`<label class="checklabel"><input type="checkbox" data-c="${k}"${k==='master'?' checked':''}>${c?`<span class="swatch" style="background:${c}"></span>`:''}${n}</label>`).join('');
+const hex2rgb=h=>{h=String(h).replace('#','');if(h.length===3)h=h.replace(/./g,'$&$&');const n=parseInt(h,16)||0;return[n>>16&255,n>>8&255,n&255]};
+const lum=h=>{const[r,g,b]=hex2rgb(h);return(.2126*r+.7152*g+.0722*b)/255};
+// deterministic partner ink: rotate hue, move lightness
+function shiftHue(hex,deg,L){let[r,g,b]=hex2rgb(hex).map(v=>v/255);const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0,l=(mx+mn)/2;
+  if(mx!==mn){const dd=mx-mn;s=l>.5?dd/(2-mx-mn):dd/(mx+mn);h=mx===r?(g-b)/dd+(g<b?6:0):mx===g?(b-r)/dd+2:(r-g)/dd+4;h/=6}
+  h=((h+deg/360)%1+1)%1;s=Math.max(s,.35);l=L;const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q,f=t=>{t=(t%1+1)%1;return t<1/6?p+(q-p)*6*t:t<1/2?q:t<2/3?p+(q-p)*(2/3-t)*6:p};
+  return'#'+[f(h+1/3),f(h),f(h-1/3)].map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('')}
+const palette=()=>($('cPalette').value.match(/#?[0-9a-f]{6}\b/gi)||[]).slice(0,4).map(c=>c[0]==='#'?c:'#'+c);
+function colorVersions(){const m=$('cMode').value;if(m==='cmyk')return['cmyk'];if(m==='palette')return['palette'];
+  const v=[...document.querySelectorAll('#colorBox input:checked')].map(i=>i.dataset.c);return v.length?v:['master']}
+function applyColor(base,key,S,hasImg){const keep=key==='master'&&S.cMode==='single',d={...base,colorSource:keep&&base.colorSource&&hasImg,inks:keep&&base.inks?base.inks.map(k=>({...k})):null};
+  if(keep)return d;
+  if(key==='cmyk'){d.cmyk=true;return d}
+  if(key==='original'&&hasImg){d.cmyk=false;d.colorSource=true;return d}
+  if(key==='palette'){const p=S.palette.length?S.palette:['#1c1b1a'];d.cmyk=false;d.color=p[p.length-1];
+    d.inks=p.length>1?p.map((c,i)=>({c,a:[45,15,75,0][i],g:+lerp(.5,1.8,i/(p.length-1)).toFixed(2)})):null}
+  else{const e=BCOL.find(x=>x[0]===key);if(e&&e[2]){d.color=e[2];d.cmyk=false}else if(key==='custom'){d.color=S.custom;d.cmyk=false}
+    if(key==='mono')d.background='#ffffff'}
+  if(!d.cmyk&&Math.abs(lum(d.color)-lum(d.background))<.3)d.background=lum(d.color)>.5?'#141414':'#ffffff';   // keep ink readable on JPG / opaque PNG
+  if(!d.cmyk&&S.cMode==='duotone')d.inks=[{c:shiftHue(d.color,40,.62),a:30,g:.55},{c:d.color,a:0,g:1.5}];
+  if(!d.cmyk&&S.cMode==='tritone')d.inks=[{c:shiftHue(d.color,-40,.74),a:60,g:.4},{c:shiftHue(d.color,40,.56),a:30,g:.85},{c:d.color,a:0,g:1.8}];
+  return d}
+
+// ---------- queue state ----------
+const Q=[];let QID=0,RUN=null;const CANCEL={};
+const fmtsSel=()=>['png','jpg','svg'].filter(f=>$('f'+f.toUpperCase()).checked);
+function snapshot(){const[OW,OH]=outDims();return{master:masterDNA(),bVar:$('bVar').value,amt:+$('vAmount').value/100,mode:$('vMode').value,L:lockedKeys(),M:matrixGroups(),
+  versions:colorVersions(),cMode:$('cMode').value,custom:$('cCustom').value,palette:palette(),fmts:fmtsSel(),DW:hCanvas.width,DH:hCanvas.height,OW,OH,
+  ratio:ratioTok(),prefix:slug($('pPrefix').value)||'halftone',ratioNames:$('pRatio').checked,fit:CUR.imgFit,pad:CUR.imgPad,seed:MSEED,bgOut:$('bgOut').value}}
+const IMG_OK=/\.(png|jpe?g|webp|svg)$/i;
+function addFiles(list){let n=0,skip=0;for(const f of list){if(!IMG_OK.test(f.name)&&!/^image\/(png|jpeg|webp|svg\+xml)$/.test(f.type)){skip++;continue}
+    const base=slug(f.name.replace(/\.[^.]+$/,''))||'image';Q.push({id:++QID,kind:'file',file:f,base,status:'queued',out:[]});n++}
+  drawQueue();toast(`${n} file(s) queued${skip?` · ${skip} skipped (not PNG/JPG/WEBP/SVG)`:''}`)}
+const pDrop=$('pDrop'),pFiles=$('pFiles');
+pDrop.onclick=()=>pFiles.click();
+['dragover','dragenter'].forEach(ev=>pDrop.addEventListener(ev,e=>{e.preventDefault();pDrop.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>pDrop.addEventListener(ev,e=>{e.preventDefault();pDrop.classList.remove('over')}));
+pDrop.addEventListener('drop',e=>addFiles([...e.dataTransfer.files]));
+pFiles.onchange=e=>{addFiles([...e.target.files]);e.target.value=''};
+const nextNo=()=>Q.filter(i=>i.kind==='design').reduce((m,i)=>Math.max(m,i.no),0)+1;
+function addDesigns(list,src){let no=nextNo();for(const dna of list)Q.push({id:++QID,kind:'design',dna:{...dna},img:srcCanvas,no:no++,src,status:'queued',out:[]});drawQueue()}
+async function addBundle(){const n=+$('bSize').value;$('qInfo').textContent=`Curating a ${n}-design bundle from the master…`;
+  const{acc,S}=await curate(n,'master',masterDNA(),$('uniq').value,+$('vAmount').value/100,$('vMode').value,lockedKeys(),matrixGroups());
+  addDesigns(acc.map(a=>a.dna),'bundle');toast(`Bundle: ${acc.length} related designs queued${S.failed?` · ${S.failed} slot(s) could not reach the uniqueness level`:''}`)}
+async function addWorkflow(){const wf=$('wf').value;
+  if(wf==='single'){addDesigns([CUR],'single');toast('Current design queued')}
+  if(wf==='bundle'||wf==='both')await addBundle();
+  if(wf==='batch'||wf==='both'){if(!Q.some(i=>i.kind==='file'))toast('Import files first: they are queued as soon as you add them')}}
+$('qAdd').onclick=()=>addWorkflow();
+$('queueColl').onclick=()=>{if(!LASTACC.length)return toast('Generate a collection first');addDesigns(LASTACC.map(a=>a.dna),'collection');toast(`${LASTACC.length} designs queued`)};
+
+// ---------- naming (no random ids, no timestamps, no spaces) ----------
+function stemFor(it,key,S){const multi=S.versions.length>1,tok=key==='master'?'master':key;
+  if(it.kind==='file'){const p=[it.base,multi?tok:'halftone'];if(S.ratioNames)p.push(S.ratio);return p.join('-')}
+  const p=[S.prefix];if(multi)p.push(tok);if(S.ratioNames)p.push(S.ratio);p.push(String(it.no).padStart(3,'0'));return p.join('-')}
+function itemDNA(it,S){if(it.over)return{...it.over};if(it.kind==='design')return{...it.dna};
+  const base={...S.master,imgFit:S.fit,imgPad:S.pad};
+  if(S.bVar==='same')return base;
+  const r=rngOf(S.seed,'file',S.bVar,it.base,it.file.size);   // deterministic per file (name + size) for a given seed
+  return S.bVar==='random'?makeVariation(base,r,Math.max(.5,S.amt),'different',{locks:S.L,matrix:S.M}):makeVariation(base,r,Math.max(.1,S.amt),S.mode,{locks:S.L,matrix:S.M})}
+
+// ---------- processing ----------
+async function processItem(it,S){it.status='processing';it.err='';it.out=[];paintCard(it);let img=null,own=false;
+  try{
+    if(it.kind==='file'){img=await loadSource(it.file,1600);own=true}else img=it.img||null;
+    const base=itemDNA(it,S);it.dnaUsed=base;
+    for(const key of it.over?['master']:S.versions){   // an edited asset renders exactly as edited (its own colours)
+      const d=it.over?{...base}:applyColor(base,key,S,!!img),stem=stemFor(it,key,S);
+      // background variants: as designed / transparent / with background / both (JPG always has a background)
+      const bgv=S.bgOut==='both'?[['Transparent',true],['Background',false]]:S.bgOut==='transparent'?[['',true]]:S.bgOut==='background'?[['',false]]:[['',!!d.transparent]];
+      for(const fmt of S.fmts)for(const[sub,tr]of fmt==='jpg'?[['',false]]:bgv){
+        if(RUN.cancel)throw CANCEL;while(RUN.pause&&!RUN.cancel)await sleep(150);if(RUN.cancel)throw CANCEL;
+        const dv={...d,transparent:tr},blob=fmt==='svg'?new Blob([svgString(dv,img,S.DW,S.DH,S.OW,S.OH)],{type:'image/svg+xml'}):await rasterBlob(dv,img,S.DW,S.DH,S.OW,S.OH,fmt);
+        it.out.push({fmt,sub,stem,blob,w:S.OW,h:S.OH,color:key,bg:fmt==='jpg'||!tr?d.background:'transparent',src:it.kind==='file'?it.file.name:it.src});await sleep(0)}
+      if(!it.thumb){const t=document.createElement('canvas'),k=Math.min(1,150/Math.max(S.DW,S.DH));t.width=Math.round(S.DW*k*1.6);t.height=Math.round(S.DH*k*1.6);renderDNA(t,d,img,S.DW,S.DH);it.thumb=t}}
+    it.status='done'}
+  catch(e){if(e===CANCEL){it.status='queued';it.out=[];it.thumb=null}else{it.status='error';it.err=(e&&e.message)||String(e);it.out=[]}}
+  finally{if(own&&img){img.width=img.height=0}}   // release the decoded source
+  paintCard(it)}
+async function runQueue(){
+  if(RUN){if(RUN.pause){RUN.pause=false;updCtl()}return RUN.p}
+  if(!Q.some(i=>i.status==='queued')){toast('Nothing queued');return}
+  const S=snapshot();if(!S.fmts.length){toast('Choose at least one output format');return}
+  const run=RUN={pause:false,cancel:false};updCtl();
+  run.p=(async()=>{for(;;){const it=Q.find(i=>i.status==='queued');if(!it||run.cancel)break;await processItem(it,S);updProg()}
+    RUN=null;updCtl();updProg(true)})();
+  return run.p}
+function counts(){const c={queued:0,processing:0,done:0,error:0};for(const i of Q)c[i.status]++;return c}
+function updProg(end){const c=counts(),t=Q.length,fin=c.done+c.error;$('qEmptyNote').style.display=t?'none':'';$('qCount').textContent=t?`(${t})`:'';
+  const sel=Q.filter(i=>i.sel).length;$('qMini').textContent=t?`${fin} / ${t} done${c.error?` · ${c.error} failed`:''}${sel?` · ${sel} selected`:''}${RUN?(RUN.pause?' · paused':' · processing…'):''}`:'';$('qBar').style.width=t?(fin/t*100)+'%':'0';
+  const failed=Q.filter(i=>i.status==='error').map(i=>i.kind==='file'?i.file.name:'#'+String(i.no).padStart(3,'0'));
+  const files=Q.reduce((a,i)=>a+i.out.length,0);
+  $('qInfo').textContent=!t?'Queue empty.':`${fin} / ${t}${RUN?(RUN.pause?' · paused':' · processing…'):''} · ${c.done} successful · ${c.error} failed · ${files} files ready${failed.length?' · Failed: '+failed.slice(0,8).join(', ')+(failed.length>8?'…':''):''}`;
+  if(end&&t)toast(`${c.done} successful · ${c.error} failed${c.queued?` · ${c.queued} still queued`:''}`)}
+function updCtl(){$('qPause').textContent=RUN&&RUN.pause?'Resume':'Pause';$('qStart').disabled=!!RUN&&!RUN.pause}
+$('qStart').onclick=()=>runQueue();
+$('qPause').onclick=()=>{if(!RUN)return;RUN.pause=!RUN.pause;updCtl();updProg()};
+$('qCancel').onclick=()=>{if(!RUN)return;RUN.cancel=true;RUN.pause=false;toast('Cancelling · finished files are kept')};
+$('qClear').onclick=()=>{if(EDIT&&EDIT.it.status==='done')closeEdit(true);for(let i=Q.length-1;i>=0;i--)if(Q[i].status==='done')Q.splice(i,1);drawQueue()};
+$('qRetry').onclick=()=>{let n=0;for(const i of Q)if(i.status==='error'){i.status='queued';n++}drawQueue();if(n)runQueue()};
+$('qEmpty').onclick=()=>{if(RUN)return toast('Cancel the run first');if(EDIT)closeEdit(true);Q.length=0;drawQueue()};
+
+// ---------- queue grid ----------
+function drawQueue(){const g=$('qGrid');g.innerHTML='';for(const it of Q){it.el=null;paintCard(it)}updProg();if(Q.length)showTray('queue')}
+let EDIT=null;   // queue item currently opened in the editor
+function paintCard(it){const g=$('qGrid');let el=it.el;
+  if(!el){el=it.el=document.createElement('div');el.className='qc';g.appendChild(el)}
+  el.classList.toggle('editing',EDIT&&EDIT.it===it);el.classList.toggle('sel',!!it.sel);
+  const name=it.kind==='file'?it.file.name:`${it.src} #${String(it.no).padStart(3,'0')}`,lbl={queued:'Queued',processing:'Processing',done:'Done',error:'Error'}[it.status];
+  el.title=`${name}${it.err?' · '+it.err:''} · click to open in the preview`;
+  el.innerHTML=`${it.status==='done'?`<input type="checkbox" class="ck" data-a="sel" title="Select for a bundle"${it.sel?' checked':''}>`:''}<div class="pv">${it.thumb?'':it.kind==='file'?(it.file.name.split('.').pop()||'').toUpperCase():'DNA'}</div><div class="nm"></div>
+    <div class="qb"><span class="st ${it.status}">${lbl}${it.over?' · edited':''}</span>${it.status==='error'||it.status==='done'?'<button data-a="retry">Retry</button>':''}<button data-a="rm" title="Remove">✕</button></div>`;
+  el.querySelector('.nm').textContent=name;
+  if(it.thumb)el.querySelector('.pv').appendChild(it.thumb);
+  el.onclick=async e=>{const a=e.target.dataset&&e.target.dataset.a;
+    if(a==='sel'){it.sel=e.target.checked;el.classList.toggle('sel',it.sel);updProg();return}
+    if(a==='rm'){if(it.status==='processing')return toast('It is being processed');if(EDIT&&EDIT.it===it)closeEdit(true);Q.splice(Q.indexOf(it),1);el.remove();updProg();return}
+    if(a==='retry'){it.status='queued';it.out=[];it.thumb=null;paintCard(it);updProg();runQueue();return}
+    openEdit(it)}}
+// open a queue asset in the preview; "Save to asset" stores the edit on that asset and re-queues it
+async function openEdit(it){
+  if(!EDIT)EDIT={prev:{dna:{...CUR},img:srcCanvas,imgBtn:clearImg.style.display}};
+  const old=EDIT.it;EDIT.it=it;if(old&&old.el)paintCard(old);
+  let img=null;if(it.kind==='file'){try{img=await loadSource(it.file,2000)}catch(err){toast('Cannot open: '+err.message)}}else img=it.img||null;
+  if(EDIT.it!==it)return;
+  const S=snapshot(),base=itemDNA(it,S);
+  CUR=normDNA(it.over||it.kind==='design'&&!it.over?base:applyColor(base,S.versions[0],S,!!img));
+  srcCanvas=img;clearImg.style.display=img?'inline-block':'none';syncUI();renderMain();
+  $('editTag').hidden=false;$('editName').textContent=it.kind==='file'?it.file.name:`${it.src} #${String(it.no).padStart(3,'0')}`;paintCard(it);showTab('design')}
+function closeEdit(silent){if(!EDIT)return;const{prev,it}=EDIT;EDIT=null;CUR=prev.dna;srcCanvas=prev.img;clearImg.style.display=prev.imgBtn;syncUI();renderMain();$('editTag').hidden=true;if(it&&it.el)paintCard(it);if(!silent)toast('Back to your design')}
+$('editClose').onclick=()=>closeEdit();
+$('editSave').onclick=()=>{if(!EDIT)return;const it=EDIT.it;if(it.status==='processing')return toast('Wait until it finishes processing');
+  it.over={...CUR};if(it.kind==='design')it.dna={...CUR};it.status='queued';it.out=[];it.thumb=null;paintCard(it);updProg();toast('Saved to this asset · rendering it now');runQueue()};
+
+// ---------- ZIP (store for PNG/JPG, deflate for SVG / text when the browser supports it) ----------
+const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=~0;for(let i=0;i<u.length;i++)c=CRCT[(c^u[i])&255]^(c>>>8);return(~c)>>>0}
+async function makeZip(files,onProg){const enc=new TextEncoder(),parts=[],cd=[],now=new Date();let off=0,i=0;
+  const tm=(now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1),dt=((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+  for(const f of files){const raw=new Uint8Array(await f.blob.arrayBuffer()),crc=crc32(raw);let data=f.blob,size=raw.length,method=0;
+    if(f.deflate&&typeof CompressionStream!=='undefined'){try{const c=await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'))).blob();if(c.size<raw.length){data=c;size=c.size;method=8}}catch(e){}}
+    const name=enc.encode(f.path),h=new DataView(new ArrayBuffer(30)),c=new DataView(new ArrayBuffer(46));
+    [[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,method,2],[10,tm,2],[12,dt,2],[14,crc,4],[18,size,4],[22,raw.length,4],[26,name.length,2]].forEach(([o,v,n])=>n===4?h.setUint32(o,v,true):h.setUint16(o,v,true));
+    [[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,method,2],[12,tm,2],[14,dt,2],[16,crc,4],[20,size,4],[24,raw.length,4],[28,name.length,2],[42,off,4]].forEach(([o,v,n])=>n===4?c.setUint32(o,v,true):c.setUint16(o,v,true));
+    parts.push(h.buffer,name,data);cd.push(c.buffer,name);off+=30+name.length+size;
+    if(++i%4===0){onProg&&onProg(i,files.length);await sleep(0)}}
+  const cdSize=cd.reduce((a,b)=>a+b.byteLength,0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cd,e.buffer],{type:'application/zip'})}
+// collect finished outputs; the same asset keeps the same unique stem across PNG / JPG / SVG
+function zipEntries(scope,root,only){const used=new Set(),files=[],rows=[],split=only?0:+$('zSplit').value;let n=0;
+  for(const it of Q){if(it.status!=='done'||(only&&!it.sel))continue;const map=new Map(),grp=split?`Bundle_${String(Math.floor(n/split)+1).padStart(2,'0')}/`:'';n++;
+    for(const o of it.out){let st=map.get(o.stem);if(!st){st=o.stem;let k=2;while(used.has(st))st=`${o.stem}-${k++}`;used.add(st);map.set(o.stem,st)}
+      if(scope!=='all'&&o.fmt!==scope)continue;const path=`${root}${grp}${o.fmt.toUpperCase()}/${o.sub?o.sub+'/':''}${st}.${o.fmt}`;
+      files.push({path,blob:o.blob,deflate:o.fmt==='svg'});rows.push([path.slice(root.length),o.fmt,o.w,o.h,o.color,o.bg||'',o.src])}}
+  return{files,rows}}
+async function contactSheets(root){const th=Q.filter(i=>i.status==='done'&&i.thumb),out=[],per=36,cols=6,cw=240,pad=10;
+  for(let p=0;p<th.length;p+=per){const set=th.slice(p,p+per),rows=Math.ceil(set.length/cols),ch=Math.round(cw*set[0].thumb.height/set[0].thumb.width),c=document.createElement('canvas');
+    c.width=cols*(cw+pad)+pad;c.height=rows*(ch+pad+16)+pad;const x=c.getContext('2d');x.fillStyle='#ffffff';x.fillRect(0,0,c.width,c.height);x.font='11px sans-serif';x.fillStyle='#555';
+    set.forEach((it,i)=>{const cx=pad+(i%cols)*(cw+pad),cy=pad+Math.floor(i/cols)*(ch+pad+16);x.drawImage(it.thumb,cx,cy,cw,ch);x.fillText(it.out[0]?it.out[0].stem:'',cx,cy+ch+12,cw)});
+    const b=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));c.width=c.height=0;out.push({path:`${root}Preview/contact-sheet-${String(p/per+1).padStart(2,'0')}.jpg`,blob:b})}
+  return out}
+let ZIPPING=false;
+async function exportZip(scope,ready,only){if(ZIPPING)return;const coll=collName()+(only?'_Bundle':''),root=ready||only?coll+'/':'';
+  const{files,rows}=zipEntries(scope,root,only);if(only&&!files.length)return toast('Tick finished assets in the queue first');if(!files.length)return toast(scope==='all'?'No finished files yet':`No ${scope.toUpperCase()} files yet · tick ${scope.toUpperCase()} and run the queue`);
+  ZIPPING=true;try{
+    if(ready){files.push(...await contactSheets(root));const csv=v=>/[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v;
+      files.push({path:`${root}metadata/manifest.csv`,blob:new Blob([['file,format,width,height,colour,background,source',...rows.map(r=>r.map(csv).join(','))].join('\n')],{type:'text/csv'}),deflate:true});
+      const done=Q.filter(i=>i.status==='done');
+      files.push({path:`${root}metadata/settings.json`,blob:new Blob([JSON.stringify({type:'halftone-production',v:1,collection:coll,seed:MSEED,files:rows.length,assets:done.length,
+        output:{width:rows[0][2],height:rows[0][3],ratio:ratioTok()},master:masterDNA(),assetDNA:done.map(i=>({asset:i.out[0]&&i.out[0].stem,source:i.kind==='file'?i.file.name:i.src,dna:i.dnaUsed}))},null,1)],{type:'application/json'}),deflate:true})}
+    const z=await makeZip(files,(i,n)=>$('qInfo').textContent=`Zipping ${i} / ${n}…`);
+    download(z,ready||only?`${coll}.zip`:scope==='all'?`${coll}_All.zip`:`${coll}_${scope.toUpperCase()}.zip`);updProg();toast(`ZIP ready · ${files.length} files`)}
+  catch(e){toast('ZIP failed: '+e.message)}finally{ZIPPING=false}}
+$('zPNG').onclick=()=>exportZip('png');$('zJPG').onclick=()=>exportZip('jpg');$('zSVG').onclick=()=>exportZip('svg');$('zAll').onclick=()=>exportZip('all');
+$('zSel').onclick=()=>exportZip('all',false,true);
+$('selAll').onclick=()=>{for(const i of Q)if(i.status==='done')i.sel=true;drawQueue()};
+$('selNone').onclick=()=>{for(const i of Q)i.sel=false;drawQueue()};
+$('zReady').onclick=async()=>{if(!Q.length)await addWorkflow();if(Q.some(i=>i.status==='queued'))await runQueue();if(Q.some(i=>i.status==='done'))exportZip('all',true);else toast('Nothing to package yet')};
+fillQual();
+// ================= UI: sidebar tabs, tray tabs, preview modes =================
+function tabs(nav,paneSel,key){const nv=$(nav);const show=t=>{nv.querySelectorAll('button[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+    document.querySelectorAll(paneSel).forEach(p=>p.classList.toggle('on',p.dataset.p===t));try{localStorage.setItem(key,t)}catch(e){}if(t==='style')drawStyles()};
+  nv.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(b)show(b.dataset.t)});
+  let t=null;try{t=localStorage.getItem(key)}catch(e){}if(t&&nv.querySelector(`button[data-t="${t}"]`))show(t);return show}
+function setCmp(on){CMP=on;$('pvDesign').classList.toggle('on',!on);$('pvCompare').classList.toggle('on',on);$('cmp').hidden=!on;hCanvas.style.display=on?'none':'';renderMain()}
+$('pvDesign').onclick=()=>setCmp(false);$('pvCompare').onclick=()=>setCmp(true);
+
+// ================= STYLES: market-ready vintage / retro / print looks (vector-only) =================
+const LOOK0={inks:null,cmyk:false,misreg:0,distress:0,grain:0,noise:0,fade:0,positionVariation:0,spacingMode:'uniform',spacingVariation:0,sizeMode:'uniform',sizeVariation:0,
+  contrast:1,gamma:1,dotWidth:1,dotHeight:1,aspectRatio:1,edgeSoftness:1,colorSource:false,density:.5};
+const STYLES=[
+  ['Vintage newsprint',{dotShape:'circle',cellSize:8,angle:45,color:'#2b2622',background:'#efe6d2',grain:.35,distress:.12,noise:.1,gamma:1.1}],
+  ['Retro pop art',{dotShape:'circle',cellSize:16,angle:45,color:'#e63946',background:'#ffd23f',contrast:1.2}],
+  ['Comic Ben-Day CMYK',{dotShape:'circle',cellSize:12,cmyk:true,misreg:1.5,background:'#fff7e0'}],
+  ['Risograph duotone',{dotShape:'circle',cellSize:9,angle:15,background:'#f7f2e7',color:'#ff48b0',inks:[{c:'#0078bf',a:30,g:.6},{c:'#ff48b0',a:0,g:1.4}],misreg:2.2,grain:.25}],
+  ['70s screen print',{dotShape:'circle',cellSize:11,angle:20,background:'#f4e9d8',color:'#bc4b51',inks:[{c:'#f4a259',a:30,g:.55},{c:'#bc4b51',a:0,g:1.5}],misreg:1,distress:.18}],
+  ['Old engraving',{dotShape:'line',cellSize:7,angle:45,color:'#1b1b1b',background:'#f1e9d2',grain:.2,contrast:1.1}],
+  ['Worn letterpress',{dotShape:'square',cellSize:9,angle:0,color:'#1d3557',background:'#f1faee',distress:.35,grain:.4}],
+  ['Mid-century atomic',{dotShape:'hexagon',cellSize:12,angle:30,color:'#2a9d8f',background:'#f4ecd8'}],
+  ['Sepia photo',{dotShape:'circle',cellSize:7,angle:45,color:'#5b3a1e',background:'#f3e3c3',noise:.15,fade:.25,grain:.3}],
+  ['Grunge distressed',{dotShape:'circle',cellSize:10,angle:30,color:'#111111',background:'#e9e5dc',distress:.5,grain:.5,noise:.2}],
+  ['Victorian mezzotint',{dotShape:'circle',cellSize:6,angle:0,color:'#3b2f2f',background:'#efe4cf',positionVariation:.3,spacingMode:'organic',spacingVariation:.26,grain:.5,density:.6}],
+  ['Retro sunset',{dotShape:'capsule',cellSize:12,angle:45,background:'#fff1dc',color:'#6a2c70',inks:[{c:'#ffb347',a:45,g:.5},{c:'#ff6961',a:15,g:1},{c:'#6a2c70',a:0,g:1.9}],misreg:.8}],
+  ['Faded poster',{dotShape:'roundsquare',cellSize:10,angle:15,color:'#264653',background:'#e9d8a6',fade:.35,distress:.2,contrast:.85}],
+  ['Blueprint',{dotShape:'circle',cellSize:9,angle:0,color:'#e0f0ff',background:'#1b3a6b',grain:.15}]];
+const styleDNA=(base,patch)=>normDNA({...base,...LOOK0,...patch,inks:patch.inks?patch.inks.map(k=>({...k})):null});
+let STYLE_KEY='';
+function drawStyles(force){const key=JSON.stringify([CUR.pattern,CUR.imgFit,CUR.imgPad,!!srcCanvas,hCanvas.width,hCanvas.height,CUR.frequency,CUR.scale,CUR.rotation]);
+  if(!force&&key===STYLE_KEY&&$('styleGrid').children.length)return;STYLE_KEY=key;const g=$('styleGrid');g.innerHTML='';
+  const w=hCanvas.width,h=hCanvas.height,k=150/Math.max(w,h);
+  STYLES.forEach(([name,patch],i)=>{const el=document.createElement('div');el.className='sc';const c=document.createElement('canvas');c.width=Math.round(w*k*1.5);c.height=Math.round(h*k*1.5);
+    el.appendChild(c);el.insertAdjacentHTML('beforeend',`<div class="sn">${name}</div>`);el.onclick=()=>{CUR=styleDNA(CUR,patch);syncUI();renderMain();toast(name+' applied')};g.appendChild(el);
+    setTimeout(()=>renderDNA(c,styleDNA(CUR,patch),srcCanvas,w,h),i*15)})}
+// ink editor (multi-ink styles, duotone / tri-tone)
+function drawInks(){const box=$('inkBox');if(!box)return;const ks=CUR.inks||[];
+  box.innerHTML=ks.length?ks.map((k,i)=>`<label class="inkc"><input type="color" data-i="${i}" value="${k.c}">ink ${i+1}</label>`).join(''):'<span class="note">Single ink: uses the Dots colour (Design tab).</span>'}
+$('inkBox').addEventListener('input',e=>{const i=e.target.dataset.i;if(i==null||!CUR.inks)return;CUR.inks=CUR.inks.map((k,j)=>j==i?{...k,c:e.target.value}:k);if(i==CUR.inks.length-1)CUR.color=e.target.value;renderDNA(hCanvas,CUR,srcCanvas)});
+$('inkBox').addEventListener('change',()=>renderMain());
+$('inkAdd').onclick=()=>{const ks=CUR.inks&&CUR.inks.length?CUR.inks.map(k=>({...k})):[{c:CUR.color,a:0,g:1}];if(ks.length>=4)return toast('Up to 4 inks');
+  ks.unshift({c:shiftHue(ks[0].c,40,.62),a:30*ks.length,g:.5});ks.forEach((k,i)=>k.g=+lerp(.5,1.8,i/(ks.length-1)).toFixed(2));CUR.inks=ks;CUR.cmyk=false;renderMain()};
+$('inkClear').onclick=()=>{CUR.inks=null;renderMain()};
+$('dotColor').addEventListener('input',()=>{if(CUR.inks&&CUR.inks.length){CUR.inks=CUR.inks.map((k,j,a)=>j===a.length-1?{...k,c:CUR.color}:k);renderMain()}});
+const showTab=tabs('tabs','.side .pane','ht_tab'),showTray=tabs('trayTabs','.tray .tpane','ht_tray');
+
+syncUI();updMasterInfo();renderMain();
+</script>
+</body>
+</html>
